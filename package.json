@@ -1,0 +1,33 @@
+{
+  "name": "@kaibun/appwrite-fn-router",
+  "version": "0.1.0",
+  "description": "A router for Appwrite Functions",
+  "main": "dist/main.js",
+  "typings": "dist/main.d.ts",
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write .",
+    "build": "tsup"
+  },
+  "dependencies": {
+    "itty-router": "^5.0.21",
+    "node-appwrite": "^14.2.0",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "prettier": "^3.6.2",
+    "tsup": "^8.5.0"
+  },
+  "tsup": {
+    "entry": [
+      "src/main.ts"
+    ],
+    "format": [
+      "esm"
+    ],
+    "dts": true,
+    "sourcemap": true,
+    "clean": true
+  }
+}
