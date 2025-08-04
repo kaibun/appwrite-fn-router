@@ -1,6 +1,6 @@
 # Appwrite Function Router
 
-This library is a wrapper for [Itty’s `AutoRouter`](https://itty.dev/itty-router/concepts), tailored to the constraints of the Appwrite’s FaaS implementation.
+This library is a wrapper for [Itty’s `AutoRouter`](https://itty.dev/itty-router/concepts), tailored to the constraints of [Appwrite’s FaaS](https://appwrite.io/docs/products/functions/develop) implementation.
 
 ## Usage
 
@@ -26,16 +26,18 @@ export default async (context: Context) => {
   // the best practice here is to  pass that context alongside your routes
   // (defined using Itty’s API): the context is made available to the route
   // handlers):
-  handleRequest(context, (router) => {
-    // Here’s the fuction’s context back again:
-    router.get('/hello', (req, res, _log, _error) => {
+  return handleRequest(context, (router) => {
+    // In a route handler, request is a native Request object, while req is the
+    // Appwrite’s specific request flavor. You also get access to the rest of
+    // Appwrite’s function’s context: res, log and error objects.
+    router.get('/hello', (request, req, res, log, error) => {
       return res.json({
         status: 'success',
         message: 'Hello, world!',
       }) satisfies ResponseObject<MyJSONResponse>;
     });
 
-    router.post('/data', async (req, res, _log, _error) => {
+    router.post('/data', async (request, req, res, log, error) => {
       const data = await req.bodyJson;
       return res.json({
         received: data,
@@ -52,9 +54,18 @@ export default async (context: Context) => {
 
 ### Testing
 
-```sh
-npm run sync # copy the library files inside functions/Test/src/lib
-npm run test # run the function locally with Docker
-```
+> Reference: https://appwrite.io/blog/post/functions-local-development-guide
 
-TODO: investigate using `npm link` instead of copying files over, but it’s challenging with Docker.
+Prerequisites:
+
+- [Docker](https://www.docker.com/) is installed and running
+- `npm install -g appwrite-cli@latest`
+- `appwrite login` (_no need to "appwrite init project" etc. it’s all setup already_)
+
+The [./functions/Test/](./functions/Test/) folder contains an Appwrite function you may run to test against the library code developped in [./src/](./src/).
+
+The strategy is kinda brut-force: copy the library code (./src) over to ./function/Test/src/lib, then run the function with `npm install && npm run build` as its setup command within the container, which will ensure the library code is globally available, thus callable by the function handler.
+
+```sh
+npm run test # copy the library code over and run the function locally with Docker
+```

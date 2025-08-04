@@ -22,7 +22,7 @@ export type Request = {
   scheme: 'http' | 'https';
   query: JSONObject;
   queryString: string;
-  port: number;
+  port: string;
   url: string;
   path: string;
 };
