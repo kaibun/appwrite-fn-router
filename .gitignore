@@ -133,4 +133,5 @@ dist
 .appwrite
 
 # Custom files
+functions/Test/tsconfig.base.json
 functions/Test/src/lib/

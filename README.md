@@ -47,3 +47,14 @@ export default async (context: Context) => {
     router.get("/mystery", myRouteHandler);
   });
 ```
+
+## Local development
+
+### Testing
+
+```sh
+npm run sync # copy the library files inside functions/Test/src/lib
+npm run test # run the function locally with Docker
+```
+
+TODO: investigate using `npm link` instead of copying files over, but it’s challenging with Docker.

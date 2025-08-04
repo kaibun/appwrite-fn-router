@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsup",
     "format": "prettier --write .",
-    "sync": "cp -r src/* functions/Test/src/lib/",
+    "sync": "cp -r src/* functions/Test/src/lib/ && cp tsconfig.base.json functions/Test/",
     "test": "appwrite run functions --function-id 6890bbb20003ff2a1bf1"
   },
   "dependencies": {
