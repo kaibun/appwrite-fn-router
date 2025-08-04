@@ -6,8 +6,10 @@
   "typings": "dist/main.d.ts",
   "type": "module",
   "scripts": {
+    "build": "tsup",
     "format": "prettier --write .",
-    "build": "tsup"
+    "sync": "cp -r src/* functions/Test/src/lib/",
+    "test": "appwrite run functions --function-id 6890bbb20003ff2a1bf1"
   },
   "dependencies": {
     "itty-router": "^5.0.21",

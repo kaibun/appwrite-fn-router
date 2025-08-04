@@ -94,26 +94,3 @@ export async function handleRequest(
     return res.text(message, 500);
   }
 }
-
-/**
- * Examples
- */
-export default async (context: AppwriteContext) => {
-  // const { req, res, log, error } = context;
-
-  handleRequest(context, (router) => {
-    router.get('/hello', (req, res, _log, _error) => {
-      return res.json({
-        status: 'success',
-        message: 'Hello, world!',
-      }) satisfies AppwriteResponseObject<MyJSONResponse>;
-    });
-
-    router.post('/mirror', async (req, res, _log, _error) => {
-      const data = await req.bodyJson;
-      return res.json({
-        received: data,
-      });
-    });
-  });
-};
