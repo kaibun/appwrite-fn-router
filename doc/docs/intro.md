@@ -3,9 +3,9 @@ slug: /
 sidebar_position: 1
 ---
 
-# Appwrite Function Router
+# Getting Started
 
-This library is a wrapper for [Itty’s `AutoRouter`](https://itty.dev/itty-router/concepts), tailored to the constraints of [Appwrite’s FaaS](https://appwrite.io/docs/products/functions/develop) implementation.
+**This library is a wrapper for [Itty’s `Router`](https://itty.dev/itty-router/concepts), tailored to the constraints of [Appwrite’s FaaS](https://appwrite.io/docs/products/functions/develop) implementation.**
 
 ---
 

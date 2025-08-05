@@ -1,5 +1,5 @@
 ---
-id: "index"
+id: "modules"
 title: "@kaibun/appwrite-fn-router"
 sidebar_label: "Table of Contents"
 sidebar_position: 0.5
