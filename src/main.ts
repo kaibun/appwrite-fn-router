@@ -1,5 +1,5 @@
 import { inspect } from 'node:util';
-import { AutoRouter, IRequest, RouterOptions, Router } from 'itty-router';
+import { cors, IRequest, RouterOptions, Router } from 'itty-router';
 import type {
   Context as AppwriteContext,
   JSONObject,
@@ -43,6 +43,8 @@ export function tracePrototypeChainOf(object: object) {
 // TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
 // export type WrapperRequestType = AppwriteRequest & IRequest;
 export type WrapperRequestType = IRequest;
+
+const { preflight, corsify } = cors();
 
 // Creating an AutoRouter instance, adjusting types to match the Appwrite context
 export function createRouter({
@@ -147,7 +149,40 @@ export async function handleRequest(
         req.headers['x-appwrite-key'] || '';
     }
     // console.log(JSON.stringify(process.env, null, 2));
-    const router = createRouter();
+    const router = createRouter({
+      before: [
+        async (req, req_appwrite, res, log, error) => {
+          const response = preflight(req);
+          if (response) {
+            const body = await response.text();
+            const statusCode = response.status;
+            const headers = Object.fromEntries(response.headers.entries());
+            return res.send(body, statusCode, headers);
+          }
+        },
+      ],
+      finally: [
+        async (responseFromRoute, request, req_appwrite, res, log, error) => {
+          if (responseFromRoute) {
+            // Re-create a native Response to be able to pass it to corsify
+            const nativeResponse = new Response(responseFromRoute.body, {
+              status: responseFromRoute.statusCode,
+              headers: responseFromRoute.headers,
+            });
+            const corsifiedResponse = corsify(nativeResponse, request);
+
+            const body = await corsifiedResponse.text();
+            const statusCode = corsifiedResponse.status;
+            const headers = Object.fromEntries(
+              corsifiedResponse.headers.entries()
+            );
+            return res.send(body, statusCode, headers);
+          }
+        },
+      ],
+      // before: [preflight],
+      // finally: [corsify],
+    });
     withRouter(router);
 
     log('\n[router] Router has been augmented with routes:');
@@ -182,8 +217,7 @@ export async function handleRequest(
     );
     // Passing along the request and misc. objects from the Appwrite context
     const response = await router.fetch(
-      // request, // IRequest
-      req,
+      request, // IRequest
       req, // The original Appwrite’s Request
       res, // The original Appwrite’s Response
       log, // The original or muted Appwrite’s DefaultLogger

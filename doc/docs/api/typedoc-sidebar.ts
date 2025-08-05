@@ -9,6 +9,11 @@ const typedocSidebar: SidebarsConfig = {
           type: "doc",
           id: "api/type-aliases/Options",
           label: "Options"
+        },
+        {
+          type: "doc",
+          id: "api/type-aliases/WrapperRequestType",
+          label: "WrapperRequestType"
         }
       ]
     },

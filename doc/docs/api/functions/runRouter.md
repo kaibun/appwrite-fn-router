@@ -2,13 +2,13 @@
 
 > **runRouter**(`router`, `__namedParameters`): `Promise`\<`ResponseObject`\>
 
-Defined in: [main.ts:58](https://github.com/kaibun/appwrite-fn-router/blob/0ba48f1ef9af8fc6e718878aa8c407b882f421f7/src/main.ts#L58)
+Defined in: [main.ts:67](https://github.com/kaibun/appwrite-fn-router/blob/9616e61c1f34335765f26e66e2bf8c0469d73023/src/main.ts#L67)
 
 ## Parameters
 
 ### router
 
-`AutoRouterType`\<`IRequest`\>
+`RouterType`\<`IRequest`\>
 
 ### \_\_namedParameters
 

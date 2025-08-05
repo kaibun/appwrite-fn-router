@@ -167,6 +167,7 @@ const config: Config = {
         showNavLink: true, // optional, default is true
         configuration: {
           url: 'https://raw.githubusercontent.com/kaibun/appwrite-fn-router/refs/heads/docusaurus-scalar/openapi/tsp-output/schema/openapi.0.1.0.yaml',
+          proxyUrl: 'https://proxy.scalar.com',
         },
       } as ScalarOptions,
     ],

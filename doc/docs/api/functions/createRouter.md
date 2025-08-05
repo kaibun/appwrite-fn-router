@@ -1,9 +1,15 @@
 # Function: createRouter()
 
-> **createRouter**(): `AutoRouterType`\<`IRequest`, \[`Request`, `Response`, `DefaultLogger`, `ErrorLogger`\] & `any`[], `ResponseObject`\>
+> **createRouter**(`__namedParameters`): `RouterType`\<`IRequest`, \[`Request`, `Response`, `DefaultLogger`, `ErrorLogger`\] & `any`[], `ResponseObject`\>
 
-Defined in: [main.ts:42](https://github.com/kaibun/appwrite-fn-router/blob/0ba48f1ef9af8fc6e718878aa8c407b882f421f7/src/main.ts#L42)
+Defined in: [main.ts:50](https://github.com/kaibun/appwrite-fn-router/blob/9616e61c1f34335765f26e66e2bf8c0469d73023/src/main.ts#L50)
+
+## Parameters
+
+### \_\_namedParameters
+
+`RouterOptions`\<`IRequest`, \[`Request`, `Response`, `DefaultLogger`, `ErrorLogger`\] & `any`[]\> = `{}`
 
 ## Returns
 
-`AutoRouterType`\<`IRequest`, \[`Request`, `Response`, `DefaultLogger`, `ErrorLogger`\] & `any`[], `ResponseObject`\>
+`RouterType`\<`IRequest`, \[`Request`, `Response`, `DefaultLogger`, `ErrorLogger`\] & `any`[], `ResponseObject`\>
