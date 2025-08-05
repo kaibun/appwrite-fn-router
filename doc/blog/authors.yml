@@ -23,3 +23,9 @@ slorber:
     linkedin: sebastienlorber
     github: slorber
     newsletter: https://thisweekinreact.com
+
+jd:
+  name: John Doe
+  title: Developer
+  url: https://github.com/johndoe
+  image_url: https://github.com/johndoe.png

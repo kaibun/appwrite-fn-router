@@ -23,7 +23,7 @@ function createRouter(
 >;
 ```
 
--   `options`: An optional configuration object from `itty-router`. You can use this to define a base path for all routes, or to add global middleware (`before`, `finally`).
+- `options`: An optional configuration object from `itty-router`. You can use this to define a base path for all routes, or to add global middleware (`before`, `finally`).
 
 ## Usage
 
@@ -34,10 +34,11 @@ However, `createRouter` is very useful for creating nested or "sub-routers" to b
 Here is how you can create a sub-router for a `/categories` API endpoint and attach it to your main router.
 
 **`src/routes/categories.ts`**
+
 ```typescript
 import { createRouter } from 'appwrite-fn-router';
 
-// 1. Create a router with a base path. 
+// 1. Create a router with a base path.
 //    All routes defined here will be prefixed with /categories.
 const categoriesRouter = createRouter({ base: '/categories' });
 
@@ -56,6 +57,7 @@ export default categoriesRouter;
 ```
 
 **`src/main.ts`**
+
 ```typescript
 import { handleRequest } from 'appwrite-fn-router';
 import categoriesRouter from './routes/categories.ts';
@@ -65,7 +67,7 @@ export default async (context) => {
     mainRouter.get('/', () => ({ message: 'This is the main router' }));
 
     // 2. Attach the sub-router.
-    //    The .all() method forwards any request matching /categories/* 
+    //    The .all() method forwards any request matching /categories/*
     //    to the categoriesRouter.
     mainRouter.all('/categories/*', categoriesRouter.fetch);
   });
