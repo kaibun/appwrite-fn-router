@@ -1,0 +1,590 @@
+openapi: 3.1.0
+info:
+  title: Widget Service
+  x-termsOfService: https://appwrite-fn-router.appwrite.io/terms
+  x-version: 1.0.0
+  x-description: A service for managing widgets.
+  x-license:
+    name: MIT
+    url: https://opensource.org/license/mit/
+  x-contact:
+    name: Maintainer
+    email: support+afr@kaibun.net
+  description: Testing API for Appwrite Function Router
+  version: 0.1.0
+tags:
+  - name: Widgets
+  - name: Secret Widget
+paths:
+  /widgets:
+    get:
+      operationId: Widgets_listWidgets
+      description: List widgets
+      parameters:
+        - $ref: '#/components/parameters/CommonParameters.locale'
+        - $ref: '#/components/parameters/CommonParameters.clientVersion'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetList'
+              example:
+                items:
+                  - id: widget1
+                    weight: 10
+                    color: red
+                  - id: widget2
+                    weight: 20
+                    color: blue
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+    post:
+      operationId: Widgets_createWidget
+      description: Create a widget
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+              example:
+                id: widget1
+                weight: 10
+                color: red
+        '202':
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WidgetCreate'
+            example:
+              id: widget1
+              weight: 10
+              color: red
+        description: The widget to create.
+  /widgets/secret:
+    get:
+      operationId: Widgets_secretOperation
+      description: Accessing the daily secret widget is a premium feature requiring authentication
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+              example:
+                id: widget-secret
+                weight: 200
+                color: gold
+        '401':
+          description: Unauthorized error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+        - Secret Widget
+      security:
+        - BearerAuth: []
+  /widgets/{id}:
+    get:
+      operationId: Widgets_getWidget
+      description: Read widgets
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the widget to retrieve.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+              example:
+                id: widget1
+                weight: 10
+                color: red
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+    patch:
+      operationId: Widgets_updateWidget
+      description: Update a widget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the widget to update.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+              example:
+                id: widget1
+                weight: 15
+                color: blue
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/WidgetMergePatchUpdate'
+        description: The widget data to update.
+    delete:
+      operationId: Widgets_deleteWidget
+      description: Delete a widget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the widget to delete.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+    post:
+      operationId: Widgets_analyze
+      description: Analyze a widget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the widget to analyze.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeResult'
+              example: {}
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+components:
+  parameters:
+    CommonParameters.clientVersion:
+      name: client-version
+      in: header
+      required: false
+      description: The client version for the request.
+      schema:
+        type: string
+    CommonParameters.locale:
+      name: locale
+      in: query
+      required: false
+      description: The locale for the request.
+      schema:
+        type: string
+      explode: false
+  schemas:
+    AnalyzeResult:
+      type: object
+      required:
+        - statusCode
+        - id
+        - analysis
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+        id:
+          type: string
+        analysis:
+          type: string
+      description: The result of a widget analysis.
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+      description: Generic error response
+      examples:
+        - code: 500
+          message: Internal server error
+        - code: 404
+          message: Widget not found
+    NotFoundError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - NOT_FOUND
+        message:
+          type: string
+      description: Not found error
+    UnauthorizedError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - UNAUTHORIZED
+        message:
+          type: string
+          enum:
+            - Unauthorized
+      description: Unauthorized error
+    ValidationError:
+      type: object
+      required:
+        - code
+        - message
+        - errors
+      properties:
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+      description: Validation error
+    Versions:
+      type: string
+      enum:
+        - 0.1.0
+    Widget:
+      type: object
+      required:
+        - id
+        - weight
+        - color
+      properties:
+        id:
+          type: string
+        weight:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 20000
+        color:
+          type: string
+          enum:
+            - red
+            - blue
+            - gold
+      description: A widget model for testing purposes
+    WidgetCreate:
+      type: object
+      required:
+        - weight
+        - color
+      properties:
+        weight:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 20000
+        color:
+          type: string
+          enum:
+            - red
+            - blue
+            - gold
+      description: A widget model for testing purposes
+    WidgetList:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Widget'
+      description: A widget list model for testing purposes
+    WidgetMergePatchUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+        weight:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 20000
+        color:
+          type: string
+          enum:
+            - red
+            - blue
+            - gold
+      description: ''
+    WidgetSuccessResponse:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          type: string
+          description: The body type of the operation request or response.
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: Bearer
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+    variables: {}
