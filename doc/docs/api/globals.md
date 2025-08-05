@@ -3,6 +3,7 @@
 ## Type Aliases
 
 - [Options](type-aliases/Options.md)
+- [WrapperRequestType](type-aliases/WrapperRequestType.md)
 
 ## Functions
 

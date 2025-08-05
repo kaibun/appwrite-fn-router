@@ -2,7 +2,7 @@
 
 > **Options** = `object`
 
-Defined in: [main.ts:19](https://github.com/kaibun/appwrite-fn-router/blob/0ba48f1ef9af8fc6e718878aa8c407b882f421f7/src/main.ts#L19)
+Defined in: [main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/9616e61c1f34335765f26e66e2bf8c0469d73023/src/main.ts#L20)
 
 ## Properties
 
@@ -10,7 +10,15 @@ Defined in: [main.ts:19](https://github.com/kaibun/appwrite-fn-router/blob/0ba48
 
 > `optional` **env**: `boolean`
 
-Defined in: [main.ts:21](https://github.com/kaibun/appwrite-fn-router/blob/0ba48f1ef9af8fc6e718878aa8c407b882f421f7/src/main.ts#L21)
+Defined in: [main.ts:22](https://github.com/kaibun/appwrite-fn-router/blob/9616e61c1f34335765f26e66e2bf8c0469d73023/src/main.ts#L22)
+
+***
+
+### errorLog?
+
+> `optional` **errorLog**: `boolean`
+
+Defined in: [main.ts:24](https://github.com/kaibun/appwrite-fn-router/blob/9616e61c1f34335765f26e66e2bf8c0469d73023/src/main.ts#L24)
 
 ***
 
@@ -18,7 +26,7 @@ Defined in: [main.ts:21](https://github.com/kaibun/appwrite-fn-router/blob/0ba48
 
 > `optional` **globals**: `boolean`
 
-Defined in: [main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/0ba48f1ef9af8fc6e718878aa8c407b882f421f7/src/main.ts#L20)
+Defined in: [main.ts:21](https://github.com/kaibun/appwrite-fn-router/blob/9616e61c1f34335765f26e66e2bf8c0469d73023/src/main.ts#L21)
 
 ***
 
@@ -26,7 +34,7 @@ Defined in: [main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/0ba48
 
 > `optional` **log**: `boolean`
 
-Defined in: [main.ts:22](https://github.com/kaibun/appwrite-fn-router/blob/0ba48f1ef9af8fc6e718878aa8c407b882f421f7/src/main.ts#L22)
+Defined in: [main.ts:23](https://github.com/kaibun/appwrite-fn-router/blob/9616e61c1f34335765f26e66e2bf8c0469d73023/src/main.ts#L23)
 
 ***
 
@@ -34,7 +42,7 @@ Defined in: [main.ts:22](https://github.com/kaibun/appwrite-fn-router/blob/0ba48
 
 > `optional` **onError**: (`err`) => `void`
 
-Defined in: [main.ts:23](https://github.com/kaibun/appwrite-fn-router/blob/0ba48f1ef9af8fc6e718878aa8c407b882f421f7/src/main.ts#L23)
+Defined in: [main.ts:25](https://github.com/kaibun/appwrite-fn-router/blob/9616e61c1f34335765f26e66e2bf8c0469d73023/src/main.ts#L25)
 
 #### Parameters
 
