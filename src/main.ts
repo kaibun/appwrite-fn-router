@@ -164,7 +164,29 @@ export async function handleRequest(
         headers: JSON.stringify(headers),
       })
     );
-    // Passing along the request and misc. objects from the Appwrite context
+
+    // Calling router.fetch, passing along the request and the Appwrite context.
+
+    // Version 1: .then() chaining
+    return router
+      .fetch(
+        // request, // IRequest
+        req,
+        req, // The original Appwrite’s Request
+        res, // The original Appwrite’s Response
+        log,
+        error // The original Appwrite’s ErrorLogger
+      )
+      .then((response) => {
+        log('\n[router] Router has fetched with result:');
+        log(tracePrototypeChainOf(response));
+        log(inspect(response, { depth: null }));
+        Object.getOwnPropertyNames(response).forEach((key) => {
+          log(`Key: ${key}`);
+        });
+      });
+
+    // Version 2: awaiting the router's fetch method
     const response = await router.fetch(
       // request, // IRequest
       req,
@@ -179,7 +201,6 @@ export async function handleRequest(
     Object.getOwnPropertyNames(response).forEach((key) => {
       log(`Key: ${key}`);
     });
-
     return response;
   } catch (err) {
     // TODO: support reporting to a monitoring service

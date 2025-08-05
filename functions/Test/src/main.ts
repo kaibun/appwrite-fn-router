@@ -68,6 +68,11 @@ export default async (context: Context) => {
     //   router.get('/mystery', myRouteHandler);
   });
 
+  if (!toto) {
+    context.log('No response from the router, returning empty response.');
+    return context.res.empty();
+  }
+
   context.log('\nFINAL RESPONSE:');
   context.log(tracePrototypeChainOf(toto));
   context.log(inspect(toto, { depth: null }));
