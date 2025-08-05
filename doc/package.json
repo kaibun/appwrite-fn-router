@@ -12,7 +12,7 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "doc:api": "typedoc --plugin typedoc-plugin-markdown --out docs/api-generated ../src/main.ts --tsconfig ../tsconfig.json",
+    "doc:api": "docusaurus generate-typedoc",
     "typecheck": "tsc"
   },
   "dependencies": {
@@ -30,8 +30,6 @@
     "@docusaurus/tsconfig": "3.8.1",
     "@docusaurus/types": "3.8.1",
     "docusaurus-plugin-typedoc": "^0.20.0",
-    "typedoc": "^0.25.1",
-    "typedoc-plugin-markdown": "^3.17.1",
     "typescript": "~5.2.2"
   },
   "browserslist": {
@@ -48,5 +46,9 @@
   },
   "engines": {
     "node": ">=18.0"
+  },
+  "overrides": {
+    "typedoc-plugin-markdown": "3.17.1",
+    "typedoc": "0.25.1"
   }
 }

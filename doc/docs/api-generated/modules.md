@@ -1,20 +1,10 @@
-[@kaibun/appwrite-fn-router](README.md) / Exports
-
-# @kaibun/appwrite-fn-router
-
-## Table of contents
-
-### Type Aliases
-
-- [Options](modules.md#options)
-- [WrapperRequestType](modules.md#wrapperrequesttype)
-
-### Functions
-
-- [createRouter](modules.md#createrouter)
-- [handleRequest](modules.md#handlerequest)
-- [runRouter](modules.md#runrouter)
-- [tracePrototypeChainOf](modules.md#traceprototypechainof)
+---
+id: "modules"
+title: "@kaibun/appwrite-fn-router"
+sidebar_label: "Exports"
+sidebar_position: 0.5
+custom_edit_url: null
+---
 
 ## Type Aliases
 
@@ -38,7 +28,7 @@
 
 #### Defined in
 
-[main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/8b464f8f7ad1b05ec409c766c21fbcb06610255d/src/main.ts#L20)
+[main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/e8a94b4/src/main.ts#L20)
 
 ___
 
@@ -48,7 +38,7 @@ ___
 
 #### Defined in
 
-[main.ts:50](https://github.com/kaibun/appwrite-fn-router/blob/8b464f8f7ad1b05ec409c766c21fbcb06610255d/src/main.ts#L50)
+[main.ts:50](https://github.com/kaibun/appwrite-fn-router/blob/e8a94b4/src/main.ts#L50)
 
 ## Functions
 
@@ -68,7 +58,7 @@ ___
 
 #### Defined in
 
-[main.ts:53](https://github.com/kaibun/appwrite-fn-router/blob/8b464f8f7ad1b05ec409c766c21fbcb06610255d/src/main.ts#L53)
+[main.ts:53](https://github.com/kaibun/appwrite-fn-router/blob/e8a94b4/src/main.ts#L53)
 
 ___
 
@@ -90,7 +80,7 @@ ___
 
 #### Defined in
 
-[main.ts:132](https://github.com/kaibun/appwrite-fn-router/blob/8b464f8f7ad1b05ec409c766c21fbcb06610255d/src/main.ts#L132)
+[main.ts:132](https://github.com/kaibun/appwrite-fn-router/blob/e8a94b4/src/main.ts#L132)
 
 ___
 
@@ -111,7 +101,7 @@ ___
 
 #### Defined in
 
-[main.ts:70](https://github.com/kaibun/appwrite-fn-router/blob/8b464f8f7ad1b05ec409c766c21fbcb06610255d/src/main.ts#L70)
+[main.ts:70](https://github.com/kaibun/appwrite-fn-router/blob/e8a94b4/src/main.ts#L70)
 
 ___
 
@@ -131,4 +121,4 @@ ___
 
 #### Defined in
 
-[main.ts:35](https://github.com/kaibun/appwrite-fn-router/blob/8b464f8f7ad1b05ec409c766c21fbcb06610255d/src/main.ts#L35)
+[main.ts:35](https://github.com/kaibun/appwrite-fn-router/blob/e8a94b4/src/main.ts#L35)
