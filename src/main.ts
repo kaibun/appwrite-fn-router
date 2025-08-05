@@ -1,5 +1,5 @@
 import { inspect } from 'node:util';
-import { AutoRouter, IRequest } from 'itty-router';
+import { AutoRouter, IRequest, RouterOptions, Router } from 'itty-router';
 import type {
   Context as AppwriteContext,
   JSONObject,
@@ -9,6 +9,7 @@ import type {
   DefaultLogger,
   ErrorLogger,
 } from './env.d.ts';
+import { before } from 'node:test';
 
 type RouterJSONResponse = {
   status: 'success' | 'error';
@@ -39,23 +40,28 @@ export function tracePrototypeChainOf(object: object) {
   return result;
 }
 
+// TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
+// export type WrapperRequestType = AppwriteRequest & IRequest;
+export type WrapperRequestType = IRequest;
+
 // Creating an AutoRouter instance, adjusting types to match the Appwrite context
-export function createRouter() {
-  return AutoRouter<
-    // AppwriteRequest & IRequestStrict,
-    IRequest,
+export function createRouter({
+  ...args
+}: RouterOptions<
+  WrapperRequestType,
+  [AppwriteRequest, AppwriteResponse, DefaultLogger, ErrorLogger] & any[]
+> = {}) {
+  return Router<
+    WrapperRequestType,
     [AppwriteRequest, AppwriteResponse, DefaultLogger, ErrorLogger] & any[],
     AppwriteResponseObject
   >({
-    // This format option is a no-op, it returns the response as-is,
-    // preventing itty-router from converting our ResponseObject to a native Response.
-    // Our route handlers already return the correct ResponseObject instances
-    // expected by Appwrite’s runtime.
-    format: (response) => response,
+    ...args,
   });
 }
 
 // Exporting a function to run the router with Appwrite's context
+// TODO: function is not used anymore, but should be. Reify it, split the other one.
 export async function runRouter(
   router: ReturnType<typeof createRouter>,
   { req, res, log, error }: AppwriteContext
@@ -129,8 +135,8 @@ export async function handleRequest(
   options.log && apwLog('[router] Function is starting...');
 
   try {
-    log = options.log ? apwLog : () => {};
-    error = options.errorLog ? apwError : () => {};
+    const log = options.log ? apwLog : () => {};
+    const error = options.errorLog ? apwError : () => {};
 
     if (options.globals) {
       globalThis.log = log;
@@ -166,7 +172,7 @@ export async function handleRequest(
       headers,
       method,
     });
-    apwLog(
+    log(
       JSON.stringify({
         route,
         // url,
@@ -180,27 +186,35 @@ export async function handleRequest(
       req,
       req, // The original Appwrite’s Request
       res, // The original Appwrite’s Response
-      log,
-      error // The original Appwrite’s ErrorLogger
+      log, // The original or muted Appwrite’s DefaultLogger
+      error // The original or muted Appwrite’s ErrorLogger
     ); // satisfies AppwriteResponseObject;
-    log('\n[router] Router has fetched with result:');
-    log(tracePrototypeChainOf(response));
-    log(inspect(response, { depth: null }));
-    Object.getOwnPropertyNames(response).forEach((key) => {
-      log(`Key: ${key}`);
-    });
+    apwLog('\n[router] Router has fetched with result:');
+    apwLog(inspect(response, { depth: null }));
+
+    if (!response) {
+      // TODO: abide by request’s Accept header (fallback to Content-type, then to text/plain)
+      return res.text('Not Found', 404);
+    }
+
+    apwLog(inspect(response.body!.toString()));
+    // log(tracePrototypeChainOf(response));
+    // Object.getOwnPropertyNames(response).forEach((key) => {
+    //   log(`Key: ${key}`);
+    // });
 
     return response;
   } catch (err) {
     // TODO: support reporting to a monitoring service
-    options.log &&
-      error(
+    options.errorLog &&
+      apwError(
         `\n[router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
       );
     const message = err instanceof Error ? err.message : String(err);
     // if (options.onError) {
     //   return options.onError(err);
     // }
+    // TODO: abide by request’s Accept header (fallback to Content-type, then to text/plain)
     if (
       ['/json', '/ld+json'].some((type) =>
         req.headers['content-type']?.endsWith(type)
