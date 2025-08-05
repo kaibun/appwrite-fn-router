@@ -20,6 +20,7 @@ export type Options = {
   globals?: boolean;
   env?: boolean;
   log?: boolean;
+  errorLog?: boolean;
   onError?: (err: unknown) => void;
 };
 
@@ -122,12 +123,15 @@ export async function handleRequest(
   // Accepting a function that receives the router instance, so the end-user
   // may define their own routes, customize that router’s behavior, etc.
   withRouter: (router: ReturnType<typeof createRouter>) => void,
-  options: Options = { globals: true, env: true, log: true }
+  options: Options = { globals: true, env: true, log: true, errorLog: true }
 ) {
-  const { req, res, log, error } = context;
-  options.log && log('[router] Function is starting...');
+  let { req, res, log: apwLog, error: apwError } = context;
+  options.log && apwLog('[router] Function is starting...');
 
   try {
+    log = options.log ? apwLog : () => {};
+    error = options.errorLog ? apwError : () => {};
+
     if (options.globals) {
       globalThis.log = log;
       globalThis.error = error;
@@ -162,7 +166,7 @@ export async function handleRequest(
       headers,
       method,
     });
-    log(
+    apwLog(
       JSON.stringify({
         route,
         // url,
