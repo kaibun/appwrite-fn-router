@@ -1,6 +1,7 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import type { ScalarOptions } from '@scalar/docusaurus';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -157,6 +158,17 @@ const config: Config = {
           pretty: true,
         },
       },
+    ],
+    [
+      '@scalar/docusaurus',
+      {
+        label: 'Scalar',
+        route: '/scalar',
+        showNavLink: true, // optional, default is true
+        configuration: {
+          url: 'https://raw.githubusercontent.com/kaibun/appwrite-fn-router/refs/heads/docusaurus-scalar/openapi/tsp-output/schema/openapi.0.1.0.yaml',
+        },
+      } as ScalarOptions,
     ],
   ],
 };
