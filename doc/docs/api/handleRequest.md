@@ -22,7 +22,7 @@ async function handleRequest(
 
 ## Options
 
-The `options` object allows you to configure various aspects of the router and its surrounding execution environment:
+The `options` object allows you to configure various aspects of the router:
 
 | Option     | Type                     | Default     | Description                                                                                            |
 | ---------- | ------------------------ | ----------- | ------------------------------------------------------------------------------------------------------ |

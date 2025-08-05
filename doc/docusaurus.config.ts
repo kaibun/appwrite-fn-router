@@ -153,6 +153,7 @@ const config: Config = {
       {
         entryPoints: ['../src/main.ts'],
         tsconfig: '../tsconfig.json',
+        out: 'api-generated',
         sidebar: {
           typescript: true,
           pretty: true,

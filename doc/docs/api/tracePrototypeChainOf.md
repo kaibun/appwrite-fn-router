@@ -12,7 +12,7 @@ This is a utility function for debugging purposes. It takes an object and return
 function tracePrototypeChainOf(object: object): string;
 ```
 
--   `object`: The object whose prototype chain you want to trace.
+- `object`: The object whose prototype chain you want to trace.
 
 ## Usage
 
@@ -24,10 +24,9 @@ import { handleRequest, tracePrototypeChainOf } from 'appwrite-fn-router';
 export default async (context) => {
   await handleRequest(context, (router) => {
     router.get('/debug', (request, req_appwrite, res, log) => {
-      
       log('Tracing prototype chain of the request object:');
       log(tracePrototypeChainOf(request));
-      
+
       // It will log something like:
       // -> Request.prototype -> Object.prototype -> null
 

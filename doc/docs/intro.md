@@ -7,6 +7,16 @@ sidebar_position: 1
 
 This library is a wrapper for [Itty’s `AutoRouter`](https://itty.dev/itty-router/concepts), tailored to the constraints of [Appwrite’s FaaS](https://appwrite.io/docs/products/functions/develop) implementation.
 
+---
+
+[Appwrite Functions](https://appwrite.io/products/functions) provide a powerful way to extend your backend, but they lack a built-in routing system.
+
+This means that handling different URL paths or HTTP methods often requires complex if/else blocks, which can quickly become difficult to manage. Not every function benefits from being atomic, there are many use-cases and reasons for a multi-endpoints function handler: saving on execution costs, consolidating an API surface area, aiming for a smoother maintenance, etc.
+
+This library solves that problem by bringing a simple yet powerful routing layer to your Appwrite Functions. It wraps the popular and lightweight [itty-router](https://itty.dev/itty-router/), allowing you to define clear and declarative routes for your functions.
+
+The library automatically handles the conversion between [Appwrite's function context](https://appwrite.io/docs/products/functions/develop#context-object) and the standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request)/[Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects used by the router, so you can focus on writing your application logic. It also takes care of implementation details such as CORS configuration, TypeScript typings, and whatnot.
+
 ## Usage
 
 ```ts
