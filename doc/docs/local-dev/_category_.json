@@ -1,8 +1,0 @@
-{
-  "label": "Local Development",
-  "position": 2,
-  "link": {
-    "type": "generated-index",
-    "description": "Develop & Test Appwrite functions locally with Appwrite Function Router."
-  }
-}

@@ -5,8 +5,9 @@
   "private": true,
   "scripts": {
     "clean": "rm -rf tsp-output",
-    "compile": "npm run clean && npx tsp compile main.tsp",
-    "compile:watch": "npm run clean && npx tsp compile --watch main.tsp"
+    "compile": "npm run clean && npx tsp compile main.tsp && npm run cp",
+    "compile:watch": "npm run clean && npx tsp compile --watch main.tsp",
+    "cp": "cp tsp-output/schema/openapi*.yaml ../doc/static/openapi.yaml"
   },
   "dependencies": {
     "@typespec/compiler": "latest",

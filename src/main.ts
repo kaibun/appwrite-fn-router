@@ -32,6 +32,9 @@ export type Options = {
 
 const $ = globalThis;
 
+/**
+ * @internal
+ */
 export function tracePrototypeChainOf(object: object) {
   var proto = object.constructor.prototype;
   var result = '';

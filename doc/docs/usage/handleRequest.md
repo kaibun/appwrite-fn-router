@@ -6,6 +6,8 @@ sidebar_position: 2
 
 The `handleRequest` function is the main entry point for your Appwrite function when using this router. It sets up the environment, initializes the router with your routes and configuration, and handles incoming requests.
 
+It’s likely the only method you’ll need to call to use this library.
+
 ## Signature
 
 ```typescript
@@ -33,7 +35,7 @@ The `options` object allows you to configure various aspects of the router:
 | `onError`  | `(err: unknown) => void` | `undefined` | A custom error handler function.                                                                       |
 | `cors`     | `object`                 | `{...}`     | Configuration for Cross-Origin Resource Sharing (CORS). See below for details.                         |
 
-## CORS Configuration
+### CORS Configuration
 
 You can provide a flexible CORS configuration to control how your function responds to requests from different origins.
 
@@ -43,7 +45,7 @@ The `cors` option object has the following properties:
 - `allowMethods`: An array of allowed HTTP methods.
 - `allowHeaders`: An array of allowed request headers.
 
-### Example
+## Example
 
 Here is how you can configure CORS to allow requests from your production domain and any Appwrite function subdomain for a specific region, while also defining specific methods and headers.
 

@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Contributing to AFR
+# Contributing
 
 ## Testing
 

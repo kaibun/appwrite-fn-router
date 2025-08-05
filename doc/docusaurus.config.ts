@@ -145,15 +145,22 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
+
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
+
   plugins: [
     [
       'docusaurus-plugin-typedoc',
 
       // Options
       {
-        entryPoints: ['../src/main.ts'],
+        entryPoints: ['../src/main.ts', '../src/env.d.ts'],
         tsconfig: '../tsconfig.json',
-        out: 'api-generated',
+        out: 'api',
+        readme: 'none',
         sidebar: {
           typescript: true,
           pretty: true,
@@ -163,11 +170,14 @@ const config: Config = {
     [
       '@scalar/docusaurus',
       {
-        label: 'Scalar',
+        label: 'Live Tests',
         route: '/scalar',
         showNavLink: true, // optional, default is true
         configuration: {
-          url: 'https://raw.githubusercontent.com/kaibun/appwrite-fn-router/refs/heads/docusaurus-scalar/openapi/tsp-output/schema/openapi.0.1.0.yaml',
+          url:
+            process.env.NODE_ENV === 'production'
+              ? 'https://raw.githubusercontent.com/kaibun/appwrite-fn-router/refs/heads/docusaurus-scalar/openapi/tsp-output/schema/openapi.0.1.0.yaml'
+              : 'http://localhost:3001/openapi.yaml',
           proxyUrl: 'https://proxy.scalar.com',
         },
       } as ScalarOptions,

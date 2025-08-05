@@ -6,8 +6,16 @@ import "@typespec/versioning";
 using Http;
 using OpenAPI;
 using Versioning;
-/** Testing API for Appwrite Function Router */
-@service(#{ title: "Widget Service" })
+/**
+ * Welcome to this fake-yet-live API for testing Appwrite Function Router!
+ *
+ * This API is designed to demonstrate and test the capabilities of the library.
+ * It includes various operations for managing so-called "widgets", including creating, reading, updating, and deleting them in a RESTful manner.
+ * It also includes non-standard operations, such as "analyzing widgets", and "accessing a secret widget" which requires authentication with a Bearer token.
+ *
+ * **The API is of course [implemented as an Appwrite Function](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test) which uses the Appwrite Function Router library**. Upon triggering a query, it is expected the function will successfully execute the matching endpoints and return the expected response.
+ * */
+@service(#{ title: "The Widget API" })
 @info(#{
   `x-termsOfService`: "https://appwrite-fn-router.appwrite.io/terms",
   `x-version`: "1.0.0",

@@ -1,10 +1,10 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # `runRouter`
 
-The `runRouter` function is responsible for executing the router against an incoming request from the Appwrite environment. It constructs a standard `Request` object from the Appwrite context and passes it to the router's `fetch` method.
+The `runRouter` function is responsible for executing the router against an incoming request from the Appwrite environment. It constructs a standard [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object from the Appwrite context and passes it to the [router's `fetch` method](https://itty.dev/itty-router/concepts#whatever-you-pass-to-router-fetch-goes-to-the-handlers).
 
 This function is called internally by `handleRequest` after the router has been configured and your routes have been attached.
 

@@ -1,12 +1,14 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 ---
 
 # `createRouter`
 
-The `createRouter` function is a factory that returns an instance of `itty-router`. It's a lightweight and powerful router that allows you to define routes and handle requests with ease.
+The `createRouter` function is a factory that returns an instance of itty-router’s [`Router`](https://itty.dev/itty-router/routers/), only tailored for the [Appwrite Functions runtime](https://appwrite.io/products/functions). It's a lightweight and powerful router that allows you to define routes and handle requests with ease.
 
-This wrapper around the original `itty-router` `Router` factory is typed to work seamlessly within the Appwrite functions context.
+This wrapper around itty-router’s `Router` is typed to work seamlessly within the [Appwrite functions context](https://appwrite.io/docs/products/functions/develop#context-object).
+
+You typically don't need to call `createRouter` yourself, as an instance is created for you and passed to the `withRouter` callback in [`handleRequest`](./handleRequest.md).
 
 ## Signature
 
@@ -27,11 +29,9 @@ function createRouter(
 
 ## Usage
 
-You typically don't need to call `createRouter` yourself, as an instance is created for you and passed to the `withRouter` callback in `handleRequest`.
+`createRouter` is very useful for creating nested or "sub-routers" to better organize your routes.
 
-However, `createRouter` is very useful for creating nested or "sub-routers" to better organize your routes.
-
-Here is how you can create a sub-router for a `/categories` API endpoint and attach it to your main router.
+Here is how you can create a sub-router for a `/categories` API endpoint and attach it to your main router (nested routers abide by their root parent’s configuration, so no need to setup CORS config etc.):
 
 **`src/routes/categories.ts`**
 
