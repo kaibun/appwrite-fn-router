@@ -1,16 +1,11 @@
 import { inspect } from 'node:util';
-import type { Context, JSONObject, ResponseObject } from './lib/env.d.ts';
+import type { Context, JSONObject } from './lib/env.d.ts';
 import {
   createRouter,
   handleRequest,
   tracePrototypeChainOf,
 } from './lib/main.ts';
-// import { myRouteHandler } from './routes.ts';
-
-// Upon build, the `handleRequest` function will be available globally.
-// declare global {
-//   var handleRequest: typeof import('../../../src/main.ts').handleRequest;
-// }
+import widgetsRouter from './routes/widgets.ts';
 
 // Optionally define a custom JSON response schema:
 export type MyJSONResponse = {
@@ -20,23 +15,20 @@ export type MyJSONResponse = {
 } & JSONObject;
 
 function routes(router: ReturnType<typeof createRouter>) {
-  // router.get('/', (req, res, _log, _error) => {
-  //   return context.res.text('Hello, world! This is a test function!');
-  // });
   // TODO: test with an async/await handler as well
 
   router.get('/', (_request, _req, res, log, _error) => {
-    log('\n--- Root route hit:');
-    log(inspect(res));
-    const response = res.text('Root route hit!', 201, {
-      'Content-Type': 'text/plain',
-    });
-    log('  -');
-    log(tracePrototypeChainOf(response));
-    log(inspect(response, { depth: null }));
-    log('---');
+    // log('\n--- Root route hit:');
+    // log(inspect(res));
+    const response = res.text('Root route hit!');
+    // log('  -');
+    // log(tracePrototypeChainOf(response));
+    // log(inspect(response, { depth: null }));
+    // log('---');
     return response;
   });
+
+  router.all('/widgets', widgetsRouter.fetch);
 
   // router.all('*', (_request, _req, res, log, _error) => {
   //   log('\n--- Catchall route hit:');
@@ -48,6 +40,9 @@ function routes(router: ReturnType<typeof createRouter>) {
   //   log(tracePrototypeChainOf(response));
   //   log(inspect(response, { depth: null }));
   //   log('---');
+  //   const response = res.text('Catchall route!', 404, {
+  //     'Content-Type': 'text/plain',
+  //   });
   //   return response;
   // });
 
@@ -66,37 +61,48 @@ function routes(router: ReturnType<typeof createRouter>) {
   //   router.get('/mystery', myRouteHandler);
 }
 
+// TODO: publish a lib allowing to whitelist/blacklist well-known URIs
+// CSV is available at https://www.iana.org/assignments/well-known-uris/well-known-uris.xhtml
+// For now, let’s brute-force ignore any request starting with these paths:
+const ignoredRoutes = ['/favicon.ico', '/robots.txt', '/.well-known/'];
+
 /**
  * Test function
  */
 export default async (context: Context) => {
   const { req, res, log, error } = context;
+  let greetings = `${req.method} ${req.path}`;
+  // log(inspect(req, { depth: null }));
+  // log('---\n');
+  const ignoreRoute = ignoredRoutes.some((route) => req.path.startsWith(route));
+  if (ignoreRoute) {
+    log(greetings + ' (ignored)\n');
+    // TODO: abide by request’s Accept header (fallback to Content-type, then to text/plain)
+    return res.text("I'm a teapot", 418);
+  }
+  log(greetings);
 
   const response = await handleRequest(context, routes, {
     log: false,
     errorLog: true,
   });
 
-  log('\nFINAL RESPONSE:');
-  log(tracePrototypeChainOf(response));
+  // log('\nFINAL RESPONSE:');
+  // log(tracePrototypeChainOf(response));
   log(inspect(response, { depth: null }));
-  // context.log(response.constructor.name);
-  // context.log(response.constructor.toString());
-  Object.keys(response).forEach((key) => {
-    log(`Key: ${key}`);
-  });
-  Object.getOwnPropertyNames(response).forEach((key) => {
-    log(`Prop: ${key}`);
-  });
-  // context.log(response.body!.toString());
-  // context.log(response.statusCode.toString());
-  // context.log(JSON.stringify(response.headers));
-  log('--- End of response ---');
+  // log(response.constructor.name);
+  // log(response.constructor.toString());
+  // Object.keys(response).forEach((key) => {
+  //   log(`Key: ${key}`);
+  // });
+  // Object.getOwnPropertyNames(response).forEach((key) => {
+  //   log(`Prop: ${key}`);
+  // });
+  log(response.statusCode.toString());
+  log(response.body!.toString());
+  // log(JSON.stringify(response.headers));
+  // log('--- LEAVING THE FUNCTION HANDLER ---');
+  log('\n');
 
   return response;
-
-  // return context.res.text('Hello, world! This is a test function!');
-  // return context.res.json({
-  //   message: 'Hello, world! This is a test function!.',
-  // });
 };
