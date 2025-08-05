@@ -2,7 +2,7 @@
 
 > **Options** = `object`
 
-Defined in: [main.ts:19](https://github.com/kaibun/appwrite-fn-router/blob/dc797bb7dcaf8ea6248d470554ecbccd9229c0b6/src/main.ts#L19)
+Defined in: [main.ts:19](https://github.com/kaibun/appwrite-fn-router/blob/0275a0fc8adea1d069391b7a2abae1fe6d7d692c/src/main.ts#L19)
 
 ## Properties
 
@@ -10,7 +10,7 @@ Defined in: [main.ts:19](https://github.com/kaibun/appwrite-fn-router/blob/dc797
 
 > `optional` **env**: `boolean`
 
-Defined in: [main.ts:21](https://github.com/kaibun/appwrite-fn-router/blob/dc797bb7dcaf8ea6248d470554ecbccd9229c0b6/src/main.ts#L21)
+Defined in: [main.ts:21](https://github.com/kaibun/appwrite-fn-router/blob/0275a0fc8adea1d069391b7a2abae1fe6d7d692c/src/main.ts#L21)
 
 ***
 
@@ -18,7 +18,7 @@ Defined in: [main.ts:21](https://github.com/kaibun/appwrite-fn-router/blob/dc797
 
 > `optional` **globals**: `boolean`
 
-Defined in: [main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/dc797bb7dcaf8ea6248d470554ecbccd9229c0b6/src/main.ts#L20)
+Defined in: [main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/0275a0fc8adea1d069391b7a2abae1fe6d7d692c/src/main.ts#L20)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/dc797
 
 > `optional` **log**: `boolean`
 
-Defined in: [main.ts:22](https://github.com/kaibun/appwrite-fn-router/blob/dc797bb7dcaf8ea6248d470554ecbccd9229c0b6/src/main.ts#L22)
+Defined in: [main.ts:22](https://github.com/kaibun/appwrite-fn-router/blob/0275a0fc8adea1d069391b7a2abae1fe6d7d692c/src/main.ts#L22)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [main.ts:22](https://github.com/kaibun/appwrite-fn-router/blob/dc797
 
 > `optional` **onError**: (`err`) => `void`
 
-Defined in: [main.ts:23](https://github.com/kaibun/appwrite-fn-router/blob/dc797bb7dcaf8ea6248d470554ecbccd9229c0b6/src/main.ts#L23)
+Defined in: [main.ts:23](https://github.com/kaibun/appwrite-fn-router/blob/0275a0fc8adea1d069391b7a2abae1fe6d7d692c/src/main.ts#L23)
 
 #### Parameters
 

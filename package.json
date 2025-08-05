@@ -11,7 +11,8 @@
     "doc:start": "cd doc && npm run start",
     "format": "prettier --write .",
     "sync": "cp -r src/* functions/Test/src/lib/ && cp tsconfig.base.json functions/Test/",
-    "test": "npm run sync && appwrite run functions --function-id 6890bbb20003ff2a1bf1"
+    "test": "npm run sync && appwrite run functions --function-id 6890bbb20003ff2a1bf1",
+    "postinstall": "cd doc && npm install"
   },
   "dependencies": {
     "itty-router": "^5.0.21",
