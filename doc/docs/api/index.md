@@ -62,7 +62,7 @@ Prerequisites:
 - `npm install -g appwrite-cli@latest`
 - `appwrite login` (_no need to "appwrite init project" etc. it’s all setup already_)
 
-The [./functions/Test/](_media/Test) folder contains an Appwrite function you may run to test against the library code developped in [./src/](_media/src).
+The [./functions/Test/](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test/) folder contains an Appwrite function you may run to test against the library code developped in [./src/](https://github.com/kaibun/appwrite-fn-router/tree/main/src/).
 
 The strategy is kinda brut-force: copy the library code (./src) over to ./function/Test/src/lib, then run the function with `npm install && npm run build` as its setup command within the container, which will ensure the library code is globally available, thus callable by the function handler.
 

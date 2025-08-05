@@ -2,7 +2,7 @@
 
 > **handleRequest**(`context`, `withRouter`, `options`): `Promise`\<`ResponseObject`\>
 
-Defined in: [main.ts:120](https://github.com/kaibun/appwrite-fn-router/blob/03f09883e26174dad52aa97575fcc47450bc217f/src/main.ts#L120)
+Defined in: [main.ts:120](https://github.com/kaibun/appwrite-fn-router/blob/dc797bb7dcaf8ea6248d470554ecbccd9229c0b6/src/main.ts#L120)
 
 ## Parameters
 

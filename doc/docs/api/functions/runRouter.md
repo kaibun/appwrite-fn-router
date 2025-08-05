@@ -2,7 +2,7 @@
 
 > **runRouter**(`router`, `__namedParameters`): `Promise`\<`ResponseObject`\>
 
-Defined in: [main.ts:58](https://github.com/kaibun/appwrite-fn-router/blob/03f09883e26174dad52aa97575fcc47450bc217f/src/main.ts#L58)
+Defined in: [main.ts:58](https://github.com/kaibun/appwrite-fn-router/blob/dc797bb7dcaf8ea6248d470554ecbccd9229c0b6/src/main.ts#L58)
 
 ## Parameters
 
