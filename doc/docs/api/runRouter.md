@@ -40,7 +40,8 @@ export default async (context) => {
   router.get('/', () => ({ message: 'Manual router execution!' }));
 
   // You would need to replicate the setup logic from handleRequest here
-  // (e.g., CORS, environment setup, etc.)
+  // (e.g., CORS, environment setup, types conversions, etc.)
+  // Don’t do that. Use this library!
 
   const response = await runRouter(router, context, log, error);
 

@@ -7,12 +7,12 @@ const typedocSidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
-          id: "api/type-aliases/Options",
+          id: "../api-generated/type-aliases/Options",
           label: "Options"
         },
         {
           type: "doc",
-          id: "api/type-aliases/WrapperRequestType",
+          id: "../api-generated/type-aliases/WrapperRequestType",
           label: "WrapperRequestType"
         }
       ]
@@ -23,22 +23,22 @@ const typedocSidebar: SidebarsConfig = {
       items: [
         {
           type: "doc",
-          id: "api/functions/createRouter",
+          id: "../api-generated/functions/createRouter",
           label: "createRouter"
         },
         {
           type: "doc",
-          id: "api/functions/handleRequest",
+          id: "../api-generated/functions/handleRequest",
           label: "handleRequest"
         },
         {
           type: "doc",
-          id: "api/functions/runRouter",
+          id: "../api-generated/functions/runRouter",
           label: "runRouter"
         },
         {
           type: "doc",
-          id: "api/functions/tracePrototypeChainOf",
+          id: "../api-generated/functions/tracePrototypeChainOf",
           label: "tracePrototypeChainOf"
         }
       ]
