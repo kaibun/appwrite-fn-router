@@ -114,7 +114,7 @@ export async function runRouter(
 export async function handleRequest(
   context: AppwriteContext,
   // Accepting a function that receives the router instance, so the end-user
-  // may define their own routes, customize that router’s behavior, etc.
+  // may define their own routes, customize that router's behavior, etc.
   withRouter: (router: ReturnType<typeof createRouter>) => void,
   options: Options = { globals: true, env: true, log: true }
 ) {
@@ -130,8 +130,63 @@ export async function handleRequest(
       process.env.APPWRITE_FUNCTION_API_KEY =
         req.headers['x-appwrite-key'] || '';
     }
-    // console.log(JSON.stringify(process.env, null, 2));
+
     const router = createRouter();
+
+    // Variable to capture the original ResponseObject before itty-router transforms it
+    let capturedResponseObject: AppwriteResponseObject | null = null;
+
+    // Create a wrapper for route handlers that captures ResponseObjects
+    const wrapRouteHandler = (originalHandler: (...args: any[]) => any) => {
+      return (...args: any[]) => {
+        const result = originalHandler(...args);
+
+        // Check if result is a ResponseObject (has body, statusCode, headers properties)
+        if (
+          result &&
+          typeof result === 'object' &&
+          'body' in result &&
+          'statusCode' in result &&
+          'headers' in result
+        ) {
+          capturedResponseObject = result as AppwriteResponseObject;
+          log(
+            `[router] Captured original ResponseObject before transformation`
+          );
+        }
+
+        return result;
+      };
+    };
+
+    // Store original router methods
+    const originalGet = router.get.bind(router);
+    const originalPost = router.post.bind(router);
+    const originalPut = router.put.bind(router);
+    const originalDelete = router.delete.bind(router);
+    const originalPatch = router.patch.bind(router);
+    const originalAll = router.all.bind(router);
+
+    // Wrap router methods to capture ResponseObjects
+    router.get = (pattern: any, ...handlers: any[]) => {
+      return originalGet(pattern, ...handlers.map(wrapRouteHandler));
+    };
+    router.post = (pattern: any, ...handlers: any[]) => {
+      return originalPost(pattern, ...handlers.map(wrapRouteHandler));
+    };
+    router.put = (pattern: any, ...handlers: any[]) => {
+      return originalPut(pattern, ...handlers.map(wrapRouteHandler));
+    };
+    router.delete = (pattern: any, ...handlers: any[]) => {
+      return originalDelete(pattern, ...handlers.map(wrapRouteHandler));
+    };
+    router.patch = (pattern: any, ...handlers: any[]) => {
+      return originalPatch(pattern, ...handlers.map(wrapRouteHandler));
+    };
+    router.all = (pattern: any, ...handlers: any[]) => {
+      return originalAll(pattern, ...handlers.map(wrapRouteHandler));
+    };
+
     withRouter(router);
 
     log('\n[router] Router has been augmented with routes:');
@@ -142,10 +197,6 @@ export async function handleRequest(
       path,
     ]);
     rr.forEach((r) => log(JSON.stringify(r)));
-
-    // const response = await runRouter(router, { req, res, log, error });
-    // log('\n[router] Router has been run');
-    // log(response.toString());
 
     const { headers, method, url } = req;
     const route = new URL(url);
@@ -168,40 +219,53 @@ export async function handleRequest(
     // Calling router.fetch, passing along the request and the Appwrite context.
 
     // Version 1: .then() chaining
-    return router
-      .fetch(
-        // request, // IRequest
-        req,
-        req, // The original Appwrite’s Request
-        res, // The original Appwrite’s Response
-        log,
-        error // The original Appwrite’s ErrorLogger
-      )
-      .then((response) => {
-        log('\n[router] Router has fetched with result:');
-        log(tracePrototypeChainOf(response));
-        log(inspect(response, { depth: null }));
-        Object.getOwnPropertyNames(response).forEach((key) => {
-          log(`Key: ${key}`);
-        });
-      });
+    // return router
+    //   .fetch(
+    //     // request, // IRequest
+    //     req,
+    //     req, // The original Appwrite’s Request
+    //     res, // The original Appwrite’s Response
+    //     log,
+    //     error // The original Appwrite’s ErrorLogger
+    //   )
+    //   .then((response) => {
+    //     log('\n[router] Router has fetched with result:');
+    //     log(tracePrototypeChainOf(response));
+    //     log(inspect(response, { depth: null }));
+    //     Object.getOwnPropertyNames(response).forEach((key) => {
+    //       log(`Key: ${key}`);
+    //     });
+    //   });
 
     // Version 2: awaiting the router's fetch method
-    const response = await router.fetch(
+    const nativeResponse = await router.fetch(
       // request, // IRequest
       req,
-      req, // The original Appwrite’s Request
-      res, // The original Appwrite’s Response
+      req, // The original Appwrite's Request
+      res, // The original Appwrite's Response
       log,
-      error // The original Appwrite’s ErrorLogger
-    ); // satisfies AppwriteResponseObject;
-    log('\n[router] Router has fetched with result:');
-    log(tracePrototypeChainOf(response));
-    log(inspect(response, { depth: null }));
-    Object.getOwnPropertyNames(response).forEach((key) => {
+      error // The original Appwrite's ErrorLogger
+    ); // This will be a native Response object from itty-router
+
+    log('\n[router] Router has fetched with native Response:');
+    log(tracePrototypeChainOf(nativeResponse));
+    log(inspect(nativeResponse, { depth: null }));
+    Object.getOwnPropertyNames(nativeResponse).forEach((key) => {
       log(`Key: ${key}`);
     });
-    return response;
+
+    // If we captured the original ResponseObject, return it instead of the native Response
+    if (capturedResponseObject) {
+      log(
+        '\n[router] Returning captured ResponseObject instead of native Response:'
+      );
+      log(inspect(capturedResponseObject, { depth: null }));
+      return capturedResponseObject;
+    }
+
+    // Fallback: return the native response (this shouldn't happen in normal cases)
+    log('\n[router] No ResponseObject captured, returning native Response');
+    return nativeResponse;
   } catch (err) {
     // TODO: support reporting to a monitoring service
     options.log &&
