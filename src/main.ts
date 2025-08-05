@@ -23,6 +23,11 @@ export type Options = {
   log?: boolean;
   errorLog?: boolean;
   onError?: (err: unknown) => void;
+  cors?: {
+    allowedOrigins?: (string | RegExp)[];
+    allowMethods?: string[];
+    allowHeaders?: string[];
+  };
 };
 
 const $ = globalThis;
@@ -43,8 +48,6 @@ export function tracePrototypeChainOf(object: object) {
 // TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
 // export type WrapperRequestType = AppwriteRequest & IRequest;
 export type WrapperRequestType = IRequest;
-
-const { preflight, corsify } = cors();
 
 // Creating an AutoRouter instance, adjusting types to match the Appwrite context
 export function createRouter({
@@ -148,12 +151,57 @@ export async function handleRequest(
       process.env.APPWRITE_FUNCTION_API_KEY =
         req.headers['x-appwrite-key'] || '';
     }
+
+    // Dynamically set allowed origins based on the environment.
+    const allowedOrigins: (string | RegExp)[] =
+      options.cors?.allowedOrigins ?? [];
+    if (process.env.NODE_ENV !== 'production') {
+      // Add development origins if not already present.
+      if (!allowedOrigins.includes('http://localhost:3001')) {
+        allowedOrigins.push('http://localhost:3001');
+      }
+      if (!allowedOrigins.includes('https://localhost:3001')) {
+        allowedOrigins.push('https://localhost:3001');
+      }
+    }
+
+    // Initialize CORS with a dynamic origin validation function.
+    // This is required because itty-router's `cors` helper does not
+    // support a mixed array of strings and RegExps.
+    const { preflight, corsify } = cors({
+      origin: (origin) => {
+        if (!origin) return;
+        for (const allowed of allowedOrigins) {
+          if (typeof allowed === 'string' && allowed === origin) {
+            return origin;
+          }
+          if (allowed instanceof RegExp && allowed.test(origin)) {
+            return origin;
+          }
+        }
+      },
+      allowMethods: options.cors?.allowMethods ?? [
+        'GET',
+        'POST',
+        'PATCH',
+        'DELETE',
+        'OPTIONS',
+      ],
+      allowHeaders: options.cors?.allowHeaders ?? [
+        'Content-Type',
+        'Authorization',
+      ],
+    });
+
     // console.log(JSON.stringify(process.env, null, 2));
     const router = createRouter({
+      // The `before` middleware handles preflight (OPTIONS) requests.
       before: [
         async (req, req_appwrite, res, log, error) => {
+          // itty-router's `preflight` expects a native `Request` object.
           const response = preflight(req);
           if (response) {
+            // Convert the native `Response` from `preflight` to an Appwrite-compatible response object.
             const body = await response.text();
             const statusCode = response.status;
             const headers = Object.fromEntries(response.headers.entries());
@@ -161,16 +209,25 @@ export async function handleRequest(
           }
         },
       ],
+      // The `finally` middleware applies CORS headers to the outgoing response.
       finally: [
         async (responseFromRoute, request, req_appwrite, res, log, error) => {
           if (responseFromRoute) {
-            // Re-create a native Response to be able to pass it to corsify
-            const nativeResponse = new Response(responseFromRoute.body, {
-              status: responseFromRoute.statusCode,
-              headers: responseFromRoute.headers,
-            });
+            // Re-create a native `Response` to pass it to `corsify`.
+            // The `Response` constructor throws if a body is provided with a 204 status.
+            const nativeResponse = new Response(
+              responseFromRoute.statusCode === 204
+                ? null
+                : responseFromRoute.body,
+              {
+                status: responseFromRoute.statusCode,
+                headers: responseFromRoute.headers,
+              }
+            );
+            // `corsify` adds the necessary CORS headers to the response.
             const corsifiedResponse = corsify(nativeResponse, request);
 
+            // Convert the final native `Response` back to an Appwrite-compatible response object.
             const body = await corsifiedResponse.text();
             const statusCode = corsifiedResponse.status;
             const headers = Object.fromEntries(
