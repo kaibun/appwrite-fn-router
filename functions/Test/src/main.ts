@@ -1,4 +1,5 @@
 import { inspect } from 'node:util';
+
 import type { Context, JSONObject } from './lib/env.d.ts';
 import {
   createRouter,
@@ -28,7 +29,7 @@ function routes(router: ReturnType<typeof createRouter>) {
     return response;
   });
 
-  router.all('/widgets', widgetsRouter.fetch);
+  router.all('/widgets*', widgetsRouter.fetch);
 
   // router.all('*', (_request, _req, res, log, _error) => {
   //   log('\n--- Catchall route hit:');

@@ -28,7 +28,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/main.ts#L20)
+[main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/main.ts#L20)
 
 ___
 
@@ -38,7 +38,7 @@ ___
 
 #### Defined in
 
-[main.ts:53](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/main.ts#L53)
+[main.ts:53](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/main.ts#L53)
 
 ## Functions
 
@@ -58,7 +58,7 @@ ___
 
 #### Defined in
 
-[main.ts:56](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/main.ts#L56)
+[main.ts:56](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/main.ts#L56)
 
 ___
 
@@ -80,7 +80,7 @@ ___
 
 #### Defined in
 
-[main.ts:135](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/main.ts#L135)
+[main.ts:135](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/main.ts#L135)
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 #### Defined in
 
-[main.ts:73](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/main.ts#L73)
+[main.ts:73](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/main.ts#L73)
 
 ___
 
@@ -121,4 +121,4 @@ ___
 
 #### Defined in
 
-[main.ts:38](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/main.ts#L38)
+[main.ts:38](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/main.ts#L38)

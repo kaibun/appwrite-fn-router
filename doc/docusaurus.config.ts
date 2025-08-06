@@ -8,7 +8,7 @@ import type { ScalarOptions } from '@scalar/docusaurus';
 const config: Config = {
   title: 'Appwrite Function Router',
   tagline: 'A simple router for Appwrite Functions',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo.svg',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -42,7 +42,7 @@ const config: Config = {
       'classic',
       {
         docs: {
-          // routeBasePath: '/', // Serve the docs at the site's root
+          routeBasePath: '/', // Serve the docs at the site's root
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
@@ -89,8 +89,8 @@ const config: Config = {
         },
         { to: '/blog', label: 'Blog', position: 'left' },
         {
-          href: 'https://github.com/kaibun/appwrite-fn-router',
           label: 'GitHub',
+          href: 'https://github.com/kaibun/appwrite-fn-router',
           position: 'right',
         },
       ],
