@@ -1,0 +1,14 @@
+{
+  "watch": ["src/", "functions/Test/src/"],
+  "ext": "ts,js",
+  "ignore": [
+    "dist/",
+    "functions/Test/dist",
+    "functions/Test/src/lib/",
+    "functions/Test/src/.reload"
+  ],
+  "exec": "echo 'Nodemon is watching for file changes...'",
+  "events": {
+    "restart": "npm run sync"
+  }
+}

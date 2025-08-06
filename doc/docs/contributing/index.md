@@ -4,42 +4,99 @@ sidebar_position: 1
 
 # Contributing
 
-## Testing
+## Local Development Setup
 
-> Reference: https://appwrite.io/blog/post/functions-local-development-guide
+This project is set up for a seamless local development experience, allowing you to make changes in both the core library (`./src`) and its associated Appwrite testing function (`./functions/Test`), with hot-reloading in the local Appwrite Docker container running the function.
 
-Prerequisites:
+### Prerequisites
 
-- [Docker](https://www.docker.com/) is installed and running
-- `npm install -g appwrite-cli@latest`
-- `appwrite login` (_no need to "appwrite init project" etc. it’s all setup already_)
+- [Docker](https://www.docker.com/) is installed and running.
+- The Appwrite CLI is installed globally: `npm install -g appwrite-cli@latest`.
+- You are logged into your Appwrite account: `appwrite login`.
 
-The [./functions/Test/](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test/) folder contains an Appwrite function you may run to test against the library code developped in [./src/](https://github.com/kaibun/appwrite-fn-router/tree/main/src/).
+### Running the Test Function
 
-The strategy is kinda brut-force: copy the library code (./src) over to ./function/Test/src/lib, then run the function with `npm install && npm run build` as its setup command within the container, which will ensure the library code is globally available, thus callable by the function handler.
+The repository includes a test function in `./functions/Test/` that you can run against any Appwrite runtime (locally with Docker, self-hosted, or on Appwrite Cloud). It is meant to be used locally, though.
+
+To run the function once for basic testing, use:
 
 ```sh
-npm run test # copy the library code over and run the function locally with Docker
+npm run test
 ```
 
-## Test & debug functions locally
+This command simply starts the function container as defined by Appwrite, but doesn’t catch up with source code edits.
 
-> The testing function sits inside [./functions/Test](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test/). It’s meant to run locally in a (Appwrite) Docker container for rapid debugging, altough it can be deployed and run remotely, eg. on Appwrite Cloud or any hosted Appwrite instance.
+### Development with Hot-Reloading
 
-1. Install [Docker](https://www.docker.com/).
-2. Clone the [repository](https://github.com/kaibun/appwrite-fn-router), checkout any relevant branch.
-3. Create an [Appwrite free account](https://appwrite.io/) & download [their cli](https://appwrite.io/docs/tooling/command-line/installation), so you can `appwrite login` (which sadly is required to work locally with Docker).
-4. Run `npm run test`, hit [localhost:3000](http://localhost:3000) => check for errors in the container’s output.
+For an interactive development workflow, the hot-reloading setup is the recommended approach. Start it with:
+
+```sh
+npm run dev
+```
+
+This command initiates a sophisticated, parallel process to handle live updates from both the core library and the test function.
+
+#### How It Works
+
+The development server relies on a cascading build and reload strategy orchestrated by `nodemon`.
+
+**Workflow Diagram:**
+
+```mermaid
+graph TB
+    A["Change saved in<br>src/ or functions/Test/src/"]
+
+    subgraph "Watcher"
+        direction LR
+         B{"nodemon<br>detects change"} --> C["Execute:<br>npm run sync"]
+    end
+
+    subgraph "Sync Script Actions"
+        direction RL
+        D["Rebuild library:<br>./src -> ./dist"] --> E["Copy library:<br>./dist -> functions/Test/src/lib"] --> F["Rebuild function:<br>functions/Test/src -> ./dist"] --> G["Touch .reload file<br>in functions/Test/src"]
+    end
+
+    subgraph "In Container"
+        direction LR
+        H{"Appwrite runtime<br>detects .reload change"} --> I["Hot-swaps function,<br>loading new code"] --> J["Container<br>restarts server"]
+    end
+
+    A --> B
+    C --> D
+    G --> H
+```
+
+{''}
+
+**Explanation:**
+
+1.  **Watch**: `nodemon` monitors the `./src` and `functions/Test/src` directories for any file changes.
+2.  **Sync & Rebuild**: When a change is detected, `nodemon` executes the `npm run sync` script. This script performs a cascade of actions:
+    - It first rebuilds the main library.
+    - Then, it copies the compiled library code into the test function's `lib` directory.
+    - Finally, it rebuilds the test function itself, ensuring all code is up-to-date.
+3.  **Trigger Reload**: After the rebuilds are complete, the script uses the `touch` command to update a special `.reload` file inside the function's source directory.
+4.  **Appwrite Hot-Swap**: The running Appwrite container detects the modification to the `.reload` file and triggers its internal hot-swapping mechanism. It reloads the function, loading the newly compiled code from the `functions/Test/dist` directory.
+
+This setup ensures that any change, whether in the shared library or the function-specific code, is automatically and correctly reflected in the running test environment.
+
+### Advanced Debugging
+
+Sometimes you may need to debug the Appwrite runtime itself.
 
 With the Docker Desktop GUI, it’s quite easy browsing the server files:
 
 ![](../../static/img/docker-gui-server.js.png)
 
-Without a GUI, one must `docker exec -it <containerid> sh`.
+Without a GUI, you can get a shell inside the container:
 
-From there:
+```sh
+docker exec -it <container_id> sh
+```
 
-1. the server code is at /usr/local/server/src/server.js ([copy 2025/08/05](../../static/docker-faas-server.js))
-2. the Appwrite’s testing function code is at /usr/local/server/src/function/[dist|src]
+From there, you can find the relevant files:
 
-One may live-edit the former, but not the latter (it gets replaced upon restarting the container). When editing eg. server.js to add debugging logs, simply save the file and hit _Restart_ in the GUI, or `docker container restart <containerid>`.
+1. The runtime server code is at `/usr/local/server/src/server.js`.
+2. The user function code is at `/usr/local/server/src/function/`.
+
+You can live-edit `server.js` to add debugging logs. Simply save the file and hit **Restart** in the Docker Desktop GUI, or run `docker container restart <container_id>`.

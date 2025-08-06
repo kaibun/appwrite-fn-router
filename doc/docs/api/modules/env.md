@@ -14,7 +14,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[env.d.ts:35](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L35)
+[env.d.ts:35](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L35)
 
 ___
 
@@ -33,7 +33,7 @@ ___
 
 #### Defined in
 
-[env.d.ts:65](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L65)
+[env.d.ts:65](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L65)
 
 ___
 
@@ -57,7 +57,7 @@ ___
 
 #### Defined in
 
-[env.d.ts:1](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L1)
+[env.d.ts:1](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L1)
 
 ___
 
@@ -81,7 +81,7 @@ ___
 
 #### Defined in
 
-[env.d.ts:2](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L2)
+[env.d.ts:2](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L2)
 
 ___
 
@@ -91,7 +91,7 @@ ___
 
 #### Defined in
 
-[env.d.ts:4](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L4)
+[env.d.ts:4](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L4)
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 #### Defined in
 
-[env.d.ts:5](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L5)
+[env.d.ts:5](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L5)
 
 ___
 
@@ -130,7 +130,7 @@ ___
 
 #### Defined in
 
-[env.d.ts:13](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L13)
+[env.d.ts:13](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L13)
 
 ___
 
@@ -151,7 +151,7 @@ ___
 
 #### Defined in
 
-[env.d.ts:36](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L36)
+[env.d.ts:36](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L36)
 
 ___
 
@@ -175,7 +175,7 @@ ___
 
 #### Defined in
 
-[env.d.ts:30](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L30)
+[env.d.ts:30](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L30)
 
 ___
 
@@ -192,4 +192,4 @@ ___
 
 #### Defined in
 
-[env.d.ts:7](https://github.com/kaibun/appwrite-fn-router/blob/2df5bed/src/env.d.ts#L7)
+[env.d.ts:7](https://github.com/kaibun/appwrite-fn-router/blob/5110803/src/env.d.ts#L7)
