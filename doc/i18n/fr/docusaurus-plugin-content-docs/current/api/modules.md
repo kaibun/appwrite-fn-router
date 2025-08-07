@@ -1,5 +1,5 @@
 ---
-id: "index"
+id: "modules"
 title: "@kaibun/appwrite-fn-router"
 sidebar_label: "Table of Contents"
 sidebar_position: 0.5
@@ -9,5 +9,5 @@ custom_edit_url: null
 
 ## Modules
 
-- [src/main](modules/src_main.md)
-- [types](modules/types.md)
+- [env](modules/env.md)
+- [main](modules/main.md)

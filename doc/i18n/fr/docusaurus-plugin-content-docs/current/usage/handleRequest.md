@@ -1,0 +1,77 @@
+---
+sidebar_position: 2
+---
+
+# `handleRequest`
+
+La fonction `handleRequest` est le point d'entrée principal de votre fonction Appwrite lorsque vous utilisez ce routeur. Elle configure l'environnement, initialise le routeur avec vos routes et votre configuration, et gère les requêtes entrantes.
+
+C'est probablement la seule méthode que vous aurez besoin d'appeler pour utiliser cette bibliothèque.
+
+## Signature
+
+```typescript
+async function handleRequest(
+  context: AppwriteContext,
+  withRouter: (router: ReturnType<typeof createRouter>) => void,
+  options?: Options
+): Promise<AppwriteResponseObject | undefined>;
+```
+
+- `context` : L'objet de contexte de fonction Appwrite standard (`req`, `res`, `log`, `error`).
+- `withRouter` : Une fonction de rappel où vous définissez toutes vos routes en appelant des méthodes sur l'instance `router` fournie.
+- `options` : Un objet de configuration facultatif pour personnaliser le comportement du routeur.
+
+## Options
+
+L'objet `options` vous permet de configurer divers aspects du routeur :
+
+| Option     | Type                     | Défaut      | Description                                                                                                        |
+| ---------- | ------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| `globals`  | `boolean`                | `true`      | Si `true`, rend `log` et `error` disponibles en tant que fonctions globales.                                       |
+| `env`      | `boolean`                | `true`      | Si `true`, définit la variable d'environnement `APPWRITE_FUNCTION_API_KEY` à partir de l'en-tête `x-appwrite-key`. |
+| `log`      | `boolean`                | `true`      | Active ou désactive la journalisation.                                                                             |
+| `errorLog` | `boolean`                | `true`      | Active ou désactive la journalisation des erreurs.                                                                 |
+| `onError`  | `(err: unknown) => void` | `undefined` | Une fonction de gestionnaire d'erreurs personnalisée.                                                              |
+| `cors`     | `object`                 | `{...}`     | Configuration pour le partage des ressources entre origines (CORS). Voir ci-dessous pour plus de détails.          |
+
+### Configuration CORS
+
+Vous pouvez fournir une configuration CORS flexible pour contrôler la manière dont votre fonction répond aux requêtes provenant de différentes origines.
+
+L'objet d'option `cors` a les propriétés suivantes :
+
+- `allowedOrigins` : Un tableau de chaînes de caractères ou d'objets `RegExp` pour les origines autorisées.
+- `allowMethods` : Un tableau des méthodes HTTP autorisées.
+- `allowHeaders` : Un tableau des en-têtes de requête autorisés.
+
+## Exemple
+
+Voici à quoi devrait ressembler l’utilisation de `handleRequest`, y compris la configuration CORS pour autoriser les requêtes provenant, dans cet exemple, de votre domaine de production.
+
+```typescript
+// src/main.ts
+import { handleRequest } from 'appwrite-fn-router';
+
+export default async ({ req, res, log, error }) => {
+  return await handleRequest(
+    { req, res, log, error },
+    (router) => {
+      // Définissez vos routes ici
+      router.get('/', () => ({ message: 'Bonjour le monde !' }));
+    },
+    {
+      cors: {
+        allowedOrigins: [
+          'https://my-domain.com',
+          /.*\.subdomain\.somedomain\.tld$/, // vous pouvez utiliser des regex
+        ],
+        allowMethods: ['GET', 'POST', 'PUT'],
+        allowHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'],
+      },
+    }
+  );
+};
+```
+
+**Remarque :** Pour le développement local, `http://localhost:3000` (la [fonction de test](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test)) et `https://localhost:3001` ([ce même processus Docusaurus](https://github.com/kaibun/appwrite-fn-router/tree/main/doc)) sont automatiquement ajoutés à la liste `allowedOrigins`, à condition que `NODE_ENV` ne soit pas défini sur `production`. Cela permet d'envoyer des requêtes CORS entre les différents ports du localhost.

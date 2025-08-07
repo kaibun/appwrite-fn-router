@@ -1,0 +1,19 @@
+release:
+  label: Release
+  description: Posts about new releases
+  permalink: /release
+
+appwrite:
+  label: Appwrite
+  description: Posts related to Appwrite
+  permalink: /appwrite
+
+functions:
+  label: Functions
+  description: Posts related to Appwrite Functions
+  permalink: /functions
+
+router:
+  label: Router
+  description: Posts related to the function router
+  permalink: /router
