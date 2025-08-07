@@ -1,8 +1,19 @@
+// Core types for Appwrite Functions and itty-router integration
+
+import type { IRequest } from 'itty-router';
+
 export type DefaultLogger = (message: string) => void;
 export type ErrorLogger = (message: string) => void;
 
 export type Headers = Record<string, string>;
 export type JSONObject = Record<string, unknown>;
+
+export type ResponseObject<T = any> = {
+  body: T;
+  headers: Headers;
+  statusCode: number;
+  toString(): string;
+};
 
 export type RunArgs = {
   data: {
@@ -27,11 +38,6 @@ export type Request = {
   path: string;
 };
 
-export type ResponseObject<BodyType = unknown> = {
-  body: BodyType;
-  statusCode: number;
-  headers: Headers;
-};
 export type BufferFromArgTypes = Parameters<typeof Buffer.from>[0];
 export type Response = {
   send: (
@@ -69,19 +75,26 @@ export type Context = {
   error: ErrorLogger;
 };
 
-declare global {
-  var log: DefaultLogger;
-  var error: ErrorLogger;
+// Router types from main.ts
+export type Options = {
+  globals?: boolean;
+  env?: boolean;
+  log?: boolean;
+  errorLog?: boolean;
+  onError?: (err: unknown) => void;
+  cors?: {
+    allowedOrigins?: (string | RegExp)[];
+    allowMethods?: string[];
+    allowHeaders?: string[];
+  };
+};
 
-  namespace NodeJS {
-    interface ProcessEnv {
-      APPWRITE_FUNCTION_API_ENDPOINT: string;
-      APPWRITE_FUNCTION_PROJECT_ID: string;
-      APPWRITE_FUNCTION_API_KEY: string;
-      //   APPWRITE_DATABASE_ID: string;
-      //   APPWRITE_COLLECTION_ID: string;
-    }
-  }
-}
+export type RouterJSONResponse = {
+  status: 'success' | 'error';
+  message: string;
+  error?: string;
+} & JSONObject;
 
-export {};
+// TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
+// export type WrapperRequestType = AppwriteRequest & IRequest;
+export type WrapperRequestType = IRequest;

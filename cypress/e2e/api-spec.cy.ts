@@ -1,4 +1,5 @@
 import YAML from 'yaml';
+import { Widget, isValidWidget, isValidWidgetArray } from '../../types/widget';
 
 describe('API Tests from OpenAPI Spec', () => {
   let spec: any;
@@ -39,6 +40,18 @@ describe('API Tests from OpenAPI Spec', () => {
         expect(response.status).to.eq(200);
         expect(response.body).to.have.property('items');
         expect(response.body.items).to.be.an('array');
+
+        // Validate that each item in the array is a valid Widget
+        expect(isValidWidgetArray(response.body.items)).to.be.true;
+
+        // Additional validation: each widget should have the expected properties
+        response.body.items.forEach((widget: any) => {
+          expect(widget).to.have.property('id').that.is.a('string');
+          expect(widget).to.have.property('weight').that.is.a('number');
+          expect(widget)
+            .to.have.property('color')
+            .that.is.oneOf(['red', 'blue', 'gold']);
+        });
       });
     });
 
@@ -51,7 +64,12 @@ describe('API Tests from OpenAPI Spec', () => {
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(201);
-        expect(response.body).to.have.property('id');
+
+        // Validate that the returned object is a valid Widget
+        expect(isValidWidget(response.body)).to.be.true;
+
+        // Validate specific properties
+        expect(response.body).to.have.property('id').that.is.a('string');
         expect(response.body.weight).to.eq(15);
         expect(response.body.color).to.eq('red');
       });
@@ -78,6 +96,11 @@ describe('API Tests from OpenAPI Spec', () => {
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(200);
+
+        // Validate that the returned object is a valid Widget
+        expect(isValidWidget(response.body)).to.be.true;
+
+        // Validate the specific secret widget response
         expect(response.body).to.deep.equal({
           id: 'widget-secret',
           weight: 200,
@@ -104,9 +127,16 @@ describe('API Tests from OpenAPI Spec', () => {
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(200);
+
+        // Validate that the returned object is a valid Widget
+        expect(isValidWidget(response.body)).to.be.true;
+
+        // Validate specific properties
         expect(response.body).to.have.property('id', 'widget1');
-        expect(response.body).to.have.property('weight');
-        expect(response.body).to.have.property('color');
+        expect(response.body).to.have.property('weight').that.is.a('number');
+        expect(response.body)
+          .to.have.property('color')
+          .that.is.oneOf(['red', 'blue', 'gold']);
       });
     });
 
@@ -130,8 +160,14 @@ describe('API Tests from OpenAPI Spec', () => {
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(200);
+
+        // Validate that the returned object is a valid Widget
+        expect(isValidWidget(response.body)).to.be.true;
+
+        // Validate the updated properties
         expect(response.body.weight).to.eq(25);
         expect(response.body.color).to.eq('blue');
+        expect(response.body).to.have.property('id', 'widget1');
       });
     });
 

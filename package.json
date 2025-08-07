@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "A router for Appwrite Functions",
   "main": "dist/main.js",
-  "typings": "dist/main.d.ts",
+  "typings": "./types",
   "type": "module",
   "scripts": {
     "build": "tsup",

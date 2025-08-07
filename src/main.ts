@@ -1,34 +1,16 @@
 import { inspect } from 'node:util';
-import { cors, IRequest, RouterOptions, Router } from 'itty-router';
+import { cors, RouterOptions, Router } from 'itty-router';
 import type {
   Context as AppwriteContext,
-  JSONObject,
-  ResponseObject as AppwriteResponseObject,
   Request as AppwriteRequest,
   Response as AppwriteResponse,
   DefaultLogger,
   ErrorLogger,
-} from './env.d.ts';
-import { before } from 'node:test';
-
-type RouterJSONResponse = {
-  status: 'success' | 'error';
-  message: string;
-  error?: string;
-} & JSONObject;
-
-export type Options = {
-  globals?: boolean;
-  env?: boolean;
-  log?: boolean;
-  errorLog?: boolean;
-  onError?: (err: unknown) => void;
-  cors?: {
-    allowedOrigins?: (string | RegExp)[];
-    allowMethods?: string[];
-    allowHeaders?: string[];
-  };
-};
+  Options,
+  RouterJSONResponse,
+  WrapperRequestType,
+} from '../types/core';
+import '../types/global.d.ts'; // Import global declarations
 
 const $ = globalThis;
 
@@ -49,8 +31,7 @@ export function tracePrototypeChainOf(object: object) {
 }
 
 // TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
-// export type WrapperRequestType = AppwriteRequest & IRequest;
-export type WrapperRequestType = IRequest;
+// WrapperRequestType is now defined in types/core.ts
 
 // Creating an AutoRouter instance, adjusting types to match the Appwrite context
 export function createRouter({
@@ -62,7 +43,7 @@ export function createRouter({
   return Router<
     WrapperRequestType,
     [AppwriteRequest, AppwriteResponse, DefaultLogger, ErrorLogger] & any[],
-    AppwriteResponseObject
+    AppwriteResponse
   >({
     ...args,
   });
@@ -97,7 +78,7 @@ export async function runRouter(
     res,
     log,
     error,
-  })) as AppwriteResponseObject;
+  })) as AppwriteResponse;
   log('\n[router] Router has fetched with result:');
   log(tracePrototypeChainOf(response));
   log(response.toString());
@@ -240,8 +221,6 @@ export async function handleRequest(
           }
         },
       ],
-      // before: [preflight],
-      // finally: [corsify],
     });
     withRouter(router);
 
@@ -291,7 +270,8 @@ export async function handleRequest(
       return res.text('Not Found', 404);
     }
 
-    apwLog(inspect(response.body!.toString()));
+    apwLog('\n[router] Router response received');
+    // Debug: response body access would need proper Response interface handling
     // log(tracePrototypeChainOf(response));
     // Object.getOwnPropertyNames(response).forEach((key) => {
     //   log(`Key: ${key}`);
