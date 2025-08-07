@@ -47,7 +47,7 @@ The `cors` option object has the following properties:
 
 ## Example
 
-Here is how you can configure CORS to allow requests from your production domain and any Appwrite function subdomain for a specific region, while also defining specific methods and headers.
+Here is how you should use `handleRequest`, including the CORS configuration to allow requests from (in this example) your production domain.
 
 ```typescript
 // src/main.ts
@@ -63,8 +63,8 @@ export default async ({ req, res, log, error }) => {
     {
       cors: {
         allowedOrigins: [
-          'https://my-domain.com',
-          /.*\.my-region\.appwrite\.run$/, // e.g., for the region of your choice
+          'https://my-domain.com'
+          /.*\.subdomain\.somedomain\.tld$/, // you may use regex
         ],
         allowMethods: ['GET', 'POST', 'PUT'],
         allowHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'],
@@ -74,4 +74,4 @@ export default async ({ req, res, log, error }) => {
 };
 ```
 
-**Note:** For local development, `http://localhost:3001` (the [Test function](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test)) and `https://localhost:3001` ([this very Docusaurus process](https://github.com/kaibun/appwrite-fn-router/tree/main/doc)) are automatically added to the `allowedOrigins` list, granted `NODE_ENV` is not set to `production`. This allows for sending CORS request between localhost ports.
+**Note:** For local development, `http://localhost:3000` (the [Test function](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test)) and `https://localhost:3001` ([this very Docusaurus process](https://github.com/kaibun/appwrite-fn-router/tree/main/doc)) are automatically added to the `allowedOrigins` list, granted `NODE_ENV` is not set to `production`. This allows for sending CORS request between localhost ports.

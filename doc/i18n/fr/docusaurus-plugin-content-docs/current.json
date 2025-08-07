@@ -1,0 +1,26 @@
+{
+  "version.label": {
+    "message": "Suivant",
+    "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.Usage": {
+    "message": "Utilisation",
+    "description": "The label for category Usage in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.API": {
+    "message": "API",
+    "description": "The label for category API in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Modules": {
+    "message": "Modules",
+    "description": "The label for category Modules in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Contributing": {
+    "message": "Contribuer",
+    "description": "The label for category Contributing in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.doc.Getting Started": {
+    "message": "Premiers pas",
+    "description": "The label for the doc item Getting Started in sidebar tutorialSidebar, linking to the doc intro"
+  }
+}

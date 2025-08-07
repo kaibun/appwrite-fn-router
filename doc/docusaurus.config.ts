@@ -34,7 +34,17 @@ const config: Config = {
   // may want to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    locales: ['en', 'fr'],
+    localeConfigs: {
+      en: {
+        label: 'English',
+        htmlLang: 'en-US',
+      },
+      fr: {
+        label: 'Français',
+        htmlLang: 'fr-FR',
+      },
+    },
   },
 
   presets: [
@@ -88,6 +98,7 @@ const config: Config = {
           label: 'Documentation',
         },
         { to: '/blog', label: 'Blog', position: 'left' },
+        { type: 'localeDropdown', position: 'right' },
         {
           label: 'GitHub',
           href: 'https://github.com/kaibun/appwrite-fn-router',
@@ -157,7 +168,7 @@ const config: Config = {
 
       // Options
       {
-        entryPoints: ['../src/main.ts', '../types/index.ts'],
+        entryPoints: ['../src/main.ts', '../types/index.d.ts'],
         tsconfig: 'tsconfig.json',
         out: 'api',
         readme: 'none',
