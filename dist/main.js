@@ -19,7 +19,7 @@ function createRouter({
   });
 }
 async function runRouter(router, { req, res, log, error }) {
-  const { headers, method, host, scheme, query, queryString, port, url, path } = req;
+  const { headers, method, url } = req;
   const route = new URL(url);
   log("\n[router] Running router with the following request:");
   const request = new Request(route, {
@@ -31,21 +31,21 @@ async function runRouter(router, { req, res, log, error }) {
       method,
       route,
       headers: JSON.stringify(headers)
-      // request: request.toString(),
     })
   );
-  const response = await router.fetch(request, {
+  const response = await router.fetch(
+    request,
+    // IRequest
     req,
+    // The original Appwrite’s Request
     res,
+    // The original Appwrite’s Response
     log,
+    // The original or muted Appwrite’s DefaultLogger
     error
-  });
-  log("\n[router] Router has fetched with result:");
-  log(tracePrototypeChainOf(response));
-  log(response.toString());
-  Object.getOwnPropertyNames(response).forEach((key) => {
-    log(`Key: ${key}`);
-  });
+    // The original or muted Appwrite’s ErrorLogger
+  );
+  log("\n[router] Router has fetched a response.");
   return response;
 }
 async function handleRequest(context, withRouter, options = { globals: true, env: true, log: true, errorLog: true }) {
@@ -104,14 +104,14 @@ async function handleRequest(context, withRouter, options = { globals: true, env
           if (response2) {
             const body = await response2.text();
             const statusCode = response2.status;
-            const headers2 = Object.fromEntries(response2.headers.entries());
-            return res2.send(body, statusCode, headers2);
+            const headers = Object.fromEntries(response2.headers.entries());
+            return res2.send(body, statusCode, headers);
           }
         }
       ],
       // The `finally` middleware applies CORS headers to the outgoing response.
       finally: [
-        async (responseFromRoute, request2, req_appwrite, res2, log2, error2) => {
+        async (responseFromRoute, request, req_appwrite, res2, log2, error2) => {
           if (responseFromRoute) {
             const nativeResponse = new Response(
               responseFromRoute.statusCode === 204 ? null : responseFromRoute.body,
@@ -120,55 +120,27 @@ async function handleRequest(context, withRouter, options = { globals: true, env
                 headers: responseFromRoute.headers
               }
             );
-            const corsifiedResponse = corsify(nativeResponse, request2);
+            const corsifiedResponse = corsify(nativeResponse, request);
             const body = await corsifiedResponse.text();
             const statusCode = corsifiedResponse.status;
-            const headers2 = Object.fromEntries(
+            const headers = Object.fromEntries(
               corsifiedResponse.headers.entries()
             );
-            return res2.send(body, statusCode, headers2);
+            return res2.send(body, statusCode, headers);
           }
         }
       ]
     });
     withRouter(router);
     log("\n[router] Router has been augmented with routes:");
-    const rr = router.routes.map(([method2, regex, handlers, path]) => [
-      method2,
+    const rr = router.routes.map(([method, regex, handlers, path]) => [
+      method,
       regex.toString(),
       handlers.map((h) => h.toString()),
       path
     ]);
     rr.forEach((r) => log(JSON.stringify(r)));
-    const { headers, method, url } = req;
-    const route = new URL(url);
-    log("\n[router] Running router with the following request:");
-    const request = new Request(route, {
-      // const request = new Request(url, {
-      // @see https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
-      headers,
-      method
-    });
-    log(
-      JSON.stringify({
-        route,
-        // url,
-        method,
-        headers: JSON.stringify(headers)
-      })
-    );
-    const response = await router.fetch(
-      request,
-      // IRequest
-      req,
-      // The original Appwrite’s Request
-      res,
-      // The original Appwrite’s Response
-      log,
-      // The original or muted Appwrite’s DefaultLogger
-      error
-      // The original or muted Appwrite’s ErrorLogger
-    );
+    const response = await runRouter(router, { req, res, log, error });
     apwLog("\n[router] Router has fetched with result:");
     apwLog(inspect(response, { depth: null }));
     if (!response) {

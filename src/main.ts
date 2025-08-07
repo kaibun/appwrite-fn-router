@@ -50,13 +50,11 @@ export function createRouter({
 }
 
 // Exporting a function to run the router with Appwrite's context
-// TODO: function is not used anymore, but should be. Reify it, split the other one.
 export async function runRouter(
   router: ReturnType<typeof createRouter>,
   { req, res, log, error }: AppwriteContext
 ) {
-  const { headers, method, host, scheme, query, queryString, port, url, path } =
-    req;
+  const { headers, method, url } = req;
   const route = new URL(url);
   log('\n[router] Running router with the following request:');
   const request = new Request(route, {
@@ -68,48 +66,19 @@ export async function runRouter(
       method,
       route,
       headers: JSON.stringify(headers),
-      // request: request.toString(),
     })
   );
+
   // Passing along the request and misc. objects from the Appwrite context
-  // const response = (await router.fetch(request, {
-  const response = (await router.fetch(request, {
-    req,
-    res,
-    log,
-    error,
-  })) as AppwriteResponse;
-  log('\n[router] Router has fetched with result:');
-  log(tracePrototypeChainOf(response));
-  log(response.toString());
-  Object.getOwnPropertyNames(response).forEach((key) => {
-    log(`Key: ${key}`);
-  });
-  // log(JSON.stringify(response.body));
-  // log(response.statusCode.toString());
-  // log(JSON.stringify(response.headers));
-  // Returning the response object
-  // if (result instanceof Response) {
-  //   return result;
-  // }
-  // if (typeof result === 'string') {
-  //   return res.text(result);
-  // }
-  // if (typeof result === 'object' && 'body' in result) {
-  //   // Assuming result is of type AppwriteResponseObject
-  //   return res.json(result.body, result.statusCode, result.headers);
-  // }
-  // // Fallback to a simple text response
-  // log('[router] Returning a fallback text response');
-  // if (typeof result === 'object') {
-  //   return res.text(JSON.stringify(result));
-  // }
-  // if (typeof result === 'number') {
-  //   return res.text(String(result));
-  // }
-  // if (result === null || result === undefined) {
-  //   return res.text('No content', 204);
-  // }
+  const response = await router.fetch(
+    request, // IRequest
+    req, // The original Appwrite’s Request
+    res, // The original Appwrite’s Response
+    log, // The original or muted Appwrite’s DefaultLogger
+    error // The original or muted Appwrite’s ErrorLogger
+  );
+
+  log('\n[router] Router has fetched a response.');
   return response;
 }
 
@@ -233,35 +202,7 @@ export async function handleRequest(
     ]);
     rr.forEach((r) => log(JSON.stringify(r)));
 
-    // const response = await runRouter(router, { req, res, log, error });
-    // log('\n[router] Router has been run');
-    // log(response.toString());
-
-    const { headers, method, url } = req;
-    const route = new URL(url);
-    log('\n[router] Running router with the following request:');
-    const request = new Request(route, {
-      // const request = new Request(url, {
-      // @see https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
-      headers,
-      method,
-    });
-    log(
-      JSON.stringify({
-        route,
-        // url,
-        method,
-        headers: JSON.stringify(headers),
-      })
-    );
-    // Passing along the request and misc. objects from the Appwrite context
-    const response = await router.fetch(
-      request, // IRequest
-      req, // The original Appwrite’s Request
-      res, // The original Appwrite’s Response
-      log, // The original or muted Appwrite’s DefaultLogger
-      error // The original or muted Appwrite’s ErrorLogger
-    ); // satisfies AppwriteResponseObject;
+    const response = await runRouter(router, { req, res, log, error });
     apwLog('\n[router] Router has fetched with result:');
     apwLog(inspect(response, { depth: null }));
 
