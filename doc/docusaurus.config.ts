@@ -157,7 +157,7 @@ const config: Config = {
 
       // Options
       {
-        entryPoints: ['../src/main.ts', '../src/env.d.ts'],
+        entryPoints: ['../src/main.ts', '../types/index.ts'],
         tsconfig: '../tsconfig.json',
         out: 'api',
         readme: 'none',

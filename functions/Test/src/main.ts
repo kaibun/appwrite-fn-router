@@ -1,19 +1,16 @@
 import { inspect } from 'node:util';
 
-import type { Context, JSONObject } from './lib/env.d.ts';
+import type { Context } from '../../../types';
 import {
   createRouter,
   handleRequest,
   tracePrototypeChainOf,
 } from './lib/main.ts';
+import type { RouterJSONResponse, JSONObject } from '../../../types';
 import widgetsRouter from './routes/widgets.ts';
 
 // Optionally define a custom JSON response schema:
-export type MyJSONResponse = {
-  status: 'success' | 'error';
-  message: string;
-  error?: string;
-} & JSONObject;
+// Already available as RouterJSONResponse from the core library
 
 function routes(router: ReturnType<typeof createRouter>) {
   // TODO: test with an async/await handler as well

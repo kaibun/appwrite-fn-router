@@ -1,11 +1,9 @@
 import { createRouter } from '../lib/main';
 import type { IRequest } from 'itty-router';
+import type { Widget } from '../../../../types/widget';
 
-type Widget = {
-  id: string;
-  weight: number;
-  color: 'red' | 'blue' | 'gold';
-};
+// Re-export for convenience
+export type { Widget };
 
 /**
  * Routes nested under /widgets/

@@ -4,8 +4,8 @@ import type {
   DefaultLogger,
   ErrorLogger,
   ResponseObject,
-} from './lib/env.d.ts';
-import type { MyJSONResponse } from './main.ts';
+  RouterJSONResponse,
+} from '../../../types';
 
 export const myRouteHandler = (
   req: Request,
@@ -16,5 +16,5 @@ export const myRouteHandler = (
   return res.json({
     status: 'success',
     message: 'Mystery route!',
-  }) satisfies ResponseObject<MyJSONResponse>;
+  }) satisfies ResponseObject<RouterJSONResponse>;
 };

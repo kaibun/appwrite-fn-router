@@ -130,8 +130,6 @@ async function handleRequest(context, withRouter, options = { globals: true, env
           }
         }
       ]
-      // before: [preflight],
-      // finally: [corsify],
     });
     withRouter(router);
     log("\n[router] Router has been augmented with routes:");
@@ -176,7 +174,7 @@ async function handleRequest(context, withRouter, options = { globals: true, env
     if (!response) {
       return res.text("Not Found", 404);
     }
-    apwLog(inspect(response.body.toString()));
+    apwLog("\n[router] Router response received");
     return response;
   } catch (err) {
     options.errorLog && apwError(
