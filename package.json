@@ -14,7 +14,7 @@
     "test": "appwrite run functions --function-id 6890bbb20003ff2a1bf1",
     "dev:run": "npm run test",
     "dev:watch": "nodemon",
-    "dev": "npm-run-all --parallel dev:watch dev:run",
+    "dev": "npm run sync && npm-run-all --parallel dev:watch dev:run",
     "test:e2e": "cypress run"
   },
   "dependencies": {
