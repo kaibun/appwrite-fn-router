@@ -56,18 +56,10 @@ export async function runRouter(
 ) {
   const { headers, method, url } = req;
   const route = new URL(url);
-  log('\n[router] Running router with the following request:');
   const request = new Request(route, {
     headers,
     method,
   });
-  log(
-    JSON.stringify({
-      method,
-      route,
-      headers: JSON.stringify(headers),
-    })
-  );
 
   // Passing along the request and misc. objects from the Appwrite context
   const response = await router.fetch(
@@ -78,7 +70,6 @@ export async function runRouter(
     error // The original or muted Appwrite’s ErrorLogger
   );
 
-  log('\n[router] Router has fetched a response.');
   return response;
 }
 
@@ -87,27 +78,36 @@ export async function handleRequest(
   // Accepting a function that receives the router instance, so the end-user
   // may define their own routes, customize that router’s behavior, etc.
   withRouter: (router: ReturnType<typeof createRouter>) => void,
-  options: Options = { globals: true, env: true, log: true, errorLog: true }
+  options: Options = {}
 ) {
+  const isNotProduction = process.env.NODE_ENV !== 'production';
+  const finalOptions = {
+    globals: options.globals ?? true,
+    env: options.env ?? true,
+    log: options.log ?? isNotProduction,
+    errorLog: options.errorLog ?? isNotProduction,
+    ...options,
+  };
+
   let { req, res, log: apwLog, error: apwError } = context;
-  options.log && apwLog('[router] Function is starting...');
+  finalOptions.log && apwLog('[router] Function is starting...');
 
   try {
-    const log = options.log ? apwLog : () => {};
-    const error = options.errorLog ? apwError : () => {};
+    const log = finalOptions.log ? apwLog : () => {};
+    const error = finalOptions.errorLog ? apwError : () => {};
 
-    if (options.globals) {
+    if (finalOptions.globals) {
       globalThis.log = log;
       globalThis.error = error;
     }
-    if (options.env) {
+    if (finalOptions.env) {
       process.env.APPWRITE_FUNCTION_API_KEY =
         req.headers['x-appwrite-key'] || '';
     }
 
     // Dynamically set allowed origins based on the environment.
     const allowedOrigins: (string | RegExp)[] =
-      options.cors?.allowedOrigins ?? [];
+      finalOptions.cors?.allowedOrigins ?? [];
     if (process.env.NODE_ENV !== 'production') {
       // Add development origins if not already present.
       if (!allowedOrigins.includes('http://localhost:3001')) {
@@ -133,14 +133,14 @@ export async function handleRequest(
           }
         }
       },
-      allowMethods: options.cors?.allowMethods ?? [
+      allowMethods: finalOptions.cors?.allowMethods ?? [
         'GET',
         'POST',
         'PATCH',
         'DELETE',
         'OPTIONS',
       ],
-      allowHeaders: options.cors?.allowHeaders ?? [
+      allowHeaders: finalOptions.cors?.allowHeaders ?? [
         'Content-Type',
         'Authorization',
       ],
@@ -193,35 +193,24 @@ export async function handleRequest(
     });
     withRouter(router);
 
-    log('\n[router] Router has been augmented with routes:');
     const rr = router.routes.map(([method, regex, handlers, path]) => [
       method,
       regex.toString(),
       handlers.map((h) => h.toString()),
       path,
     ]);
-    rr.forEach((r) => log(JSON.stringify(r)));
 
     const response = await runRouter(router, { req, res, log, error });
-    apwLog('\n[router] Router has fetched with result:');
-    apwLog(inspect(response, { depth: null }));
 
     if (!response) {
       // TODO: abide by request’s Accept header (fallback to Content-type, then to text/plain)
       return res.text('Not Found', 404);
     }
 
-    apwLog('\n[router] Router response received');
-    // Debug: response body access would need proper Response interface handling
-    // log(tracePrototypeChainOf(response));
-    // Object.getOwnPropertyNames(response).forEach((key) => {
-    //   log(`Key: ${key}`);
-    // });
-
     return response;
   } catch (err) {
     // TODO: support reporting to a monitoring service
-    options.errorLog &&
+    finalOptions.errorLog &&
       apwError(
         `\n[router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
       );

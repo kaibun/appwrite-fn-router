@@ -292,17 +292,15 @@ var main_default = async (context) => {
   let greetings = `${req.method} ${req.path}`;
   const ignoreRoute = ignoredRoutes.some((route) => req.path.startsWith(route));
   if (ignoreRoute) {
-    log(greetings + " (ignored)\n");
+    log(greetings + " (ignored)");
     return res.text("I'm a teapot", 418);
   }
-  log(greetings);
+  log(greetings + "\n");
   const response = await handleRequest(context, routes, {
     log: false,
     errorLog: true
   });
   log(inspect2(response, { depth: null }));
-  log(response.statusCode.toString());
-  log(response.body.toString());
   log("\n");
   return response;
 };
