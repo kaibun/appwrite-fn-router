@@ -1,9 +1,11 @@
 {
-  // This file is not used in compilation. It is here just for a nice editor experience.
-  "extends": "@docusaurus/tsconfig",
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
+    "types": ["node"],
+    "noEmit": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react"
   },
-  "exclude": [".docusaurus", "build"]
+  "include": ["./**/*.ts", "./**/*.tsx", "../src/**/*.ts", "../types/**/*.ts"],
+  "exclude": ["../cypress", "build", ".docusaurus", "../functions"]
 }

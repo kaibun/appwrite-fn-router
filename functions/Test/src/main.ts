@@ -1,7 +1,7 @@
 import { inspect } from 'node:util';
 
-import type { Context } from '../../../types';
-import { createRouter, handleRequest } from './lib/main.ts';
+import type { Context } from '@kaibun/appwrite-fn-router/types';
+import { createRouter, handleRequest } from '@kaibun/appwrite-fn-router';
 import widgetsRouter from './routes/widgets.ts';
 
 // Optionally define a custom JSON response schema:

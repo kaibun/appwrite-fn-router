@@ -1,5 +1,6 @@
 import YAML from 'yaml';
-import { Widget, isValidWidget, isValidWidgetArray } from '../../types/widget';
+import { isValidWidget, isValidWidgetArray } from '../support/utils';
+import type { Widget } from '@/types/widget';
 
 describe('API Tests from OpenAPI Spec', () => {
   let spec: any;

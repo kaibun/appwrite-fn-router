@@ -1,8 +1,7 @@
 // src/main.ts
-import { inspect as inspect2 } from "util";
-
-// src/lib/main.ts
 import { inspect } from "util";
+
+// ../../src/main.ts
 import { cors, Router } from "itty-router";
 function createRouter({
   ...args
@@ -11,22 +10,51 @@ function createRouter({
     ...args
   });
 }
-async function handleRequest(context, withRouter, options = { globals: true, env: true, log: true, errorLog: true }) {
+async function runRouter(router2, { req, res, log, error }) {
+  const { headers, method, url } = req;
+  const route = new URL(url);
+  const request = new Request(route, {
+    headers,
+    method
+  });
+  const response = await router2.fetch(
+    request,
+    // IRequest
+    req,
+    // The original Appwrite’s Request
+    res,
+    // The original Appwrite’s Response
+    log,
+    // The original or muted Appwrite’s DefaultLogger
+    error
+    // The original or muted Appwrite’s ErrorLogger
+  );
+  return response;
+}
+async function handleRequest(context, withRouter, options = {}) {
+  const isNotProduction = process.env.NODE_ENV !== "production";
+  const finalOptions = {
+    globals: options.globals ?? true,
+    env: options.env ?? true,
+    log: options.log ?? isNotProduction,
+    errorLog: options.errorLog ?? isNotProduction,
+    ...options
+  };
   let { req, res, log: apwLog, error: apwError } = context;
-  options.log && apwLog("[router] Function is starting...");
+  finalOptions.log && apwLog("[router] Function is starting...");
   try {
-    const log = options.log ? apwLog : () => {
+    const log = finalOptions.log ? apwLog : () => {
     };
-    const error = options.errorLog ? apwError : () => {
+    const error = finalOptions.errorLog ? apwError : () => {
     };
-    if (options.globals) {
+    if (finalOptions.globals) {
       globalThis.log = log;
       globalThis.error = error;
     }
-    if (options.env) {
+    if (finalOptions.env) {
       process.env.APPWRITE_FUNCTION_API_KEY = req.headers["x-appwrite-key"] || "";
     }
-    const allowedOrigins = options.cors?.allowedOrigins ?? [];
+    const allowedOrigins = finalOptions.cors?.allowedOrigins ?? [];
     if (process.env.NODE_ENV !== "production") {
       if (!allowedOrigins.includes("http://localhost:3001")) {
         allowedOrigins.push("http://localhost:3001");
@@ -47,14 +75,14 @@ async function handleRequest(context, withRouter, options = { globals: true, env
           }
         }
       },
-      allowMethods: options.cors?.allowMethods ?? [
+      allowMethods: finalOptions.cors?.allowMethods ?? [
         "GET",
         "POST",
         "PATCH",
         "DELETE",
         "OPTIONS"
       ],
-      allowHeaders: options.cors?.allowHeaders ?? [
+      allowHeaders: finalOptions.cors?.allowHeaders ?? [
         "Content-Type",
         "Authorization"
       ]
@@ -67,14 +95,14 @@ async function handleRequest(context, withRouter, options = { globals: true, env
           if (response2) {
             const body = await response2.text();
             const statusCode = response2.status;
-            const headers2 = Object.fromEntries(response2.headers.entries());
-            return res2.send(body, statusCode, headers2);
+            const headers = Object.fromEntries(response2.headers.entries());
+            return res2.send(body, statusCode, headers);
           }
         }
       ],
       // The `finally` middleware applies CORS headers to the outgoing response.
       finally: [
-        async (responseFromRoute, request2, req_appwrite, res2, log2, error2) => {
+        async (responseFromRoute, request, req_appwrite, res2, log2, error2) => {
           if (responseFromRoute) {
             const nativeResponse = new Response(
               responseFromRoute.statusCode === 204 ? null : responseFromRoute.body,
@@ -83,66 +111,31 @@ async function handleRequest(context, withRouter, options = { globals: true, env
                 headers: responseFromRoute.headers
               }
             );
-            const corsifiedResponse = corsify(nativeResponse, request2);
+            const corsifiedResponse = corsify(nativeResponse, request);
             const body = await corsifiedResponse.text();
             const statusCode = corsifiedResponse.status;
-            const headers2 = Object.fromEntries(
+            const headers = Object.fromEntries(
               corsifiedResponse.headers.entries()
             );
-            return res2.send(body, statusCode, headers2);
+            return res2.send(body, statusCode, headers);
           }
         }
       ]
-      // before: [preflight],
-      // finally: [corsify],
     });
     withRouter(router2);
-    log("\n[router] Router has been augmented with routes:");
-    const rr = router2.routes.map(([method2, regex, handlers, path]) => [
-      method2,
+    const rr = router2.routes.map(([method, regex, handlers, path]) => [
+      method,
       regex.toString(),
       handlers.map((h) => h.toString()),
       path
     ]);
-    rr.forEach((r) => log(JSON.stringify(r)));
-    const { headers, method, url } = req;
-    const route = new URL(url);
-    log("\n[router] Running router with the following request:");
-    const request = new Request(route, {
-      // const request = new Request(url, {
-      // @see https://developer.mozilla.org/en-US/docs/Web/API/RequestInit
-      headers,
-      method
-    });
-    log(
-      JSON.stringify({
-        route,
-        // url,
-        method,
-        headers: JSON.stringify(headers)
-      })
-    );
-    const response = await router2.fetch(
-      request,
-      // IRequest
-      req,
-      // The original Appwrite’s Request
-      res,
-      // The original Appwrite’s Response
-      log,
-      // The original or muted Appwrite’s DefaultLogger
-      error
-      // The original or muted Appwrite’s ErrorLogger
-    );
-    apwLog("\n[router] Router has fetched with result:");
-    apwLog(inspect(response, { depth: null }));
+    const response = await runRouter(router2, { req, res, log, error });
     if (!response) {
       return res.text("Not Found", 404);
     }
-    apwLog(inspect(response.body.toString()));
     return response;
   } catch (err) {
-    options.errorLog && apwError(
+    finalOptions.errorLog && apwError(
       `
 [router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
     );
@@ -300,7 +293,7 @@ var main_default = async (context) => {
     log: false,
     errorLog: true
   });
-  log(inspect2(response, { depth: null }));
+  log(inspect(response, { depth: null }));
   log("\n");
   return response;
 };

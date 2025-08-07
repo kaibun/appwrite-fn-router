@@ -10,6 +10,12 @@
     "lib": ["ES2022"],
     "module": "es2022",
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@kaibun/appwrite-fn-router": ["./src/main.ts"],
+      "@kaibun/appwrite-fn-router/types": ["./types/index.ts"],
+      "@/*": ["./*"]
+    },
     "noEmit": true,
     "noImplicitAny": true,
     "outDir": "./dist",
@@ -19,5 +25,5 @@
     "target": "ES2022",
     "useUnknownInCatchVariables": true
   },
-  "include": ["./src"]
+  "include": ["./src", "./types"]
 }

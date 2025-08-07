@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "itty-router": "^5.0.21",
-    "node-appwrite": "^14.1.0"
+    "node-appwrite": "^14.1.0",
+    "@kaibun/appwrite-fn-router": "file:*"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
@@ -29,10 +30,12 @@
     "format": [
       "esm"
     ],
-    "dts": true,
     "sourcemap": true,
     "clean": true,
     "bundle": true,
+    "noExternal": [
+      "@kaibun/appwrite-fn-router"
+    ],
     "external": [
       "node-appwrite"
     ]
