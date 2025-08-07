@@ -3,14 +3,27 @@
   "version": "0.1.0",
   "description": "A router for Appwrite Functions",
   "main": "dist/main.js",
-  "typings": "./types",
+  "types": "dist/main.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/main.js",
+      "types": "./dist/main.d.ts"
+    },
+    "./types": {
+      "import": "./types/index.js",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "workspaces": [
+    "functions/*"
+  ],
   "scripts": {
     "build": "tsup",
     "doc:build": "cd doc && npm run build",
     "doc:start": "cd doc && npm run start -- --port 3001",
     "format": "prettier --write .",
-    "sync": "npm run build && mkdir -p functions/Test/src/lib && cp -r dist/* functions/Test/src/lib/ && npm run build --prefix functions/Test && touch functions/Test/src/.reload",
+    "sync": "npm run build && npm run build --prefix functions/Test",
     "test": "appwrite run functions --function-id 6890bbb20003ff2a1bf1",
     "dev:run": "npm run test",
     "dev:watch": "nodemon",
@@ -23,6 +36,7 @@
     "yaml": "^2.8.1"
   },
   "devDependencies": {
+    "@cypress/webpack-preprocessor": "^6.0.4",
     "@docusaurus/module-type-aliases": "^3.8.1",
     "@docusaurus/tsconfig": "^3.8.1",
     "@docusaurus/types": "^3.8.1",
@@ -32,6 +46,7 @@
     "nodemon": "^3.1.10",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.6.2",
+    "ts-loader": "^9.5.2",
     "tsup": "^8.5.0",
     "typedoc": "^0.28.9",
     "typedoc-plugin-markdown": "^4.8.0",

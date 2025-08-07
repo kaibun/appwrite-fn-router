@@ -1,4 +1,4 @@
-import { createRouter } from '../lib/main';
+import { createRouter } from '@kaibun/appwrite-fn-router';
 import type { IRequest } from 'itty-router';
 import type { Widget } from '../../../../types/widget';
 
