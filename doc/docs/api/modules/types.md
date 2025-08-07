@@ -14,7 +14,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[types/core.d.ts:41](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L41)
+[types/core.d.ts:41](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L41)
 
 ___
 
@@ -33,7 +33,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:71](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L71)
+[types/core.d.ts:71](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L71)
 
 ___
 
@@ -57,7 +57,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:5](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L5)
+[types/core.d.ts:5](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L5)
 
 ___
 
@@ -81,7 +81,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:6](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L6)
+[types/core.d.ts:6](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L6)
 
 ___
 
@@ -91,7 +91,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:8](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L8)
+[types/core.d.ts:8](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L8)
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:9](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L9)
+[types/core.d.ts:9](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L9)
 
 ___
 
@@ -125,7 +125,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:79](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L79)
+[types/core.d.ts:79](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L79)
 
 ___
 
@@ -154,7 +154,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:24](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L24)
+[types/core.d.ts:24](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L24)
 
 ___
 
@@ -175,7 +175,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:42](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L42)
+[types/core.d.ts:42](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L42)
 
 ___
 
@@ -200,7 +200,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:11](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L11)
+[types/core.d.ts:11](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L11)
 
 ___
 
@@ -210,7 +210,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:92](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L92)
+[types/core.d.ts:92](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L92)
 
 ___
 
@@ -227,7 +227,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:18](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L18)
+[types/core.d.ts:18](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L18)
 
 ___
 
@@ -245,7 +245,7 @@ ___
 
 #### Defined in
 
-[types/widget.d.ts:3](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/widget.d.ts#L3)
+[types/widget.d.ts:3](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/widget.d.ts#L3)
 
 ___
 
@@ -255,7 +255,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:100](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/core.d.ts#L100)
+[types/core.d.ts:100](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/core.d.ts#L100)
 
 ## Functions
 
@@ -275,7 +275,7 @@ obj is Widget
 
 #### Defined in
 
-[types/widget.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/widget.d.ts#L10)
+[types/widget.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/widget.d.ts#L10)
 
 ___
 
@@ -295,4 +295,4 @@ obj is Widget[]
 
 #### Defined in
 
-[types/widget.d.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/aab1c0d/types/widget.d.ts#L20)
+[types/widget.d.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/types/widget.d.ts#L20)
