@@ -1,5 +1,4 @@
 // src/main.ts
-import { inspect } from "util";
 import { cors, Router } from "itty-router";
 function tracePrototypeChainOf(object) {
   var proto = object.constructor.prototype;
@@ -21,18 +20,10 @@ function createRouter({
 async function runRouter(router, { req, res, log, error }) {
   const { headers, method, url } = req;
   const route = new URL(url);
-  log("\n[router] Running router with the following request:");
   const request = new Request(route, {
     headers,
     method
   });
-  log(
-    JSON.stringify({
-      method,
-      route,
-      headers: JSON.stringify(headers)
-    })
-  );
   const response = await router.fetch(
     request,
     // IRequest
@@ -45,25 +36,32 @@ async function runRouter(router, { req, res, log, error }) {
     error
     // The original or muted Appwrite’s ErrorLogger
   );
-  log("\n[router] Router has fetched a response.");
   return response;
 }
-async function handleRequest(context, withRouter, options = { globals: true, env: true, log: true, errorLog: true }) {
+async function handleRequest(context, withRouter, options = {}) {
+  const isNotProduction = process.env.NODE_ENV !== "production";
+  const finalOptions = {
+    globals: options.globals ?? true,
+    env: options.env ?? true,
+    log: options.log ?? isNotProduction,
+    errorLog: options.errorLog ?? isNotProduction,
+    ...options
+  };
   let { req, res, log: apwLog, error: apwError } = context;
-  options.log && apwLog("[router] Function is starting...");
+  finalOptions.log && apwLog("[router] Function is starting...");
   try {
-    const log = options.log ? apwLog : () => {
+    const log = finalOptions.log ? apwLog : () => {
     };
-    const error = options.errorLog ? apwError : () => {
+    const error = finalOptions.errorLog ? apwError : () => {
     };
-    if (options.globals) {
+    if (finalOptions.globals) {
       globalThis.log = log;
       globalThis.error = error;
     }
-    if (options.env) {
+    if (finalOptions.env) {
       process.env.APPWRITE_FUNCTION_API_KEY = req.headers["x-appwrite-key"] || "";
     }
-    const allowedOrigins = options.cors?.allowedOrigins ?? [];
+    const allowedOrigins = finalOptions.cors?.allowedOrigins ?? [];
     if (process.env.NODE_ENV !== "production") {
       if (!allowedOrigins.includes("http://localhost:3001")) {
         allowedOrigins.push("http://localhost:3001");
@@ -84,14 +82,14 @@ async function handleRequest(context, withRouter, options = { globals: true, env
           }
         }
       },
-      allowMethods: options.cors?.allowMethods ?? [
+      allowMethods: finalOptions.cors?.allowMethods ?? [
         "GET",
         "POST",
         "PATCH",
         "DELETE",
         "OPTIONS"
       ],
-      allowHeaders: options.cors?.allowHeaders ?? [
+      allowHeaders: finalOptions.cors?.allowHeaders ?? [
         "Content-Type",
         "Authorization"
       ]
@@ -132,24 +130,19 @@ async function handleRequest(context, withRouter, options = { globals: true, env
       ]
     });
     withRouter(router);
-    log("\n[router] Router has been augmented with routes:");
     const rr = router.routes.map(([method, regex, handlers, path]) => [
       method,
       regex.toString(),
       handlers.map((h) => h.toString()),
       path
     ]);
-    rr.forEach((r) => log(JSON.stringify(r)));
     const response = await runRouter(router, { req, res, log, error });
-    apwLog("\n[router] Router has fetched with result:");
-    apwLog(inspect(response, { depth: null }));
     if (!response) {
       return res.text("Not Found", 404);
     }
-    apwLog("\n[router] Router response received");
     return response;
   } catch (err) {
-    options.errorLog && apwError(
+    finalOptions.errorLog && apwError(
       `
 [router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
     );

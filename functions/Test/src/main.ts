@@ -1,12 +1,7 @@
 import { inspect } from 'node:util';
 
 import type { Context } from '../../../types';
-import {
-  createRouter,
-  handleRequest,
-  tracePrototypeChainOf,
-} from './lib/main.ts';
-import type { RouterJSONResponse, JSONObject } from '../../../types';
+import { createRouter, handleRequest } from './lib/main.ts';
 import widgetsRouter from './routes/widgets.ts';
 
 // Optionally define a custom JSON response schema:
@@ -74,11 +69,11 @@ export default async (context: Context) => {
   // log('---\n');
   const ignoreRoute = ignoredRoutes.some((route) => req.path.startsWith(route));
   if (ignoreRoute) {
-    log(greetings + ' (ignored)\n');
+    log(greetings + ' (ignored)');
     // TODO: abide by request’s Accept header (fallback to Content-type, then to text/plain)
     return res.text("I'm a teapot", 418);
   }
-  log(greetings);
+  log(greetings + '\n');
 
   const response = await handleRequest(context, routes, {
     log: false,
@@ -96,8 +91,8 @@ export default async (context: Context) => {
   // Object.getOwnPropertyNames(response).forEach((key) => {
   //   log(`Prop: ${key}`);
   // });
-  log(response.statusCode.toString());
-  log(response.body!.toString());
+  // log(response.statusCode.toString());
+  // log(response.body!.toString());
   // log(JSON.stringify(response.headers));
   // log('--- LEAVING THE FUNCTION HANDLER ---');
   log('\n');
