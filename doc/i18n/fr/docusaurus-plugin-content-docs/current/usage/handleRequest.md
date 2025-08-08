@@ -34,18 +34,18 @@ async function handleRequest(
 
 L'objet `options` vous permet de configurer divers aspects du routeur :
 
-| Option     | Type                     | Défaut      | Description                                                                                                        |
-| ---------- | ------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------ |
-| `globals`  | `boolean`                | `true`      | Si `true`, rend `log` et `error` disponibles en tant que fonctions globales.                                       |
-| `env`      | `boolean`                | `true`      | Si `true`, définit la variable d'environnement `APPWRITE_FUNCTION_API_KEY` à partir de l'en-tête `x-appwrite-key`. |
-| `log`      | `boolean`                | `true`      | Active ou désactive la journalisation.                                                                             |
-| `errorLog` | `boolean`                | `true`      | Active ou désactive la journalisation des erreurs.                                                                 |
-| `onError`  | `(err: unknown) => void` | `undefined` | Une fonction de gestionnaire d'erreurs personnalisée.                                                              |
-| `cors`     | `object`                 | `{...}`     | Configuration pour le partage des ressources entre origines (CORS). Voir ci-dessous pour plus de détails.          |
+| Option     | Type                                                                                                  | Défaut      | Description                                                                                                                                                                                                                             |
+| ---------- | ----------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `globals`  | `boolean`                                                                                             | `true`      | Si `true`, rend `log` et `error` disponibles en tant que fonctions globales.                                                                                                                                                            |
+| `env`      | `boolean`                                                                                             | `true`      | Si `true`, définit la variable d'environnement `APPWRITE_FUNCTION_API_KEY` à partir de l'en-tête `x-appwrite-key`.                                                                                                                      |
+| `log`      | `boolean`                                                                                             | `true`      | Active ou désactive la journalisation.                                                                                                                                                                                                  |
+| `errorLog` | `boolean`                                                                                             | `true`      | Active ou désactive la journalisation des erreurs.                                                                                                                                                                                      |
+| `onError`  | `(err: unknown, req: AppwriteRequest, res: AppwriteResponse, log: Function, error: Function) => void` | `undefined` | Fonction appelée à chaque erreur non interceptée dans un handler ou middleware. Reçoit l'erreur et le contexte Appwrite (`req`, `res`, `log`, `error`). Permet de logger, reporter ou personnaliser la gestion des erreurs globalement. |
+| `cors`     | `object`                                                                                              | `{...}`     | Configuration pour le partage des ressources entre origines (CORS). Voir ci-dessous pour plus de détails.                                                                                                                               |
 
 ### Gestion globale des erreurs avec `onError`
 
-Vous pouvez fournir un gestionnaire d’erreurs personnalisé via l’option `onError`. Ce callback sera appelé à chaque fois qu’une erreur non interceptée survient dans le routeur. Par exemple, pour logger ou envoyer l’erreur à un service de monitoring :
+Vous pouvez fournir un gestionnaire d’erreurs personnalisé via l’option `onError`. Ce callback est invoqué à chaque fois qu’une erreur non interceptée survient dans un handler ou un middleware. Il reçoit l’erreur ainsi que le contexte Appwrite (`req`, `res`, `log`, `error`). Utilisez-le pour logger, envoyer à un service de monitoring, ou personnaliser la réponse d’erreur globalement.
 
 ```typescript
 import { handleRequest } from 'appwrite-fn-router';
@@ -57,9 +57,10 @@ export default async ({ req, res, log, error }) => {
       // Définissez vos routes ici
     },
     {
-      onError: (err) => {
-        // Log ou monitoring, reporting, etc.
-        console.error('Erreur interceptée par onError :', err);
+      onError: (err, req, res, log, error) => {
+        // Log ou reporting custom avec tout le contexte
+        log('Erreur interceptée par onError :', err);
+        // Vous pouvez aussi utiliser req, res, error, etc.
       },
     }
   );

@@ -270,8 +270,15 @@ export function handleRequestError(
   res: AppwriteResponse,
   apwError: ErrorLogger
 ) {
+  // Préparer les loggers selon les options
+  const log = finalOptions.log
+    ? typeof globalThis.log === 'function'
+      ? globalThis.log
+      : () => {}
+    : () => {};
+  const error = finalOptions.errorLog ? apwError : () => {};
   if (typeof finalOptions.onError === 'function') {
-    finalOptions.onError(err);
+    finalOptions.onError(err, req, res, log, error);
   } else if (process.env.NODE_ENV !== 'production') {
     // Affiche l’erreur réelle en développement
     // eslint-disable-next-line no-console
