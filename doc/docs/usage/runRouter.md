@@ -4,7 +4,7 @@ sidebar_position: 4
 
 # `runRouter`
 
-The `runRouter` function is responsible for executing the router against an incoming request from the Appwrite environment. It constructs a standard [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object from the Appwrite context and passes it to the [router's `fetch` method](https://itty.dev/itty-router/concepts#whatever-you-pass-to-router-fetch-goes-to-the-handlers).
+The `runRouter` function is responsible for executing the router against an incoming request from the Appwrite environment. It passes the AppwriteRequest object directly to the [router's `fetch` method](https://itty.dev/itty-router/concepts#whatever-you-pass-to-router-fetch-goes-to-the-handlers). The native Request object is used only internally if needed, and is not exposed to user handlers.
 
 This function is called internally by `handleRequest` after the router has been configured and your routes have been attached.
 
@@ -13,9 +13,7 @@ This function is called internally by `handleRequest` after the router has been 
 ```typescript
 async function runRouter(
   router: ReturnType<typeof createRouter>,
-  context: AppwriteContext,
-  log: DefaultLogger,
-  error: ErrorLogger
+  context: AppwriteContext
 ): Promise<AppwriteResponseObject>;
 ```
 
@@ -26,7 +24,7 @@ async function runRouter(
 
 ## Usage
 
-You generally don't need to call `runRouter` directly, as `handleRequest` takes care of it for you. The separation exists to keep the setup logic in `handleRequest` distinct from the execution logic in `runRouter`.
+You generally don't need to call `runRouter` directly, as `handleRequest` takes care of it for you. The separation exists to keep the setup logic in `handleRequest` distinct from the execution logic in `runRouter`. The handler signature is always `(req, res, log, error)` where `req` is an AppwriteRequest.
 
 However, if you were to use it manually, it would look something like this:
 

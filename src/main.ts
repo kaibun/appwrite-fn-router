@@ -1,6 +1,6 @@
-import { inspect } from 'node:util';
 import { cors, RouterOptions, Router } from 'itty-router';
 import type {
+  FetchObjects,
   Context as AppwriteContext,
   Request as AppwriteRequest,
   Response as AppwriteResponse,
@@ -16,79 +16,290 @@ const $ = globalThis;
 
 /**
  * @internal
+ * Middleware CORS preflight pour itty-router (à utiliser dans before[])
  */
-export function tracePrototypeChainOf(object: object) {
-  var proto = object.constructor.prototype;
-  var result = '';
-
-  while (proto) {
-    result += ' -> ' + proto.constructor.name + '.prototype';
-    proto = Object.getPrototypeOf(proto);
+export async function corsPreflightMiddleware(
+  req: AppwriteRequest,
+  res: AppwriteResponse,
+  log: DefaultLogger,
+  error: ErrorLogger,
+  internals: FetchObjects & {
+    preflight: (req: Request) => Response | undefined;
   }
-
-  result += ' -> null';
-  return result;
+) {
+  const response = internals.preflight(internals.request);
+  if (response) {
+    const body = await response.text();
+    const statusCode = response.status;
+    const headers = Object.fromEntries(response.headers.entries());
+    return res.send(body, statusCode, headers);
+  }
 }
 
-// TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
-// WrapperRequestType is now defined in types/core.ts
+/**
+ * @internal
+ * Middleware CORS finalisation pour itty-router (à utiliser dans finally[])
+ */
+export async function corsFinallyMiddleware(
+  responseFromRoute: any,
+  request: AppwriteRequest,
+  res: AppwriteResponse,
+  log: DefaultLogger,
+  error: ErrorLogger,
+  internals: FetchObjects & {
+    corsify: (res: Response, req: Request) => Response;
+  }
+) {
+  if (responseFromRoute) {
+    const nativeResponse = new Response(
+      responseFromRoute.statusCode === 204 ? null : responseFromRoute.body,
+      {
+        status: responseFromRoute.statusCode,
+        headers: responseFromRoute.headers,
+      }
+    );
+    const corsifiedResponse = internals.corsify(
+      nativeResponse,
+      internals.request
+    );
+    const body = await corsifiedResponse.text();
+    const statusCode = corsifiedResponse.status;
+    const headers = Object.fromEntries(corsifiedResponse.headers.entries());
+    return res.send(body, statusCode, headers);
+  }
+}
 
-// Creating an AutoRouter instance, adjusting types to match the Appwrite context
+/**
+ * Le routeur propage une signature standard Appwrite aux handlers :
+ * `req, res, log, error` typés `AppwriteRequest`, `AppwriteResponse`,
+ * `DefaultLogger`, `ErrorLogger` respectivement.
+ *
+ * Les middlewares internes à Itty Router (par ex. preflight/corsify) peuvent
+ * eux accéder à l’objet Request natif (Fetch API) via un cinquième argument
+ * correspondant à `FetchObjects`.
+ */
+
 export function createRouter({
   ...args
 }: RouterOptions<
   WrapperRequestType,
-  [AppwriteResponse, DefaultLogger, ErrorLogger] & any[]
+  [AppwriteResponse, DefaultLogger, ErrorLogger, FetchObjects] & any[]
 > = {}) {
   return Router<
     WrapperRequestType,
-    [AppwriteResponse, DefaultLogger, ErrorLogger] & any[],
+    [AppwriteResponse, DefaultLogger, ErrorLogger, FetchObjects] & any[],
     AppwriteResponse
   >({
     ...args,
   });
 }
 
-// Exporting a function to run the router with Appwrite's context
+/**
+ * @internal
+ * Normalise les headers d'une requête Appwrite (clés insensibles à la casse).
+ *
+ * Vous pouvez ainsi utiliser indifféremment les clés `Authorization` ou
+ * `authorization` dans vos handlers, par exemple.
+ */
+export function normalizeHeaders(req: AppwriteRequest) {
+  if (req && req.headers && typeof req.headers === 'object') {
+    const normalized: Record<string, string> = {};
+    for (const k in req.headers) {
+      if (Object.prototype.hasOwnProperty.call(req.headers, k)) {
+        normalized[k.toLowerCase()] = req.headers[k];
+      }
+    }
+    req.headers = new Proxy(normalized, {
+      get(target, prop: string) {
+        if (typeof prop === 'string') {
+          return target[prop.toLowerCase()];
+        }
+        return undefined;
+      },
+      has(target, prop: string) {
+        if (typeof prop === 'string') {
+          return prop.toLowerCase() in target;
+        }
+        return false;
+      },
+      ownKeys(target) {
+        return Reflect.ownKeys(target);
+      },
+      getOwnPropertyDescriptor(target, prop) {
+        if (typeof prop === 'string' && prop.toLowerCase() in target) {
+          return Object.getOwnPropertyDescriptor(target, prop.toLowerCase());
+        }
+        return undefined;
+      },
+    });
+  }
+}
+
+/**
+ * @internal
+ * Construit les options finales à partir des options utilisateur et de
+ * l'environnement.
+ */
+export function buildFinalOptions(
+  options: Options,
+  apwLog: DefaultLogger,
+  apwError: ErrorLogger
+): Options {
+  const isNotProduction = process.env.NODE_ENV !== 'production';
+  return {
+    globals: options.globals ?? true,
+    env: options.env ?? true,
+    log: options.log ?? isNotProduction,
+    errorLog: options.errorLog ?? isNotProduction,
+    ...options,
+  };
+}
+
+/**
+ * @internal
+ * Propage les fonctions de logging d’Appwrite dans le contexte global, si
+ * demandé.
+ */
+export function setupGlobalLoggers(
+  finalOptions: Options,
+  log: DefaultLogger,
+  error: ErrorLogger
+) {
+  if (finalOptions.globals) {
+    globalThis.log = log;
+    globalThis.error = error;
+  }
+}
+
+/**
+ * @internal
+ * Met à jour la variable d'environnement `APPWRITE_FUNCTION_API_KEY`, si
+ * demandé.
+ */
+export function setupEnvVars(finalOptions: Options, req: AppwriteRequest) {
+  if (finalOptions.env) {
+    process.env.APPWRITE_FUNCTION_API_KEY = req.headers['x-appwrite-key'] || '';
+  }
+}
+
+/**
+ * @internal
+ * Active la configuration CORS dynamique.
+ */
+export function buildCorsOptions(finalOptions: Options) {
+  const allowedOrigins: (string | RegExp)[] =
+    finalOptions.cors?.allowedOrigins ?? [];
+  if (process.env.NODE_ENV !== 'production') {
+    if (!allowedOrigins.includes('http://localhost:3001')) {
+      allowedOrigins.push('http://localhost:3001');
+    }
+    if (!allowedOrigins.includes('https://localhost:3001')) {
+      allowedOrigins.push('https://localhost:3001');
+    }
+  }
+  return {
+    origin: (origin: string) => {
+      if (!origin) return;
+      for (const allowed of allowedOrigins) {
+        if (typeof allowed === 'string' && allowed === origin) {
+          return origin;
+        }
+        if (allowed instanceof RegExp && allowed.test(origin)) {
+          return origin;
+        }
+      }
+    },
+    allowMethods: finalOptions.cors?.allowMethods ?? [
+      'GET',
+      'POST',
+      'PATCH',
+      'DELETE',
+      'OPTIONS',
+    ],
+    allowHeaders: finalOptions.cors?.allowHeaders ?? [
+      'Content-Type',
+      'Authorization',
+    ],
+  };
+}
+
+/**
+ * Exécute le routeur avec le contexte Appwrite, ainsi qu’une `Request` native
+ * pour le bon fonctionnement de CORS, etc. dans le routeur Itty.
+ */
 export async function runRouter(
   router: ReturnType<typeof createRouter>,
   { req, res, log, error }: AppwriteContext
 ) {
   const { headers, method, url } = req;
   const route = new URL(url);
-  const nativeRequest = new Request(route, {
-    headers,
-    method,
-  });
 
-  // Merge native Request and AppwriteRequest into a single object without overwriting read-only properties
-  const mergedRequest = Object.create(Object.getPrototypeOf(nativeRequest));
-  // Copy all properties from nativeRequest (enumerable and non-enumerable)
-  for (const key of Reflect.ownKeys(nativeRequest)) {
-    try {
-      const desc = Object.getOwnPropertyDescriptor(nativeRequest, key);
-      if (desc) Object.defineProperty(mergedRequest, key, desc);
-    } catch {}
-  }
-  // Copy only properties from req that do not already exist or are not read-only
-  for (const key of Reflect.ownKeys(req)) {
-    if (!(key in mergedRequest)) {
-      try {
-        const desc = Object.getOwnPropertyDescriptor(req, key);
-        if (desc) Object.defineProperty(mergedRequest, key, desc);
-      } catch {}
-    }
+  // Construit la nativeRequest pour usage interne (CORS, etc.)
+  let nativeRequest: Request;
+  if (typeof Request !== 'undefined') {
+    nativeRequest = new Request(route, { headers, method });
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { Request: UndiciRequest } = require('undici');
+    nativeRequest = new UndiciRequest(url, {
+      headers,
+      method,
+    }) as unknown as Request;
   }
 
-  // Pass mergedRequest as the first argument, then the rest
   const response = await router.fetch(
-    mergedRequest, // WrapperRequestType: IRequest & AppwriteRequest
-    res, // The original Appwrite’s Response
-    log, // The original or muted Appwrite’s DefaultLogger
-    error // The original or muted Appwrite’s ErrorLogger
+    req, // AppwriteRequest (an itty-router’s RequestLike object)
+    res, // AppwriteResponse
+    log, // DefaultLogger
+    error, // ErrorLogger
+    {
+      request: nativeRequest, // FetchObjects.FetchRequest ie. a native Request object
+    }
   );
-
   return response;
+}
+
+/**
+ * @internal
+ * Gestion d’erreur centralisée pour handleRequest.
+ */
+export function handleRequestError(
+  err: unknown,
+  finalOptions: Options,
+  req: AppwriteRequest,
+  res: AppwriteResponse,
+  apwError: ErrorLogger
+) {
+  if (typeof finalOptions.onError === 'function') {
+    finalOptions.onError(err);
+  } else if (process.env.NODE_ENV !== 'production') {
+    // Affiche l’erreur réelle en développement
+    // eslint-disable-next-line no-console
+    console.error('[appwrite-fn-router] Unhandled error:', err);
+  }
+  finalOptions.errorLog &&
+    apwError(
+      `\n[router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
+    );
+  const message = err instanceof Error ? err.message : String(err);
+  if (
+    ['/json', '/ld+json'].some((type) =>
+      req.headers['content-type']?.endsWith(type)
+    )
+  ) {
+    return res.json(
+      {
+        status: 'error',
+        message,
+        error:
+          err instanceof Error && err.cause instanceof Error
+            ? err.cause.message
+            : 'Reason unknown',
+      } satisfies RouterJSONResponse,
+      500
+    );
+  }
+  return res.text(message, 500);
 }
 
 export async function handleRequest(
@@ -98,163 +309,49 @@ export async function handleRequest(
   withRouter: (router: ReturnType<typeof createRouter>) => void,
   options: Options = {}
 ) {
-  const isNotProduction = process.env.NODE_ENV !== 'production';
-  const finalOptions = {
-    globals: options.globals ?? true,
-    env: options.env ?? true,
-    log: options.log ?? isNotProduction,
-    errorLog: options.errorLog ?? isNotProduction,
-    ...options,
-  };
-
   let { req, res, log: apwLog, error: apwError } = context;
-  finalOptions.log && apwLog('[router] Function is starting...');
+  let finalOptions: Options = {};
 
   try {
+    normalizeHeaders(req);
+
+    finalOptions = buildFinalOptions(options, apwLog, apwError);
+    finalOptions.log && apwLog('[router] Function is starting...');
+
     const log = finalOptions.log ? apwLog : () => {};
     const error = finalOptions.errorLog ? apwError : () => {};
+    setupGlobalLoggers(finalOptions, log, error);
 
-    if (finalOptions.globals) {
-      globalThis.log = log;
-      globalThis.error = error;
-    }
-    if (finalOptions.env) {
-      process.env.APPWRITE_FUNCTION_API_KEY =
-        req.headers['x-appwrite-key'] || '';
-    }
+    setupEnvVars(finalOptions, req);
 
-    // Dynamically set allowed origins based on the environment.
-    const allowedOrigins: (string | RegExp)[] =
-      finalOptions.cors?.allowedOrigins ?? [];
-    if (process.env.NODE_ENV !== 'production') {
-      // Add development origins if not already present.
-      if (!allowedOrigins.includes('http://localhost:3001')) {
-        allowedOrigins.push('http://localhost:3001');
-      }
-      if (!allowedOrigins.includes('https://localhost:3001')) {
-        allowedOrigins.push('https://localhost:3001');
-      }
-    }
+    const corsOptions = buildCorsOptions(finalOptions);
+    const { preflight, corsify } = cors(corsOptions);
 
-    // Initialize CORS with a dynamic origin validation function.
-    // This is required because itty-router's `cors` helper does not
-    // support a mixed array of strings and RegExps.
-    const { preflight, corsify } = cors({
-      origin: (origin) => {
-        if (!origin) return;
-        for (const allowed of allowedOrigins) {
-          if (typeof allowed === 'string' && allowed === origin) {
-            return origin;
-          }
-          if (allowed instanceof RegExp && allowed.test(origin)) {
-            return origin;
-          }
-        }
-      },
-      allowMethods: finalOptions.cors?.allowMethods ?? [
-        'GET',
-        'POST',
-        'PATCH',
-        'DELETE',
-        'OPTIONS',
-      ],
-      allowHeaders: finalOptions.cors?.allowHeaders ?? [
-        'Content-Type',
-        'Authorization',
-      ],
-    });
-
-    // console.log(JSON.stringify(process.env, null, 2));
     const router = createRouter({
-      // The `before` middleware handles preflight (OPTIONS) requests.
       before: [
-        async (req, res, log, error) => {
-          // itty-router's `preflight` expects a native `Request` object.
-          const response = preflight(req);
-          if (response) {
-            // Convert the native `Response` from `preflight` to an Appwrite-compatible response object.
-            const body = await response.text();
-            const statusCode = response.status;
-            const headers = Object.fromEntries(response.headers.entries());
-            return res.send(body, statusCode, headers);
-          }
-        },
+        (req, res, log, error, fetch) =>
+          corsPreflightMiddleware(req, res, log, error, {
+            ...fetch,
+            preflight,
+          }),
       ],
-      // The `finally` middleware applies CORS headers to the outgoing response.
       finally: [
-        async (responseFromRoute, request, res, log, error) => {
-          if (responseFromRoute) {
-            // Re-create a native `Response` to pass it to `corsify`.
-            // The `Response` constructor throws if a body is provided with a 204 status.
-            const nativeResponse = new Response(
-              responseFromRoute.statusCode === 204
-                ? null
-                : responseFromRoute.body,
-              {
-                status: responseFromRoute.statusCode,
-                headers: responseFromRoute.headers,
-              }
-            );
-            // `corsify` adds the necessary CORS headers to the response.
-            const corsifiedResponse = corsify(nativeResponse, request);
-
-            // Convert the final native `Response` back to an Appwrite-compatible response object.
-            const body = await corsifiedResponse.text();
-            const statusCode = corsifiedResponse.status;
-            const headers = Object.fromEntries(
-              corsifiedResponse.headers.entries()
-            );
-            return res.send(body, statusCode, headers);
-          }
-        },
+        (responseFromRoute, request, res, log, error, fetch) =>
+          corsFinallyMiddleware(responseFromRoute, request, res, log, error, {
+            ...fetch,
+            corsify,
+          }),
       ],
     });
     withRouter(router);
 
-    const rr = router.routes.map(([method, regex, handlers, path]) => [
-      method,
-      regex.toString(),
-      handlers.map((h) => h.toString()),
-      path,
-    ]);
-
     const response = await runRouter(router, { req, res, log, error });
 
     if (!response) {
-      // TODO: abide by request’s Accept header (fallback to Content-type, then to text/plain)
       return res.text('Not Found', 404);
     }
-
     return response;
   } catch (err) {
-    // TODO: support reporting to a monitoring service
-    finalOptions.errorLog &&
-      apwError(
-        `\n[router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
-      );
-    const message = err instanceof Error ? err.message : String(err);
-    // if (options.onError) {
-    //   return options.onError(err);
-    // }
-    // TODO: abide by request’s Accept header (fallback to Content-type, then to text/plain)
-    if (
-      ['/json', '/ld+json'].some((type) =>
-        req.headers['content-type']?.endsWith(type)
-      )
-    ) {
-      return res.json(
-        {
-          status: 'error',
-          message,
-          // TODO: ? don’t expose "cause" error messages in production ?
-          error:
-            err instanceof Error && err.cause instanceof Error
-              ? err.cause.message
-              : 'Reason unknown',
-        } satisfies RouterJSONResponse,
-        500
-      );
-    }
-    return res.text(message, 500);
+    return handleRequestError(err, finalOptions, req, res, apwError);
   }
 }

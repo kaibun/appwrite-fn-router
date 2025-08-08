@@ -1,5 +1,4 @@
 import { createRouter } from '@kaibun/appwrite-fn-router';
-import type { IRequest } from 'itty-router';
 import type { Widget } from '../../../../types/widget';
 
 // Re-export for convenience
@@ -64,7 +63,8 @@ router.post('/', async (req, res, _log, _error) => {
 
 // GET /widgets/secret => Accessing the daily secret widget (requires Bearer token)
 router.get('/secret', (req, res, _log, _error) => {
-  const authHeader = req.headers.get('Authorization');
+  const authHeader =
+    req.headers['Authorization'] || req.headers['authorization'];
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.json({ code: 'UNAUTHORIZED', message: 'Unauthorized' }, 401);
   }

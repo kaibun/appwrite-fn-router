@@ -24,10 +24,12 @@
     "doc:start": "cd doc && npm run start -- --port 3001",
     "format": "prettier --write .",
     "sync": "npm run build && npm run build --prefix functions/Test",
-    "test": "appwrite run functions --function-id 6890bbb20003ff2a1bf1",
-    "dev:run": "npm run test",
+    "function": "appwrite run functions --function-id 6890bbb20003ff2a1bf1",
+    "dev:run": "npm run function",
     "dev:watch": "nodemon",
     "dev": "npm run sync && npm-run-all --parallel dev:watch dev:run",
+    "test": "npm-run-all --aggregate-output --continue-on-error --parallel test:unit test:e2e",
+    "test:unit": "vitest run --config vitest.config.ts",
     "test:e2e": "cypress run"
   },
   "dependencies": {
@@ -50,7 +52,9 @@
     "tsup": "^8.5.0",
     "typedoc": "^0.28.9",
     "typedoc-plugin-markdown": "^4.8.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "undici": "^7.13.0",
+    "vitest": "^3.2.4"
   },
   "tsup": {
     "entry": [

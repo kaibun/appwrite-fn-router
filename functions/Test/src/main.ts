@@ -15,7 +15,6 @@ function routes(router: ReturnType<typeof createRouter>) {
     // log(inspect(res));
     const response = res.text('Root route hit!');
     // log('  -');
-    // log(tracePrototypeChainOf(response));
     // log(inspect(response, { depth: null }));
     // log('---');
     return response;
@@ -30,7 +29,6 @@ function routes(router: ReturnType<typeof createRouter>) {
   //     'Content-Type': 'text/plain',
   //   });
   //   log('  -');
-  //   log(tracePrototypeChainOf(response));
   //   log(inspect(response, { depth: null }));
   //   log('---');
   //   const response = res.text('Catchall route!', 404, {
@@ -81,7 +79,6 @@ export default async (context: Context) => {
   });
 
   // log('\nFINAL RESPONSE:');
-  // log(tracePrototypeChainOf(response));
   log(inspect(response, { depth: null }));
   // log(response.constructor.name);
   // log(response.constructor.toString());

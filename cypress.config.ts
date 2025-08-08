@@ -5,9 +5,15 @@ import webpackPreprocessor from '@cypress/webpack-preprocessor';
 export default defineConfig({
   e2e: {
     baseUrl: 'http://localhost:3000',
-    specPattern: 'cypress/e2e/**/*.cy.ts',
+    specPattern: 'cypress/{e2e,unit}/**/*.cy.ts',
     supportFile: 'cypress/support/e2e.ts',
     setupNodeEvents(on, config) {
+      on('task', {
+        log(message) {
+          console.log(message);
+          return null;
+        },
+      });
       const options = {
         webpackOptions: {
           resolve: {

@@ -1,4 +1,4 @@
-// Ce script exécute tous les scripts du dossier auto/ après le build/start
+// This script runs all scripts in the auto/ folder after build/start
 const fs = require('fs');
 const path = require('path');
 

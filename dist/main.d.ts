@@ -1,5 +1,6 @@
 import * as itty_router from 'itty-router';
 import { IRequest, RouterOptions } from 'itty-router';
+import { Request as Request$2 } from 'undici';
 
 // Core types for Appwrite Functions and itty-router integration
 
@@ -7,6 +8,10 @@ import { IRequest, RouterOptions } from 'itty-router';
 
 type DefaultLogger = (message: string) => void;
 type ErrorLogger = (message: string) => void;
+
+type FetchObjects = {
+  request: Request$2;
+};
 
 type Headers = Record<string, string>;
 type JSONObject = Record<string, unknown>;
@@ -18,7 +23,7 @@ type ResponseObject<T = any> = {
   toString(): string;
 };
 
-type Request = {
+type Request$1 = {
   get body(): JSONObject | string;
   get bodyRaw(): string;
   get bodyText(): string;
@@ -36,7 +41,7 @@ type Request = {
 };
 
 type BufferFromArgTypes = Parameters<typeof Buffer.from>[0];
-type Response = {
+type Response$1 = {
   send: (
     body: string,
     statusCode?: number,
@@ -66,8 +71,8 @@ type Response = {
 };
 
 type Context = {
-  req: Request;
-  res: Response;
+  req: Request$1;
+  res: Response$1;
   log: DefaultLogger;
   error: ErrorLogger;
 };
@@ -86,7 +91,10 @@ type Options = {
   };
 };
 
-// TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
+/**
+ * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers.
+ * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
+ */
 type WrapperRequestType = IRequest & AppwriteRequest;
 
 // Global type declarations for the library
@@ -110,18 +118,86 @@ declare global {
 
 /**
  * @internal
+ * Middleware CORS preflight pour itty-router (à utiliser dans before[])
  */
-declare function tracePrototypeChainOf(object: object): string;
+declare function corsPreflightMiddleware(req: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger, internals: FetchObjects & {
+    preflight: (req: Request) => Response | undefined;
+}): Promise<ResponseObject<string> | undefined>;
+/**
+ * @internal
+ * Middleware CORS finalisation pour itty-router (à utiliser dans finally[])
+ */
+declare function corsFinallyMiddleware(responseFromRoute: any, request: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger, internals: FetchObjects & {
+    corsify: (res: Response, req: Request) => Response;
+}): Promise<ResponseObject<string> | undefined>;
+/**
+ * Le routeur propage une signature standard Appwrite aux handlers :
+ * `req, res, log, error` typés `AppwriteRequest`, `AppwriteResponse`,
+ * `DefaultLogger`, `ErrorLogger` respectivement.
+ *
+ * Les middlewares internes à Itty Router (par ex. preflight/corsify) peuvent
+ * eux accéder à l’objet Request natif (Fetch API) via un cinquième argument
+ * correspondant à `FetchObjects`.
+ */
 declare function createRouter({ ...args }?: RouterOptions<WrapperRequestType, [
-    Response,
+    Response$1,
     DefaultLogger,
-    ErrorLogger
-] & any[]>): itty_router.RouterType<any, [Response, DefaultLogger, ErrorLogger] & any[], Response>;
-declare function runRouter(router: ReturnType<typeof createRouter>, { req, res, log, error }: Context): Promise<Response>;
-declare function handleRequest(context: Context, withRouter: (router: ReturnType<typeof createRouter>) => void, options?: Options): Promise<Response | ResponseObject<string> | ResponseObject<{
+    ErrorLogger,
+    FetchObjects
+] & any[]>): itty_router.RouterType<any, [Response$1, DefaultLogger, ErrorLogger, FetchObjects] & any[], Response$1>;
+/**
+ * @internal
+ * Normalise les headers d'une requête Appwrite (clés insensibles à la casse).
+ *
+ * Vous pouvez ainsi utiliser indifféremment les clés `Authorization` ou
+ * `authorization` dans vos handlers, par exemple.
+ */
+declare function normalizeHeaders(req: Request$1): void;
+/**
+ * @internal
+ * Construit les options finales à partir des options utilisateur et de
+ * l'environnement.
+ */
+declare function buildFinalOptions(options: Options, apwLog: DefaultLogger, apwError: ErrorLogger): Options;
+/**
+ * @internal
+ * Propage les fonctions de logging d’Appwrite dans le contexte global, si
+ * demandé.
+ */
+declare function setupGlobalLoggers(finalOptions: Options, log: DefaultLogger, error: ErrorLogger): void;
+/**
+ * @internal
+ * Met à jour la variable d'environnement `APPWRITE_FUNCTION_API_KEY`, si
+ * demandé.
+ */
+declare function setupEnvVars(finalOptions: Options, req: Request$1): void;
+/**
+ * @internal
+ * Active la configuration CORS dynamique.
+ */
+declare function buildCorsOptions(finalOptions: Options): {
+    origin: (origin: string) => string | undefined;
+    allowMethods: string[];
+    allowHeaders: string[];
+};
+/**
+ * Exécute le routeur avec le contexte Appwrite, ainsi qu’une `Request` native
+ * pour le bon fonctionnement de CORS, etc. dans le routeur Itty.
+ */
+declare function runRouter(router: ReturnType<typeof createRouter>, { req, res, log, error }: Context): Promise<Response$1>;
+/**
+ * @internal
+ * Gestion d’erreur centralisée pour handleRequest.
+ */
+declare function handleRequestError(err: unknown, finalOptions: Options, req: Request$1, res: Response$1, apwError: ErrorLogger): ResponseObject<string> | ResponseObject<{
+    status: "error";
+    message: string;
+    error: string;
+}>;
+declare function handleRequest(context: Context, withRouter: (router: ReturnType<typeof createRouter>) => void, options?: Options): Promise<Response$1 | ResponseObject<string> | ResponseObject<{
     status: "error";
     message: string;
     error: string;
 }>>;
 
-export { createRouter, handleRequest, runRouter, tracePrototypeChainOf };
+export { buildCorsOptions, buildFinalOptions, corsFinallyMiddleware, corsPreflightMiddleware, createRouter, handleRequest, handleRequestError, normalizeHeaders, runRouter, setupEnvVars, setupGlobalLoggers };
