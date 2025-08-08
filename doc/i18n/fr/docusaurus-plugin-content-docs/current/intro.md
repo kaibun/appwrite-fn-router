@@ -1,9 +1,13 @@
 ---
+title: ''
 slug: /
 sidebar_position: 1
 ---
 
-# Appwrite Function Router
+<h1 style={{display: 'flex', alignItems: 'center', gap: '0.5em'}}>
+  <img src="/fr/img/afr-logo-maze.png" alt="Logo" style={{height: '2.2em', marginRight: '0.2em', verticalAlign: 'middle'}} />
+  <p style={{margin: 0}}>Appwrite Function Router</p>
+</h1>
 
 **Cette bibliothèque est un wrapper pour le [`Router` d'Itty](https://itty.dev/itty-router/concepts), adapté aux contraintes de l'implémentation [FaaS d'Appwrite](https://appwrite.io/docs/products/functions/develop).**
 
