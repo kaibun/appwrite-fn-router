@@ -1,6 +1,5 @@
 import YAML from 'yaml';
 import { isValidWidget, isValidWidgetArray } from '../support/utils';
-import type { Widget } from '@/types/widget';
 
 describe('API Tests from OpenAPI Spec', () => {
   let spec: any;
@@ -191,6 +190,28 @@ describe('API Tests from OpenAPI Spec', () => {
         expect(response.status).to.eq(200);
         expect(response.body).to.have.property('analysis');
         expect(response.body.id).to.eq('widget1');
+      });
+    });
+  });
+
+  context('Error Handling', () => {
+    describe('The catch option', () => {
+      it('should catch the error thrown by /errors/throw', () => {
+        cy.request({
+          method: 'GET',
+          // url: '/root_error',
+          url: '/errors/throw',
+          failOnStatusCode: false,
+        }).then((response) => {
+          expect(response.status).to.eq(500);
+          expect(response.body).to.have.property(
+            'message',
+            'E2E_CUSTOM_ERROR_TRIGGERED'
+          );
+          expect(response.body)
+            .to.have.property('error')
+            .and.match(/test error/i);
+        });
       });
     });
   });

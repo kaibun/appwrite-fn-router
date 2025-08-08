@@ -9,7 +9,7 @@ import { Request as Request$2 } from 'undici';
 type DefaultLogger = (message: string) => void;
 type ErrorLogger = (message: string) => void;
 
-type FetchObjects = {
+type InternalObjects = {
   request: Request$2;
 };
 
@@ -21,6 +21,26 @@ type ResponseObject<T = any> = {
   headers: Headers;
   statusCode: number;
   toString(): string;
+};
+
+type Options = {
+  globals?: boolean;
+  env?: boolean;
+  log?: boolean;
+  errorLog?: boolean;
+  catch?: (
+    err: unknown,
+    req: AppwriteRequest,
+    res: AppwriteResponse,
+    log: DefaultLogger,
+    error: ErrorLogger,
+    internals?: InternalObjects
+  ) => void;
+  cors?: {
+    allowedOrigins?: (string | RegExp)[];
+    allowMethods?: string[];
+    allowHeaders?: string[];
+  };
 };
 
 type Request$1 = {
@@ -77,26 +97,6 @@ type Context = {
   error: ErrorLogger;
 };
 
-// Router types from main.ts
-type Options = {
-  globals?: boolean;
-  env?: boolean;
-  log?: boolean;
-  errorLog?: boolean;
-  onError?: (
-    err: unknown,
-    req: AppwriteRequest,
-    res: AppwriteResponse,
-    log: (...args: any[]) => void,
-    error: (...args: any[]) => void
-  ) => void;
-  cors?: {
-    allowedOrigins?: (string | RegExp)[];
-    allowMethods?: string[];
-    allowHeaders?: string[];
-  };
-};
-
 /**
  * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers.
  * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
@@ -126,14 +126,14 @@ declare global {
  * @internal
  * Middleware CORS preflight pour itty-router (à utiliser dans before[])
  */
-declare function corsPreflightMiddleware(req: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger, internals: FetchObjects & {
+declare function corsPreflightMiddleware(req: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger, internals: InternalObjects & {
     preflight: (req: Request) => Response | undefined;
 }): Promise<ResponseObject<string> | undefined>;
 /**
  * @internal
  * Middleware CORS finalisation pour itty-router (à utiliser dans finally[])
  */
-declare function corsFinallyMiddleware(responseFromRoute: any, request: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger, internals: FetchObjects & {
+declare function corsFinallyMiddleware(responseFromRoute: any, request: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger, internals: InternalObjects & {
     corsify: (res: Response, req: Request) => Response;
 }): Promise<ResponseObject<string> | undefined>;
 /**
@@ -149,8 +149,8 @@ declare function createRouter({ ...args }?: RouterOptions<WrapperRequestType, [
     Response$1,
     DefaultLogger,
     ErrorLogger,
-    FetchObjects
-] & any[]>): itty_router.RouterType<any, [Response$1, DefaultLogger, ErrorLogger, FetchObjects] & any[], Response$1>;
+    InternalObjects
+] & any[]>): itty_router.RouterType<any, [Response$1, DefaultLogger, ErrorLogger, InternalObjects] & any[], Response$1>;
 /**
  * @internal
  * Normalise les headers d'une requête Appwrite (clés insensibles à la casse).
@@ -195,7 +195,7 @@ declare function runRouter(router: ReturnType<typeof createRouter>, { req, res, 
  * @internal
  * Gestion d’erreur centralisée pour handleRequest.
  */
-declare function handleRequestError(err: unknown, finalOptions: Options, req: Request$1, res: Response$1, apwError: ErrorLogger): ResponseObject<string> | ResponseObject<{
+declare function handleRequestError(err: unknown, finalOptions: Options, req: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger): ResponseObject<string> | ResponseObject<{
     status: "error";
     message: string;
     error: string;

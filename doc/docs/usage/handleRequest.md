@@ -34,18 +34,20 @@ async function handleRequest(
 
 The `options` object allows you to configure various aspects of the router:
 
-| Option     | Type                                                                                                  | Default     | Description                                                                                                                                                                                                                          |
-| ---------- | ----------------------------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `globals`  | `boolean`                                                                                             | `true`      | If `true`, makes `log` and `error` available as global functions.                                                                                                                                                                    |
-| `env`      | `boolean`                                                                                             | `true`      | If `true`, sets the `APPWRITE_FUNCTION_API_KEY` environment variable from the `x-appwrite-key` header.                                                                                                                               |
-| `log`      | `boolean`                                                                                             | `true`      | Enables or disables logging.                                                                                                                                                                                                         |
-| `errorLog` | `boolean`                                                                                             | `true`      | Enables or disables error logging.                                                                                                                                                                                                   |
-| `onError`  | `(err: unknown, req: AppwriteRequest, res: AppwriteResponse, log: Function, error: Function) => void` | `undefined` | Custom error handler called whenever an unhandled error occurs in any handler or middleware. Receives the error and the Appwrite context (`req`, `res`, `log`, `error`). Lets you log, report, or customize error handling globally. |
-| `cors`     | `object`                                                                                              | `{...}`     | Configuration for Cross-Origin Resource Sharing (CORS). See below for details.                                                                                                                                                       |
+| Option     | Type                                                                                                  | Default     | Description                                                                                                                                                                                                                                                                                                |
+| ---------- | ----------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `globals`  | `boolean`                                                                                             | `true`      | If `true`, makes `log` and `error` available as global functions.                                                                                                                                                                                                                                          |
+| `env`      | `boolean`                                                                                             | `true`      | If `true`, sets the `APPWRITE_FUNCTION_API_KEY` environment variable from the `x-appwrite-key` header.                                                                                                                                                                                                     |
+| `log`      | `boolean`                                                                                             | `true`      | Enables or disables logging.                                                                                                                                                                                                                                                                               |
+| `errorLog` | `boolean`                                                                                             | `true`      | Enables or disables error logging.                                                                                                                                                                                                                                                                         |
+| `catch`    | `(err: unknown, req: AppwriteRequest, res: AppwriteResponse, log: Function, error: Function) => void` | `undefined` | Custom error handler called whenever an unhandled error occurs in any handler or middleware. Receives the error and the Appwrite context (`req`, `res`, `log`, `error`). Lets you log, report, or customize error handling globally. Note: the signature is adapted internally to match itty-router's API. |
+| `cors`     | `object`                                                                                              | `{...}`     | Configuration for Cross-Origin Resource Sharing (CORS). See below for details.                                                                                                                                                                                                                             |
 
-### Global error handling with `onError`
+### Global error handling with `catch`
 
-You can provide a custom error handler using the `onError` option. This callback is invoked whenever an unhandled error occurs in any route handler or middleware. It receives the error and the Appwrite context (`req`, `res`, `log`, `error`). Use it to log errors, send them to a monitoring service, or customize the error response globally.
+You can provide a custom error handler using the `catch` option. This callback is invoked whenever an unhandled error occurs in any route handler or middleware. It receives the error and the Appwrite context (`req`, `res`, `log`, `error`). Use it to log errors, send them to a monitoring service, or customize the error response globally.
+
+**Note:** The signature is adapted internally to match itty-router's API, so you can always use `(err, req, res, log, error)` in your handler.
 
 ```typescript
 import { handleRequest } from 'appwrite-fn-router';
@@ -57,9 +59,9 @@ export default async ({ req, res, log, error }) => {
       // Define your routes here
     },
     {
-      onError: (err, req, res, log, error) => {
+      catch: (err, req, res, log, error) => {
         // Custom error logging or reporting with full context
-        log('Error intercepted by onError:', err);
+        log('Error intercepted by catch:', err);
         // You can also use req, res, error, etc.
       },
     }

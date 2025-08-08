@@ -3625,7 +3625,7 @@ var require_data_url = __commonJS({
 var require_webidl = __commonJS({
   "node_modules/undici/lib/web/webidl/index.js"(exports, module) {
     "use strict";
-    var { types, inspect } = __require("util");
+    var { types, inspect: inspect2 } = __require("util");
     var { markAsUncloneable } = __require("worker_threads");
     var UNDEFINED = 1;
     var BOOLEAN = 2;
@@ -3817,7 +3817,7 @@ var require_webidl = __commonJS({
         case SYMBOL:
           return `Symbol(${V.description})`;
         case OBJECT:
-          return inspect(V);
+          return inspect2(V);
         case STRING:
           return `"${V}"`;
         case BIGINT:
@@ -21320,6 +21320,7 @@ var require_undici = __commonJS({
 });
 
 // src/main.ts
+import { inspect } from "util";
 import { cors, Router } from "itty-router";
 async function corsPreflightMiddleware(req, res, log, error, internals) {
   const response = internals.preflight(internals.request);
@@ -21474,18 +21475,14 @@ async function runRouter(router, { req, res, log, error }) {
   );
   return response;
 }
-function handleRequestError(err, finalOptions, req, res, apwError) {
-  const log = finalOptions.log ? typeof globalThis.log === "function" ? globalThis.log : () => {
-  } : () => {
-  };
-  const error = finalOptions.errorLog ? apwError : () => {
-  };
-  if (typeof finalOptions.onError === "function") {
-    finalOptions.onError(err, req, res, log, error);
+function handleRequestError(err, finalOptions, req, res, log, error) {
+  log(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
+  if (typeof finalOptions.catch === "function") {
+    finalOptions.catch(err, req, res, log, error);
   } else if (process.env.NODE_ENV !== "production") {
     console.error("[appwrite-fn-router] Unhandled error:", err);
   }
-  finalOptions.errorLog && apwError(
+  finalOptions.errorLog && error(
     `
 [router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
   );
@@ -21507,13 +21504,17 @@ function handleRequestError(err, finalOptions, req, res, apwError) {
 async function handleRequest(context, withRouter, options = {}) {
   let { req, res, log: apwLog, error: apwError } = context;
   let finalOptions = {};
+  let log = () => {
+  };
+  let error = () => {
+  };
   try {
     normalizeHeaders(req);
     finalOptions = buildFinalOptions(options, apwLog, apwError);
     finalOptions.log && apwLog("[router] Function is starting...");
-    const log = finalOptions.log ? apwLog : () => {
+    log = finalOptions.log ? apwLog : () => {
     };
-    const error = finalOptions.errorLog ? apwError : () => {
+    error = finalOptions.errorLog ? apwError : () => {
     };
     setupGlobalLoggers(finalOptions, log, error);
     setupEnvVars(finalOptions, req);
@@ -21531,16 +21532,29 @@ async function handleRequest(context, withRouter, options = {}) {
           ...fetch,
           corsify
         })
-      ]
+      ],
+      ...typeof finalOptions.catch === "function" ? {
+        catch: finalOptions.catch
+      } : {}
     });
     withRouter(router);
+    log(
+      "[DEBUG] router.routes (after withRouter call):",
+      JSON.stringify(
+        router.routes,
+        (k, v) => typeof v === "function" ? `[Function: ${v.name || "anonymous"}]` : v,
+        2
+      )
+    );
     const response = await runRouter(router, { req, res, log, error });
+    log("-------- Response from router:");
+    log(inspect(response, { depth: null }));
     if (!response) {
       return res.text("Not Found", 404);
     }
     return response;
   } catch (err) {
-    return handleRequestError(err, finalOptions, req, res, apwError);
+    return handleRequestError(err, finalOptions, req, res, log, error);
   }
 }
 export {
