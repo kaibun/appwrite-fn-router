@@ -21325,6 +21325,13 @@ import { inspect as inspect2 } from "util";
 // ../../src/main.ts
 import { inspect } from "util";
 import { cors, Router } from "itty-router";
+var isDevelopment = process.env.NODE_ENV === "development";
+var isNotProduction = process.env.NODE_ENV !== "production";
+var isJSONLikeRequest = (req) => (
+  // There so many JSON-like content types, our best bet is to be agnostic.
+  // @see https://www.iana.org/assignments/media-types/media-types.xhtml
+  req.headers["content-type"]?.endsWith("+json")
+);
 async function corsPreflightMiddleware(req, res, log, error, internals) {
   const response = internals.preflight(internals.request);
   if (response) {
@@ -21361,40 +21368,38 @@ function createRouter({
   });
 }
 function normalizeHeaders(req) {
-  if (req && req.headers && typeof req.headers === "object") {
-    const normalized = {};
-    for (const k in req.headers) {
-      if (Object.prototype.hasOwnProperty.call(req.headers, k)) {
-        normalized[k.toLowerCase()] = req.headers[k];
-      }
+  if (!req || !req.headers || typeof req.headers !== "object") return;
+  const normalized = {};
+  for (const k in req.headers) {
+    if (Object.prototype.hasOwnProperty.call(req.headers, k)) {
+      normalized[k.toLowerCase()] = req.headers[k];
     }
-    req.headers = new Proxy(normalized, {
-      get(target, prop) {
-        if (typeof prop === "string") {
-          return target[prop.toLowerCase()];
-        }
-        return void 0;
-      },
-      has(target, prop) {
-        if (typeof prop === "string") {
-          return prop.toLowerCase() in target;
-        }
-        return false;
-      },
-      ownKeys(target) {
-        return Reflect.ownKeys(target);
-      },
-      getOwnPropertyDescriptor(target, prop) {
-        if (typeof prop === "string" && prop.toLowerCase() in target) {
-          return Object.getOwnPropertyDescriptor(target, prop.toLowerCase());
-        }
-        return void 0;
-      }
-    });
   }
+  req.headers = new Proxy(normalized, {
+    get(target, prop) {
+      if (typeof prop === "string") {
+        return target[prop.toLowerCase()];
+      }
+      return void 0;
+    },
+    has(target, prop) {
+      if (typeof prop === "string") {
+        return prop.toLowerCase() in target;
+      }
+      return false;
+    },
+    ownKeys(target) {
+      return Reflect.ownKeys(target);
+    },
+    getOwnPropertyDescriptor(target, prop) {
+      if (typeof prop === "string" && prop.toLowerCase() in target) {
+        return Object.getOwnPropertyDescriptor(target, prop.toLowerCase());
+      }
+      return void 0;
+    }
+  });
 }
 function buildFinalOptions(options, apwLog, apwError) {
-  const isNotProduction = process.env.NODE_ENV !== "production";
   return {
     globals: options.globals ?? true,
     env: options.env ?? true,
@@ -21416,7 +21421,7 @@ function setupEnvVars(finalOptions, req) {
 }
 function buildCorsOptions(finalOptions) {
   const allowedOrigins = finalOptions.cors?.allowedOrigins ?? [];
-  if (process.env.NODE_ENV !== "production") {
+  if (isDevelopment) {
     if (!allowedOrigins.includes("http://localhost:3001")) {
       allowedOrigins.push("http://localhost:3001");
     }
@@ -21481,31 +21486,23 @@ async function runRouter(router3, { req, res, log, error }) {
   );
   return response;
 }
-function handleRequestError(err, finalOptions, req, res, log, error, internals) {
-  log(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
-  if (typeof finalOptions.ittyOptions.catch === "function") {
-    finalOptions.ittyOptions.catch(err, req, res, log, error, internals);
-  } else if (process.env.NODE_ENV !== "production") {
-    console.error("[appwrite-fn-router] Unhandled error:", err);
+function handleRequestError(err, finalOptions, req, res, log, error) {
+  if (isDevelopment && finalOptions.errorLog) {
+    error(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
   }
-  finalOptions.errorLog && error(
-    `
-[router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
-  );
-  const message = err instanceof Error ? err.message : String(err);
-  if (["/json", "/ld+json"].some(
-    (type) => req.headers["content-type"]?.endsWith(type)
-  )) {
+  const message = isDevelopment ? err instanceof Error ? err.message : String(err) : "An error occurred during request processing the request.";
+  const errorDetails = isDevelopment ? err instanceof Error && err.cause instanceof Error ? err.cause.message : "Reason unknown" : "Error details are not available unless in development mode.";
+  if (isJSONLikeRequest(req)) {
     return res.json(
       {
         status: "error",
         message,
-        error: err instanceof Error && err.cause instanceof Error ? err.cause.message : "Reason unknown"
+        error: errorDetails
       },
       500
     );
   }
-  return res.text(message, 500);
+  return res.text(message + " " + errorDetails, 500);
 }
 async function handleRequest(context, withRouter, options = {}) {
   let { req, res, log: apwLog, error: apwError } = context;
@@ -21723,8 +21720,8 @@ var main_default = async (context) => {
     throw err;
   };
   const response = await handleRequest(context, routes, {
-    log: process.env.NODE_ENV !== "production",
-    errorLog: process.env.NODE_ENV !== "production",
+    log: process.env.NODE_ENV === "development",
+    errorLog: process.env.NODE_ENV === "development",
     ittyOptions: {
       catch: CatchHandler
     }
