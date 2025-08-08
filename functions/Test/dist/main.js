@@ -21478,10 +21478,10 @@ async function runRouter(router3, { req, res, log, error }) {
   );
   return response;
 }
-function handleRequestError(err, finalOptions, req, res, log, error) {
+function handleRequestError(err, finalOptions, req, res, log, error, internals) {
   log(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
-  if (typeof finalOptions.catch === "function") {
-    finalOptions.catch(err, req, res, log, error);
+  if (typeof finalOptions.ittyOptions.catch === "function") {
+    finalOptions.ittyOptions.catch(err, req, res, log, error, internals);
   } else if (process.env.NODE_ENV !== "production") {
     console.error("[appwrite-fn-router] Unhandled error:", err);
   }
@@ -21523,22 +21523,27 @@ async function handleRequest(context, withRouter, options = {}) {
     setupEnvVars(finalOptions, req);
     const corsOptions = buildCorsOptions(finalOptions);
     const { preflight, corsify } = cors(corsOptions);
+    const { ittyOptions = {} } = finalOptions;
+    const { before: userBefore = [], finally: userFinally = [] } = ittyOptions;
+    const before = [
+      (req2, res2, log2, error2, internals, ...args) => corsPreflightMiddleware(req2, res2, log2, error2, {
+        ...internals || {},
+        preflight
+      }),
+      ...[].concat(userBefore)
+    ];
+    const finallyArr = [
+      ...[].concat(userFinally),
+      (responseFromRoute, request, res2, log2, error2, internals, ...args) => corsFinallyMiddleware(responseFromRoute, request, res2, log2, error2, {
+        ...internals || {},
+        corsify
+      })
+    ];
     const router3 = createRouter({
-      before: [
-        (req2, res2, log2, error2, fetch) => corsPreflightMiddleware(req2, res2, log2, error2, {
-          ...fetch,
-          preflight
-        })
-      ],
-      finally: [
-        (responseFromRoute, request, res2, log2, error2, fetch) => corsFinallyMiddleware(responseFromRoute, request, res2, log2, error2, {
-          ...fetch,
-          corsify
-        })
-      ],
-      ...typeof finalOptions.catch === "function" ? {
-        catch: finalOptions.catch
-      } : {}
+      before,
+      finally: finallyArr,
+      ...ittyOptions
+      // catch, etc. sont transmis automatiquement
     });
     withRouter(router3);
     log(
@@ -21700,22 +21705,25 @@ var main_default = async (context) => {
     return res.text("I'm a teapot", 418);
   }
   log(greetings + "\n");
+  const CatchHandler = (err, req2, res2, log2, error2, internals) => {
+    log2(err ? inspect2(err) : "Unknown error");
+    if (req2.path.startsWith("/errors")) {
+      return res2.json(
+        {
+          status: "error",
+          message: "E2E_CUSTOM_ERROR_TRIGGERED",
+          error: err instanceof Error ? err.message : String(err)
+        },
+        500
+      );
+    }
+    throw err;
+  };
   const response = await handleRequest(context, routes, {
     log: process.env.NODE_ENV !== "production",
     errorLog: process.env.NODE_ENV !== "production",
-    catch: (err, req2, res2, log2, error2) => {
-      log2(err ? inspect2(err) : "Unknown error");
-      if (req2.path.startsWith("/errors")) {
-        return res2.json(
-          {
-            status: "error",
-            message: "E2E_CUSTOM_ERROR_TRIGGERED",
-            error: err instanceof Error ? err.message : String(err)
-          },
-          500
-        );
-      }
-      throw err;
+    ittyOptions: {
+      catch: CatchHandler
     }
   });
   log(inspect2(response, { depth: null }));

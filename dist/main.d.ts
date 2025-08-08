@@ -1,5 +1,5 @@
 import * as itty_router from 'itty-router';
-import { IRequest, RouterOptions } from 'itty-router';
+import { IRequest, RouterOptions as RouterOptions$1 } from 'itty-router';
 import { Request as Request$2 } from 'undici';
 
 // Core types for Appwrite Functions and itty-router integration
@@ -11,6 +11,7 @@ type ErrorLogger = (message: string) => void;
 
 type InternalObjects = {
   request: Request$2;
+  [key: any]: unknown; // Allows for additional properties to be added dynamically
 };
 
 type Headers = Record<string, string>;
@@ -28,19 +29,24 @@ type Options = {
   env?: boolean;
   log?: boolean;
   errorLog?: boolean;
-  catch?: (
-    err: unknown,
-    req: AppwriteRequest,
-    res: AppwriteResponse,
-    log: DefaultLogger,
-    error: ErrorLogger,
-    internals?: InternalObjects
-  ) => void;
   cors?: {
     allowedOrigins?: (string | RegExp)[];
     allowMethods?: string[];
     allowHeaders?: string[];
   };
+  ittyOptions?: // [key: string]: (
+  //   err: unknown,
+  //   req: AppwriteRequest,
+  //   res: AppwriteResponse,
+  //   log: DefaultLogger,
+  //   error: ErrorLogger,
+  //   internals: InternalObjects
+  //   [key: string]: any;
+  // ) => void;
+  RouterOptions<
+    WrapperRequestType,
+    [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[]
+  >;
 };
 
 type Request$1 = {
@@ -101,7 +107,7 @@ type Context = {
  * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers.
  * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
  */
-type WrapperRequestType = IRequest & AppwriteRequest;
+type WrapperRequestType = IRequest & Request$1;
 
 // Global type declarations for the library
 
@@ -145,12 +151,12 @@ declare function corsFinallyMiddleware(responseFromRoute: any, request: Request$
  * eux accéder à l’objet Request natif (Fetch API) via un cinquième argument
  * correspondant à `FetchObjects`.
  */
-declare function createRouter({ ...args }?: RouterOptions<WrapperRequestType, [
+declare function createRouter({ ...args }?: RouterOptions$1<WrapperRequestType, [
     Response$1,
     DefaultLogger,
     ErrorLogger,
     InternalObjects
-] & any[]>): itty_router.RouterType<any, [Response$1, DefaultLogger, ErrorLogger, InternalObjects] & any[], Response$1>;
+] & any[]>): itty_router.RouterType<WrapperRequestType, [Response$1, DefaultLogger, ErrorLogger, InternalObjects] & any[], Response$1>;
 /**
  * @internal
  * Normalise les headers d'une requête Appwrite (clés insensibles à la casse).
@@ -195,7 +201,7 @@ declare function runRouter(router: ReturnType<typeof createRouter>, { req, res, 
  * @internal
  * Gestion d’erreur centralisée pour handleRequest.
  */
-declare function handleRequestError(err: unknown, finalOptions: Options, req: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger): ResponseObject<string> | ResponseObject<{
+declare function handleRequestError(err: unknown, finalOptions: Options, req: Request$1, res: Response$1, log: DefaultLogger, error: ErrorLogger, internals?: InternalObjects): ResponseObject<string> | ResponseObject<{
     status: "error";
     message: string;
     error: string;

@@ -9,7 +9,38 @@ export type ErrorLogger = (message: string) => void;
 
 export type InternalObjects = {
   request: FetchRequest;
+  [key: any]: unknown; // Allows for additional properties to be added dynamically
 };
+
+export type AFRContext = Context & {
+  req: WrapperRequestType;
+  internals: InternalObjects;
+};
+
+/**
+ * Type describing an Appwrite Function Router’s context.
+ *
+ * It extends the standard Appwrite `Context` with the following tweaks:
+ *
+ * - `req` is a `WrapperRequestType` (which includes all AppwriteRequest properties and getters)
+ * - `internals` is an optional object that can hold additional internal state or objects.
+ *
+ * You may still pass any additional arguments to the context. They they will be ignored by the library, but will show up in your route handlers and
+ * middlewares for you to use.
+ *
+ * Don’t forget you may also use the request object (first argument) as a mean
+ * to pass additional data to your callbacks, which may be more semantic.
+ */
+export type AFRContextArgs = [
+  AFRContext['req'],
+  AFRContext['res'],
+  AFRContext['log'],
+  AFRContext['error'],
+  AFRContext['internals'],
+  ...any[],
+];
+
+export type CatchHandler = (...args: [Error, ...AFRContextArgs]) => any;
 
 export type Headers = Record<string, string>;
 export type JSONObject = Record<string, unknown>;
@@ -32,19 +63,24 @@ export type Options = {
   env?: boolean;
   log?: boolean;
   errorLog?: boolean;
-  catch?: (
-    err: unknown,
-    req: AppwriteRequest,
-    res: AppwriteResponse,
-    log: DefaultLogger,
-    error: ErrorLogger,
-    internals?: InternalObjects
-  ) => void;
   cors?: {
     allowedOrigins?: (string | RegExp)[];
     allowMethods?: string[];
     allowHeaders?: string[];
   };
+  ittyOptions?: // [key: string]: (
+  //   err: unknown,
+  //   req: AppwriteRequest,
+  //   res: AppwriteResponse,
+  //   log: DefaultLogger,
+  //   error: ErrorLogger,
+  //   internals: InternalObjects
+  //   [key: string]: any;
+  // ) => void;
+  RouterOptions<
+    WrapperRequestType,
+    [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[]
+  >;
 };
 
 export type Request = {
@@ -111,4 +147,4 @@ export type RouterJSONResponse = {
  * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers.
  * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
  */
-export type WrapperRequestType = IRequest & AppwriteRequest;
+export type WrapperRequestType = IRequest & Request;
