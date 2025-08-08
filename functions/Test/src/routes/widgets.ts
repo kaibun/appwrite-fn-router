@@ -11,7 +11,7 @@ export type { Widget };
 const router = createRouter({ base: '/widgets' });
 
 // GET /widgets => List widgets
-router.get('/', (_request, _req, res, _log, _error) => {
+router.get('/', (_req, res, _log, _error) => {
   const response = res.json({
     items: [
       { id: 'widget1', weight: 10, color: 'red' },
@@ -22,7 +22,7 @@ router.get('/', (_request, _req, res, _log, _error) => {
 });
 
 // POST /widgets => Create a widget
-router.post('/', async (request: IRequest, req, res, _log, _error) => {
+router.post('/', async (req, res, _log, _error) => {
   try {
     const body = req.bodyJson as Partial<Widget>;
     if (typeof body.weight !== 'number' || !body.color) {
@@ -63,8 +63,8 @@ router.post('/', async (request: IRequest, req, res, _log, _error) => {
 });
 
 // GET /widgets/secret => Accessing the daily secret widget (requires Bearer token)
-router.get('/secret', (request: IRequest, _req, res, _log, _error) => {
-  const authHeader = request.headers.get('Authorization');
+router.get('/secret', (req, res, _log, _error) => {
+  const authHeader = req.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.json({ code: 'UNAUTHORIZED', message: 'Unauthorized' }, 401);
   }
@@ -72,8 +72,8 @@ router.get('/secret', (request: IRequest, _req, res, _log, _error) => {
 });
 
 // GET /widgets/{id} => Read a specific widget
-router.get('/:id', (request: IRequest, _req, res, _log, _error) => {
-  const { id } = request.params;
+router.get('/:id', (req, res, _log, _error) => {
+  const { id } = req.params;
   if (id === 'not-found') {
     return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
   }
@@ -81,9 +81,9 @@ router.get('/:id', (request: IRequest, _req, res, _log, _error) => {
 });
 
 // PATCH /widgets/{id} => Update a widget
-router.patch('/:id', async (request: IRequest, req, res, _log, _error) => {
+router.patch('/:id', async (req, res, _log, _error) => {
   try {
-    const { id } = request.params;
+    const { id } = req.params;
     if (id === 'not-found') {
       return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
     }
@@ -116,8 +116,8 @@ router.patch('/:id', async (request: IRequest, req, res, _log, _error) => {
 });
 
 // DELETE /widgets/{id} => Delete a widget
-router.delete('/:id', (request: IRequest, _req, res, _log, _error) => {
-  const { id } = request.params;
+router.delete('/:id', (req, res, _log, _error) => {
+  const { id } = req.params;
   if (id === 'not-found') {
     return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
   }
@@ -125,8 +125,8 @@ router.delete('/:id', (request: IRequest, _req, res, _log, _error) => {
 });
 
 // POST /widgets/{id} => Analyze a widget
-router.post('/:id', (request: IRequest, _req, res, _log, _error) => {
-  const { id } = request.params;
+router.post('/:id', (req, res, _log, _error) => {
+  const { id } = req.params;
   return res.json({
     statusCode: 200,
     id,

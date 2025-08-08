@@ -4,6 +4,12 @@ sidebar_position: 2
 
 # `handleRequest`
 
+## Philosophy: Familiar API, Enhanced Internals
+
+When you use this library, your route handlers always receive four arguments: `req`, `res`, `log`, and `error`. This matches exactly what you would get when writing a standard Appwrite function, so adopting the router does not change your mental model or code structure.
+
+**Under the hood:** The `req` argument is a merged object that combines all properties and methods from both Appwrite's `req` and the native Web `Request` API. This allows the internal router (itty-router) to work seamlessly, while you, as a user, continue to interact with the familiar Appwrite context. The fact that `req` is "overloaded" with extra capabilities is an implementation detail—you can keep using it as you always have, but you also gain access to the full native `Request` API if you need it.
+
 The `handleRequest` function is the main entry point for your Appwrite function when using this router. It sets up the environment, initializes the router with your routes and configuration, and handles incoming requests.
 
 It’s likely the only method you’ll need to call to use this library.
@@ -58,6 +64,10 @@ export default async ({ req, res, log, error }) => {
     { req, res, log, error },
     (router) => {
       // Define your routes here
+      // Example:
+      router.get('/', (req, res, log, error) => {
+        return res.send('Hello, World!');
+      });
       router.get('/', () => ({ message: 'Hello World!' }));
     },
     {

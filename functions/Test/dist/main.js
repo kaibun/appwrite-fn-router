@@ -13,15 +13,30 @@ function createRouter({
 async function runRouter(router2, { req, res, log, error }) {
   const { headers, method, url } = req;
   const route = new URL(url);
-  const request = new Request(route, {
+  const nativeRequest = new Request(route, {
     headers,
     method
   });
+  const mergedRequest = Object.create(Object.getPrototypeOf(nativeRequest));
+  for (const key of Reflect.ownKeys(nativeRequest)) {
+    try {
+      const desc = Object.getOwnPropertyDescriptor(nativeRequest, key);
+      if (desc) Object.defineProperty(mergedRequest, key, desc);
+    } catch {
+    }
+  }
+  for (const key of Reflect.ownKeys(req)) {
+    if (!(key in mergedRequest)) {
+      try {
+        const desc = Object.getOwnPropertyDescriptor(req, key);
+        if (desc) Object.defineProperty(mergedRequest, key, desc);
+      } catch {
+      }
+    }
+  }
   const response = await router2.fetch(
-    request,
-    // IRequest
-    req,
-    // The original Appwrite’s Request
+    mergedRequest,
+    // WrapperRequestType: IRequest & AppwriteRequest
     res,
     // The original Appwrite’s Response
     log,
@@ -90,7 +105,7 @@ async function handleRequest(context, withRouter, options = {}) {
     const router2 = createRouter({
       // The `before` middleware handles preflight (OPTIONS) requests.
       before: [
-        async (req2, req_appwrite, res2, log2, error2) => {
+        async (req2, res2, log2, error2) => {
           const response2 = preflight(req2);
           if (response2) {
             const body = await response2.text();
@@ -102,7 +117,7 @@ async function handleRequest(context, withRouter, options = {}) {
       ],
       // The `finally` middleware applies CORS headers to the outgoing response.
       finally: [
-        async (responseFromRoute, request, req_appwrite, res2, log2, error2) => {
+        async (responseFromRoute, request, res2, log2, error2) => {
           if (responseFromRoute) {
             const nativeResponse = new Response(
               responseFromRoute.statusCode === 204 ? null : responseFromRoute.body,
@@ -159,7 +174,7 @@ async function handleRequest(context, withRouter, options = {}) {
 
 // src/routes/widgets.ts
 var router = createRouter({ base: "/widgets" });
-router.get("/", (_request, _req, res, _log, _error) => {
+router.get("/", (_req, res, _log, _error) => {
   const response = res.json({
     items: [
       { id: "widget1", weight: 10, color: "red" },
@@ -168,7 +183,7 @@ router.get("/", (_request, _req, res, _log, _error) => {
   });
   return response;
 });
-router.post("/", async (request, req, res, _log, _error) => {
+router.post("/", async (req, res, _log, _error) => {
   try {
     const body = req.bodyJson;
     if (typeof body.weight !== "number" || !body.color) {
@@ -207,23 +222,23 @@ router.post("/", async (request, req, res, _log, _error) => {
     );
   }
 });
-router.get("/secret", (request, _req, res, _log, _error) => {
-  const authHeader = request.headers.get("Authorization");
+router.get("/secret", (req, res, _log, _error) => {
+  const authHeader = req.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.json({ code: "UNAUTHORIZED", message: "Unauthorized" }, 401);
   }
   return res.json({ id: "widget-secret", weight: 200, color: "gold" });
 });
-router.get("/:id", (request, _req, res, _log, _error) => {
-  const { id } = request.params;
+router.get("/:id", (req, res, _log, _error) => {
+  const { id } = req.params;
   if (id === "not-found") {
     return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
   }
   return res.json({ id, weight: 10, color: "red" });
 });
-router.patch("/:id", async (request, req, res, _log, _error) => {
+router.patch("/:id", async (req, res, _log, _error) => {
   try {
-    const { id } = request.params;
+    const { id } = req.params;
     if (id === "not-found") {
       return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
     }
@@ -254,15 +269,15 @@ router.patch("/:id", async (request, req, res, _log, _error) => {
     );
   }
 });
-router.delete("/:id", (request, _req, res, _log, _error) => {
-  const { id } = request.params;
+router.delete("/:id", (req, res, _log, _error) => {
+  const { id } = req.params;
   if (id === "not-found") {
     return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
   }
   return res.send("", 204);
 });
-router.post("/:id", (request, _req, res, _log, _error) => {
-  const { id } = request.params;
+router.post("/:id", (req, res, _log, _error) => {
+  const { id } = req.params;
   return res.json({
     statusCode: 200,
     id,
@@ -273,7 +288,7 @@ var widgets_default = router;
 
 // src/main.ts
 function routes(router2) {
-  router2.get("/", (_request, _req, res, log, _error) => {
+  router2.get("/", (_request, res, log, _error) => {
     const response = res.text("Root route hit!");
     return response;
   });

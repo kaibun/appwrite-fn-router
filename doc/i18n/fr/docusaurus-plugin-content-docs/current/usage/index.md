@@ -67,20 +67,17 @@ Cette fonction crée une nouvelle instance de routeur. Vous enregistrerez vos ro
 
 Dans le callback `withRouter` de `handleRequest`, vous définissez vos routes.
 
-Le gestionnaire de chaque route reçoit à la fois l'objet `Request` standard et l'objet `req` d'Appwrite, ainsi que le reste du contexte d'Appwrite (`res`, `log` et `error`), afin que vous puissiez continuer à travailler dans un environnement familier.
+Chaque gestionnaire de route reçoit désormais un unique objet `req` fusionné (contenant à la fois les propriétés de `Request` natif et de l'`AppwriteRequest`), suivi de `res`, `log` et `error`. La signature de vos handlers doit donc être :
 
 ```typescript
-// ... implémentons le rappel withRouter, en enregistrant nos routes :
 handleRequest(context, (router) => {
-  router.get('/', (vanillaRequest, req, res, log, error) => {
-    // req et res sont les abstractions d'Appwrite
-    // En utilisant les méthodes de res, le gestionnaire de route doit renvoyer
-    // des AppwriteResponseObject qui sont attendus par l'environnement d'exécution
+  router.get('/', (req, res, log, error) => {
+    // req est la requête fusionnée (Request & AppwriteRequest)
     return res.send('Bonjour, le monde !');
   });
 
-  router.post('/users', async (vanillaRequest, req, res, log, error) => {
-    const user = req.body;
+  router.post('/users', async (req, res, log, error) => {
+    const user = await req.bodyJson;
     // Faire quelque chose avec l'utilisateur... peut-être attendre un résultat...
     return res.json({ success: true, user });
   });

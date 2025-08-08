@@ -20,15 +20,30 @@ function createRouter({
 async function runRouter(router, { req, res, log, error }) {
   const { headers, method, url } = req;
   const route = new URL(url);
-  const request = new Request(route, {
+  const nativeRequest = new Request(route, {
     headers,
     method
   });
+  const mergedRequest = Object.create(Object.getPrototypeOf(nativeRequest));
+  for (const key of Reflect.ownKeys(nativeRequest)) {
+    try {
+      const desc = Object.getOwnPropertyDescriptor(nativeRequest, key);
+      if (desc) Object.defineProperty(mergedRequest, key, desc);
+    } catch {
+    }
+  }
+  for (const key of Reflect.ownKeys(req)) {
+    if (!(key in mergedRequest)) {
+      try {
+        const desc = Object.getOwnPropertyDescriptor(req, key);
+        if (desc) Object.defineProperty(mergedRequest, key, desc);
+      } catch {
+      }
+    }
+  }
   const response = await router.fetch(
-    request,
-    // IRequest
-    req,
-    // The original Appwrite’s Request
+    mergedRequest,
+    // WrapperRequestType: IRequest & AppwriteRequest
     res,
     // The original Appwrite’s Response
     log,
@@ -97,7 +112,7 @@ async function handleRequest(context, withRouter, options = {}) {
     const router = createRouter({
       // The `before` middleware handles preflight (OPTIONS) requests.
       before: [
-        async (req2, req_appwrite, res2, log2, error2) => {
+        async (req2, res2, log2, error2) => {
           const response2 = preflight(req2);
           if (response2) {
             const body = await response2.text();
@@ -109,7 +124,7 @@ async function handleRequest(context, withRouter, options = {}) {
       ],
       // The `finally` middleware applies CORS headers to the outgoing response.
       finally: [
-        async (responseFromRoute, request, req_appwrite, res2, log2, error2) => {
+        async (responseFromRoute, request, res2, log2, error2) => {
           if (responseFromRoute) {
             const nativeResponse = new Response(
               responseFromRoute.statusCode === 204 ? null : responseFromRoute.body,
