@@ -10,15 +10,28 @@ import type {
   DefaultLogger,
   ErrorLogger,
   Options,
+  FinalOptions,
   RouterJSONResponse,
   WrapperRequestType,
+  logEnableFn,
 } from '../types/core';
 import '../types/global.d.ts'; // Import global declarations
 
 const $ = globalThis;
 
+const noop = (...args: any[]) => {};
+const isBoolean = (obj: unknown): obj is boolean => typeof obj === 'boolean';
+const isFunction = (obj: unknown): obj is CallableFunction =>
+  obj instanceof Function;
 const isDevelopment = process.env.NODE_ENV === 'development';
-const isNotProduction = process.env.NODE_ENV !== 'production';
+
+/**
+ * Default log activation callback: logs are enabled only in development.
+ * Users can override this by passing their own function to handleRequest.
+ */
+export const defaultLogFn: logEnableFn = (mode: 'log' | 'errorLog') =>
+  isDevelopment;
+
 const isJSONLikeRequest = (req: AppwriteRequest) =>
   // There so many JSON-like content types, our best bet is to be agnostic.
   // @see https://www.iana.org/assignments/media-types/media-types.xhtml
@@ -145,18 +158,22 @@ export function normalizeHeaders(req: AppwriteRequest) {
  * @internal
  * Builds the final options from user options and environment.
  */
-export function buildFinalOptions(
-  options: Options,
-  apwLog: DefaultLogger,
-  apwError: ErrorLogger
-): Options {
+export function buildFinalOptions(options: Options): FinalOptions {
   return {
     globals: options.globals ?? true,
     env: options.env ?? true,
-    log: options.log ?? isNotProduction,
-    errorLog: options.errorLog ?? isNotProduction,
+    log: isBoolean(options.logs)
+      ? options.logs
+      : isFunction(options.logs)
+        ? options.logs('log')
+        : defaultLogFn('log'),
+    errorLog: isBoolean(options.logs)
+      ? options.logs
+      : isFunction(options.logs)
+        ? options.logs('errorLog')
+        : defaultLogFn('errorLog'),
     ...options,
-  };
+  } satisfies FinalOptions;
 }
 
 /**
@@ -270,13 +287,13 @@ export async function runRouter(
  */
 export function handleRequestError(
   err: unknown,
-  finalOptions: Options,
+  options: FinalOptions,
   req: AppwriteRequest,
   res: AppwriteResponse,
   log: DefaultLogger,
   error: ErrorLogger
 ) {
-  if (isDevelopment && finalOptions.errorLog) {
+  if (options.errorLog) {
     error(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
   }
   const message = isDevelopment
@@ -328,20 +345,17 @@ export async function handleRequest(
   options: Options = {}
 ) {
   let { req, res, log: apwLog, error: apwError } = context;
-  let finalOptions: Options = {};
-  let log: (...args: any[]) => void = () => {};
-  let error: (...args: any[]) => void = () => {};
+  let finalOptions: FinalOptions = { log: false, errorLog: false };
 
   try {
     normalizeHeaders(req);
 
-    finalOptions = buildFinalOptions(options, apwLog, apwError);
-    finalOptions.log && apwLog('[router] Function is starting...');
+    finalOptions = buildFinalOptions(options);
 
-    log = finalOptions.log ? apwLog : () => {};
-    error = finalOptions.errorLog ? apwError : () => {};
+    const log = finalOptions.log ? apwLog : noop;
+    const error = finalOptions.errorLog ? apwError : noop;
+
     setupGlobalLoggers(finalOptions, log, error);
-
     setupEnvVars(finalOptions, req);
 
     const corsOptions = buildCorsOptions(finalOptions);
@@ -377,21 +391,19 @@ export async function handleRequest(
     });
 
     withRouter(router);
-    log(
-      '[DEBUG] router.routes (after withRouter call):',
-      JSON.stringify(
-        router.routes,
-        (k, v) =>
-          typeof v === 'function' ? `[Function: ${v.name || 'anonymous'}]` : v,
-        2
-      )
-    );
+    // log(
+    //   '[DEBUG] router.routes (after withRouter call):',
+    //   JSON.stringify(
+    //     router.routes,
+    //     (k, v) =>
+    //       typeof v === 'function'
+    //         ? `[Function: ${v.name || 'anonymous'}]`
+    //         : v,
+    //     2
+    //   )
+    // );
 
     const response = await runRouter(router, { req, res, log, error });
-
-    log('-------- Response from router:');
-    log(inspect(response, { depth: null }));
-
     if (!response) {
       return res.text('Not Found', 404);
     }

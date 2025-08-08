@@ -27,8 +27,9 @@ type ResponseObject<T = any> = {
 type Options = {
   globals?: boolean;
   env?: boolean;
-  log?: boolean;
-  errorLog?: boolean;
+  // log?: boolean;
+  // errorLog?: boolean;
+  logs?: logEnableFn | boolean;
   cors?: {
     allowedOrigins?: (string | RegExp)[];
     allowMethods?: string[];
@@ -48,6 +49,8 @@ type Options = {
     [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[]
   >;
 };
+
+type FinalOptions = Options & { log: boolean; errorLog: boolean };
 
 type AppwriteRequest = {
   get body(): JSONObject | string;
@@ -109,6 +112,8 @@ type AppwriteContext = {
  */
 type WrapperRequestType = IRequest & AppwriteRequest;
 
+type logEnableFn = (mode: 'log' | 'errorLog') => boolean;
+
 // Global type declarations for the library
 
 
@@ -128,6 +133,11 @@ declare global {
   }
 }
 
+/**
+ * Default log activation callback: logs are enabled only in development.
+ * Users can override this by passing their own function to handleRequest.
+ */
+declare const defaultLogFn: logEnableFn;
 /**
  * @internal
  * CORS preflight middleware that’s Appwrite-compatible (to be used first in before[]).
@@ -167,7 +177,7 @@ declare function normalizeHeaders(req: AppwriteRequest): void;
  * @internal
  * Builds the final options from user options and environment.
  */
-declare function buildFinalOptions(options: Options, apwLog: DefaultLogger, apwError: ErrorLogger): Options;
+declare function buildFinalOptions(options: Options): FinalOptions;
 /**
  * @internal
  * Propagates Appwrite logging functions to the global context, if requested.
@@ -196,7 +206,7 @@ declare function runRouter(router: ReturnType<typeof createRouter>, { req, res, 
  * Centralized error handling for uncatched exceptions stemming from the router.
  * This function may be circumvented by a custom `catch handler in `ittyOptions`.
  */
-declare function handleRequestError(err: unknown, finalOptions: Options, req: AppwriteRequest, res: AppwriteResponse, log: DefaultLogger, error: ErrorLogger): ResponseObject<string> | ResponseObject<{
+declare function handleRequestError(err: unknown, options: FinalOptions, req: AppwriteRequest, res: AppwriteResponse, log: DefaultLogger, error: ErrorLogger): ResponseObject<string> | ResponseObject<{
     status: "error";
     message: string;
     error: string;
@@ -227,4 +237,4 @@ declare function handleRequest(context: AppwriteContext, withRouter: (router: Re
     error: string;
 }>>;
 
-export { buildCorsOptions, buildFinalOptions, corsFinallyMiddleware, corsPreflightMiddleware, createRouter, handleRequest, handleRequestError, normalizeHeaders, runRouter, setupEnvVars, setupGlobalLoggers };
+export { buildCorsOptions, buildFinalOptions, corsFinallyMiddleware, corsPreflightMiddleware, createRouter, defaultLogFn, handleRequest, handleRequestError, normalizeHeaders, runRouter, setupEnvVars, setupGlobalLoggers };
