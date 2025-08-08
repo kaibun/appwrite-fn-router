@@ -834,7 +834,7 @@ var require_util = __commonJS({
         yield* this[kBody];
       }
     };
-    function noop() {
+    function noop2() {
     }
     function wrapRequestBody(body) {
       if (isStream(body)) {
@@ -1244,7 +1244,7 @@ var require_util = __commonJS({
     }
     var setupConnectTimeout = process.platform === "win32" ? (socketWeakRef, opts) => {
       if (!opts.timeout) {
-        return noop;
+        return noop2;
       }
       let s1 = null;
       let s2 = null;
@@ -1260,7 +1260,7 @@ var require_util = __commonJS({
       };
     } : (socketWeakRef, opts) => {
       if (!opts.timeout) {
-        return noop;
+        return noop2;
       }
       let s1 = null;
       const fastTimer = timers.setFastTimeout(() => {
@@ -1461,7 +1461,7 @@ var require_diagnostics = __commonJS({
         (evt) => {
           const {
             connectParams: { version, protocol, port, host },
-            error
+            error: error2
           } = evt;
           debugLog(
             "connection to %s%s using %s%s errored - %s",
@@ -1469,7 +1469,7 @@ var require_diagnostics = __commonJS({
             port ? `:${port}` : "",
             protocol,
             version,
-            error.message
+            error2.message
           );
         }
       );
@@ -1519,14 +1519,14 @@ var require_diagnostics = __commonJS({
         (evt) => {
           const {
             request: { method, path, origin },
-            error
+            error: error2
           } = evt;
           debugLog(
             "request to %s %s%s errored - %s",
             method,
             origin,
             path,
-            error.message
+            error2.message
           );
         }
       );
@@ -1830,16 +1830,16 @@ var require_request = __commonJS({
           this.onError(err);
         }
       }
-      onError(error) {
+      onError(error2) {
         this.onFinally();
         if (channels.error.hasSubscribers) {
-          channels.error.publish({ request: this, error });
+          channels.error.publish({ request: this, error: error2 });
         }
         if (this.aborted) {
           return;
         }
         this.aborted = true;
-        return this[kHandler].onError(error);
+        return this[kHandler].onError(error2);
       }
       onFinally() {
         if (this.errorHandler) {
@@ -5458,12 +5458,12 @@ var require_body = __commonJS({
       random = (max) => Math.floor(Math.random() * max);
     }
     var textEncoder = new TextEncoder();
-    function noop() {
+    function noop2() {
     }
     var streamRegistry = new FinalizationRegistry((weakRef) => {
       const stream = weakRef.deref();
       if (stream && !stream.locked && !isDisturbed(stream) && !isErrored(stream)) {
-        stream.cancel("Response object has been garbage collected").catch(noop);
+        stream.cancel("Response object has been garbage collected").catch(noop2);
       }
     });
     function extractBody(object, keepalive = false) {
@@ -5692,7 +5692,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
       }
       throwIfAborted(state);
       const promise = createDeferredPromise();
-      const errorSteps = (error) => promise.reject(error);
+      const errorSteps = (error2) => promise.reject(error2);
       const successSteps = (data) => {
         try {
           promise.resolve(convertBytesToJSValue(data));
@@ -7378,8 +7378,8 @@ var require_client_h2 = __commonJS({
         }
         request.onRequestSent();
         client[kResume]();
-      } catch (error) {
-        abort(error);
+      } catch (error2) {
+        abort(error2);
       }
     }
     function writeStream(abort, socket, expectsPayload, h2stream, body, client, request, contentLength) {
@@ -7537,7 +7537,7 @@ var require_client = __commonJS({
     var getDefaultNodeMaxHeaderSize = http && http.maxHeaderSize && Number.isInteger(http.maxHeaderSize) && http.maxHeaderSize > 0 ? () => http.maxHeaderSize : () => {
       throw new InvalidArgumentError("http module not available or http.maxHeaderSize invalid");
     };
-    var noop = () => {
+    var noop2 = () => {
     };
     function getPipelining(client) {
       return client[kPipelining] ?? client[kHTTPContext]?.defaultPipelining ?? 1;
@@ -7816,14 +7816,14 @@ var require_client = __commonJS({
           });
         });
         if (client.destroyed) {
-          util.destroy(socket.on("error", noop), new ClientDestroyedError());
+          util.destroy(socket.on("error", noop2), new ClientDestroyedError());
           return;
         }
         assert(socket);
         try {
           client[kHTTPContext] = socket.alpnProtocol === "h2" ? await connectH2(client, socket) : await connectH1(client, socket);
         } catch (err) {
-          socket.destroy().on("error", noop);
+          socket.destroy().on("error", noop2);
           throw err;
         }
         client[kConnecting] = false;
@@ -8270,7 +8270,7 @@ var require_pool = __commonJS({
             }
           }
         });
-        this.on("connectionError", (origin2, targets, error) => {
+        this.on("connectionError", (origin2, targets, error2) => {
           for (const target of targets) {
             const idx = this[kClients].indexOf(target);
             if (idx !== -1) {
@@ -8578,7 +8578,7 @@ var require_proxy_agent = __commonJS({
     function defaultFactory(origin, opts) {
       return new Pool(origin, opts);
     }
-    var noop = () => {
+    var noop2 = () => {
     };
     function defaultAgentFactory(origin, opts) {
       if (opts.connections === 1) {
@@ -8695,7 +8695,7 @@ var require_proxy_agent = __commonJS({
                 servername: this[kProxyTls]?.servername || proxyHostname
               });
               if (statusCode !== 200) {
-                socket.on("error", noop).destroy();
+                socket.on("error", noop2).destroy();
                 callback(new RequestAbortedError(`Proxy response (${statusCode}) !== 200 when HTTP Tunneling`));
               }
               if (opts2.protocol !== "https:") {
@@ -9362,7 +9362,7 @@ var require_readable = __commonJS({
     var kContentLength = Symbol("kContentLength");
     var kUsed = Symbol("kUsed");
     var kBytesRead = Symbol("kBytesRead");
-    var noop = () => {
+    var noop2 = () => {
     };
     var BodyReadable = class extends Readable {
       /**
@@ -9585,7 +9585,7 @@ var require_readable = __commonJS({
           } else {
             this.on("close", resolve);
           }
-          this.on("error", noop).on("data", () => {
+          this.on("error", noop2).on("data", () => {
             if (this[kBytesRead] > limit) {
               this.destroy();
             }
@@ -9754,7 +9754,7 @@ var require_api_request = __commonJS({
     var { Readable } = require_readable();
     var { InvalidArgumentError, RequestAbortedError } = require_errors();
     var util = require_util();
-    function noop() {
+    function noop2() {
     }
     var RequestHandler = class extends AsyncResource {
       constructor(opts, callback) {
@@ -9781,7 +9781,7 @@ var require_api_request = __commonJS({
           super("UNDICI_REQUEST");
         } catch (err) {
           if (util.isStream(body)) {
-            util.destroy(body.on("error", noop), err);
+            util.destroy(body.on("error", noop2), err);
           }
           throw err;
         }
@@ -9804,7 +9804,7 @@ var require_api_request = __commonJS({
           this.removeAbortListener = util.addAbortListener(signal, () => {
             this.reason = signal.reason ?? new RequestAbortedError();
             if (this.res) {
-              util.destroy(this.res.on("error", noop), this.reason);
+              util.destroy(this.res.on("error", noop2), this.reason);
             } else if (this.abort) {
               this.abort(this.reason);
             }
@@ -9874,13 +9874,13 @@ var require_api_request = __commonJS({
         if (res) {
           this.res = null;
           queueMicrotask(() => {
-            util.destroy(res.on("error", noop), err);
+            util.destroy(res.on("error", noop2), err);
           });
         }
         if (body) {
           this.body = null;
           if (util.isStream(body)) {
-            body.on("error", noop);
+            body.on("error", noop2);
             util.destroy(body, err);
           }
         }
@@ -9976,7 +9976,7 @@ var require_api_stream = __commonJS({
     var { InvalidArgumentError, InvalidReturnValueError } = require_errors();
     var util = require_util();
     var { addSignal, removeSignal } = require_abort_signal();
-    function noop() {
+    function noop2() {
     }
     var StreamHandler = class extends AsyncResource {
       constructor(opts, factory, callback) {
@@ -10003,7 +10003,7 @@ var require_api_stream = __commonJS({
           super("UNDICI_STREAM");
         } catch (err) {
           if (util.isStream(body)) {
-            util.destroy(body.on("error", noop), err);
+            util.destroy(body.on("error", noop2), err);
           }
           throw err;
         }
@@ -10145,7 +10145,7 @@ var require_api_pipeline = __commonJS({
     } = require_errors();
     var util = require_util();
     var { addSignal, removeSignal } = require_abort_signal();
-    function noop() {
+    function noop2() {
     }
     var kResume = Symbol("resume");
     var PipelineRequest = class extends Readable {
@@ -10205,7 +10205,7 @@ var require_api_pipeline = __commonJS({
         this.abort = null;
         this.context = null;
         this.onInfo = onInfo || null;
-        this.req = new PipelineRequest().on("error", noop);
+        this.req = new PipelineRequest().on("error", noop2);
         this.ret = new Duplex({
           readableObjectMode: opts.objectMode,
           autoDestroy: true,
@@ -10276,7 +10276,7 @@ var require_api_pipeline = __commonJS({
             context
           });
         } catch (err) {
-          this.res.on("error", noop);
+          this.res.on("error", noop2);
           throw err;
         }
         if (!body || typeof body.on !== "function") {
@@ -10815,13 +10815,13 @@ var require_mock_utils = __commonJS({
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
       }
-      const { data: { statusCode, data, headers, trailers, error }, delay, persist } = mockDispatch2;
+      const { data: { statusCode, data, headers, trailers, error: error2 }, delay, persist } = mockDispatch2;
       const { timesInvoked, times } = mockDispatch2;
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
-      if (error !== null) {
+      if (error2 !== null) {
         deleteMockDispatch(this[kDispatches], key);
-        handler.onError(error);
+        handler.onError(error2);
         return true;
       }
       if (typeof delay === "number" && delay > 0) {
@@ -10859,19 +10859,19 @@ var require_mock_utils = __commonJS({
         if (agent.isMockActive) {
           try {
             mockDispatch.call(this, opts, handler);
-          } catch (error) {
-            if (error instanceof MockNotMatchedError) {
+          } catch (error2) {
+            if (error2 instanceof MockNotMatchedError) {
               const netConnect = agent[kGetNetConnect]();
               if (netConnect === false) {
-                throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
+                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
               }
               if (checkNetConnect(netConnect, origin)) {
                 originalDispatch.call(this, opts, handler);
               } else {
-                throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
+                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
               }
             } else {
-              throw error;
+              throw error2;
             }
           }
         } else {
@@ -11045,11 +11045,11 @@ var require_mock_interceptor = __commonJS({
       /**
        * Mock an undici request with a defined error.
        */
-      replyWithError(error) {
-        if (typeof error === "undefined") {
+      replyWithError(error2) {
+        if (typeof error2 === "undefined") {
           throw new InvalidArgumentError("error must be defined");
         }
-        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error }, { ignoreTrailingSlash: this[kIgnoreTrailingSlash] });
+        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error2 }, { ignoreTrailingSlash: this[kIgnoreTrailingSlash] });
         return new MockScope(newMockDispatch);
       }
       /**
@@ -11179,13 +11179,13 @@ var require_mock_call_history = __commonJS({
     function makeFilterCalls(parameterName) {
       return (parameterValue) => {
         if (typeof parameterValue === "string" || parameterValue == null) {
-          return this.logs.filter((log) => {
-            return log[parameterName] === parameterValue;
+          return this.logs.filter((log2) => {
+            return log2[parameterName] === parameterValue;
           });
         }
         if (parameterValue instanceof RegExp) {
-          return this.logs.filter((log) => {
-            return parameterValue.test(log[parameterName]);
+          return this.logs.filter((log2) => {
+            return parameterValue.test(log2[parameterName]);
           });
         }
         throw new InvalidArgumentError(`${parameterName} parameter should be one of string, regexp, undefined or null`);
@@ -11199,8 +11199,8 @@ var require_mock_call_history = __commonJS({
         }
         url.search = new URLSearchParams(requestInit.query).toString();
         return url;
-      } catch (error) {
-        throw new InvalidArgumentError("An error occurred when computing MockCallHistoryLog.url", { cause: error });
+      } catch (error2) {
+        throw new InvalidArgumentError("An error occurred when computing MockCallHistoryLog.url", { cause: error2 });
       }
     }
     var MockCallHistoryLog = class {
@@ -11280,8 +11280,8 @@ var require_mock_call_history = __commonJS({
           return this.logs.filter(criteria);
         }
         if (criteria instanceof RegExp) {
-          return this.logs.filter((log) => {
-            return criteria.test(log.toString());
+          return this.logs.filter((log2) => {
+            return criteria.test(log2.toString());
           });
         }
         if (typeof criteria === "object" && criteria !== null) {
@@ -11331,13 +11331,13 @@ var require_mock_call_history = __commonJS({
         this.logs = [];
       }
       [kMockCallHistoryAddLog](requestInit) {
-        const log = new MockCallHistoryLog(requestInit);
-        this.logs.push(log);
-        return log;
+        const log2 = new MockCallHistoryLog(requestInit);
+        this.logs.push(log2);
+        return log2;
       }
       *[Symbol.iterator]() {
-        for (const log of this.calls()) {
-          yield log;
+        for (const log2 of this.calls()) {
+          yield log2;
         }
       }
     };
@@ -11871,12 +11871,12 @@ var require_snapshot_recorder = __commonJS({
             this.snapshots = new Map(Object.entries(parsed));
           }
           this.loaded = true;
-        } catch (error) {
-          if (error.code === "ENOENT") {
+        } catch (error2) {
+          if (error2.code === "ENOENT") {
             this.snapshots.clear();
             this.loaded = true;
           } else {
-            throw new UndiciError(`Failed to load snapshots from ${path}`, { cause: error });
+            throw new UndiciError(`Failed to load snapshots from ${path}`, { cause: error2 });
           }
         }
       }
@@ -12092,12 +12092,12 @@ var require_snapshot_agent = __commonJS({
           } else if (mode === "update") {
             return this._recordAndReplay(opts, handler);
           } else {
-            const error = new UndiciError(`No snapshot found for ${opts.method || "GET"} ${opts.path}`);
+            const error2 = new UndiciError(`No snapshot found for ${opts.method || "GET"} ${opts.path}`);
             if (handler.onError) {
-              handler.onError(error);
+              handler.onError(error2);
               return;
             }
-            throw error;
+            throw error2;
           }
         } else if (mode === "record") {
           return this._recordAndReplay(opts, handler);
@@ -12149,8 +12149,8 @@ var require_snapshot_agent = __commonJS({
               trailers: responseData.trailers
             }).then(() => {
               handler.onResponseEnd(controller, trailers);
-            }).catch((error) => {
-              handler.onResponseError(controller, error);
+            }).catch((error2) => {
+              handler.onResponseError(controller, error2);
             });
           }
         };
@@ -12183,8 +12183,8 @@ var require_snapshot_agent = __commonJS({
               handler.onResponseData(controller, body);
               handler.onResponseEnd(controller, response.trailers);
               resolve();
-            } catch (error) {
-              handler.onError?.(error);
+            } catch (error2) {
+              handler.onError?.(error2);
             }
           });
         });
@@ -12386,7 +12386,7 @@ var require_redirect_handler = __commonJS({
     var EE = __require("events");
     var redirectableStatusCodes = [300, 301, 302, 303, 307, 308];
     var kBody = Symbol("body");
-    var noop = () => {
+    var noop2 = () => {
     };
     var BodyAsyncIterable = class {
       constructor(body) {
@@ -12449,14 +12449,14 @@ var require_redirect_handler = __commonJS({
         if ((statusCode === 301 || statusCode === 302) && this.opts.method === "POST") {
           this.opts.method = "GET";
           if (util.isStream(this.opts.body)) {
-            util.destroy(this.opts.body.on("error", noop));
+            util.destroy(this.opts.body.on("error", noop2));
           }
           this.opts.body = null;
         }
         if (statusCode === 303 && this.opts.method !== "HEAD") {
           this.opts.method = "GET";
           if (util.isStream(this.opts.body)) {
-            util.destroy(this.opts.body.on("error", noop));
+            util.destroy(this.opts.body.on("error", noop2));
           }
           this.opts.body = null;
         }
@@ -12494,8 +12494,8 @@ var require_redirect_handler = __commonJS({
           this.handler.onResponseEnd(controller, trailers);
         }
       }
-      onResponseError(controller, error) {
-        this.handler.onResponseError?.(controller, error);
+      onResponseError(controller, error2) {
+        this.handler.onResponseError?.(controller, error2);
       }
     };
     function shouldRemoveHeader(header, removeContent, unknownOrigin) {
@@ -13099,7 +13099,7 @@ var require_cache = __commonJS({
       let fullPath;
       try {
         fullPath = serializePathWithQuery(opts.path || "/", opts.query);
-      } catch (error) {
+      } catch (error2) {
         fullPath = opts.path || "/";
       }
       return {
@@ -13529,7 +13529,7 @@ var require_cache_handler = __commonJS({
       isEtagUsable
     } = require_cache();
     var { parseHttpDate } = require_date();
-    function noop() {
+    function noop2() {
     }
     var HEURISTICALLY_CACHEABLE_STATUS_CODES = [
       200,
@@ -13606,7 +13606,7 @@ var require_cache_handler = __commonJS({
         );
         if (!util.safeHTTPMethods.includes(this.#cacheKey.method) && statusCode >= 200 && statusCode <= 399) {
           try {
-            this.#store.delete(this.#cacheKey)?.catch?.(noop);
+            this.#store.delete(this.#cacheKey)?.catch?.(noop2);
           } catch {
           }
           return downstreamOnHeaders();
@@ -16406,17 +16406,17 @@ var require_fetch = __commonJS({
         this.emit("terminated", reason);
       }
       // https://fetch.spec.whatwg.org/#fetch-controller-abort
-      abort(error) {
+      abort(error2) {
         if (this.state !== "ongoing") {
           return;
         }
         this.state = "aborted";
-        if (!error) {
-          error = new DOMException("The operation was aborted.", "AbortError");
+        if (!error2) {
+          error2 = new DOMException("The operation was aborted.", "AbortError");
         }
-        this.serializedAbortReason = error;
-        this.connection?.destroy(error);
-        this.emit("terminated", error);
+        this.serializedAbortReason = error2;
+        this.connection?.destroy(error2);
+        this.emit("terminated", error2);
       }
     };
     function handleFetchDone(response) {
@@ -16515,12 +16515,12 @@ var require_fetch = __commonJS({
       );
     }
     var markResourceTiming = performance.markResourceTiming;
-    function abortFetch(p, request, responseObject, error) {
+    function abortFetch(p, request, responseObject, error2) {
       if (p) {
-        p.reject(error);
+        p.reject(error2);
       }
       if (request.body?.stream != null && isReadable(request.body.stream)) {
-        request.body.stream.cancel(error).catch((err) => {
+        request.body.stream.cancel(error2).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -16532,7 +16532,7 @@ var require_fetch = __commonJS({
       }
       const response = getResponseState(responseObject);
       if (response.body?.stream != null && isReadable(response.body.stream)) {
-        response.body.stream.cancel(error).catch((err) => {
+        response.body.stream.cancel(error2).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -17348,13 +17348,13 @@ var require_fetch = __commonJS({
               fetchParams.controller.ended = true;
               this.body.push(null);
             },
-            onError(error) {
+            onError(error2) {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
               }
-              this.body?.destroy(error);
-              fetchParams.controller.terminate(error);
-              reject(error);
+              this.body?.destroy(error2);
+              fetchParams.controller.terminate(error2);
+              reject(error2);
             },
             onUpgrade(status, rawHeaders, socket) {
               if (status !== 101) {
@@ -19502,9 +19502,9 @@ var require_receiver = __commonJS({
                 }
                 this.#state = parserStates.INFO;
               } else {
-                this.#extensions.get("permessage-deflate").decompress(body, this.#info.fin, (error, data) => {
-                  if (error) {
-                    failWebsocketConnection(this.#handler, 1007, error.message);
+                this.#extensions.get("permessage-deflate").decompress(body, this.#info.fin, (error2, data) => {
+                  if (error2) {
+                    failWebsocketConnection(this.#handler, 1007, error2.message);
                     return;
                   }
                   this.writeFragments(data);
@@ -20262,10 +20262,10 @@ var require_websocketerror = __commonJS({
        * @param {string} reason
        */
       static createUnvalidatedWebSocketError(message, code, reason) {
-        const error = new _WebSocketError(message, kConstruct);
-        error.#closeCode = code;
-        error.#reason = reason;
-        return error;
+        const error2 = new _WebSocketError(message, kConstruct);
+        error2.#closeCode = code;
+        error2.#reason = reason;
+        return error2;
       }
     };
     var { createUnvalidatedWebSocketError } = WebSocketError;
@@ -20534,10 +20534,10 @@ var require_websocketstream = __commonJS({
             reason
           });
         } else {
-          const error = createUnvalidatedWebSocketError("unclean close", code, reason);
-          this.#readableStreamController.error(error);
-          this.#writableStream.abort(error);
-          this.#closedPromise.reject(error);
+          const error2 = createUnvalidatedWebSocketError("unclean close", code, reason);
+          this.#readableStreamController.error(error2);
+          this.#writableStream.abort(error2);
+          this.#closedPromise.reject(error2);
         }
       }
       #closeUsingReason(reason) {
@@ -21017,8 +21017,8 @@ var require_eventsource = __commonJS({
           pipeline(
             response.body.stream,
             eventSourceStream,
-            (error) => {
-              if (error?.aborted === false) {
+            (error2) => {
+              if (error2?.aborted === false) {
                 this.close();
                 this.dispatchEvent(new Event("error"));
               }
@@ -21322,14 +21322,18 @@ var require_undici = __commonJS({
 // src/main.ts
 import { inspect } from "util";
 import { cors, Router } from "itty-router";
+var noop = (...args) => {
+};
+var isBoolean = (obj) => typeof obj === "boolean";
+var isFunction = (obj) => obj instanceof Function;
 var isDevelopment = process.env.NODE_ENV === "development";
-var isNotProduction = process.env.NODE_ENV !== "production";
+var defaultLogFn = (mode) => isDevelopment;
 var isJSONLikeRequest = (req) => (
   // There so many JSON-like content types, our best bet is to be agnostic.
   // @see https://www.iana.org/assignments/media-types/media-types.xhtml
   req.headers["content-type"]?.endsWith("+json")
 );
-async function corsPreflightMiddleware(req, res, log, error, internals) {
+async function corsPreflightMiddleware(req, res, log2, error2, internals) {
   const response = internals.preflight(internals.request);
   if (response) {
     const body = await response.text();
@@ -21338,7 +21342,7 @@ async function corsPreflightMiddleware(req, res, log, error, internals) {
     return res.send(body, statusCode, headers);
   }
 }
-async function corsFinallyMiddleware(responseFromRoute, request, res, log, error, internals) {
+async function corsFinallyMiddleware(responseFromRoute, request, res, log2, error2, internals) {
   if (responseFromRoute) {
     const nativeResponse = new Response(
       responseFromRoute.statusCode === 204 ? null : responseFromRoute.body,
@@ -21396,19 +21400,19 @@ function normalizeHeaders(req) {
     }
   });
 }
-function buildFinalOptions(options, apwLog, apwError) {
+function buildFinalOptions(options) {
   return {
     globals: options.globals ?? true,
     env: options.env ?? true,
-    log: options.log ?? isNotProduction,
-    errorLog: options.errorLog ?? isNotProduction,
+    log: isBoolean(options.logs) ? options.logs : isFunction(options.logs) ? options.logs("log") : defaultLogFn("log"),
+    errorLog: isBoolean(options.logs) ? options.logs : isFunction(options.logs) ? options.logs("errorLog") : defaultLogFn("errorLog"),
     ...options
   };
 }
-function setupGlobalLoggers(finalOptions, log, error) {
+function setupGlobalLoggers(finalOptions, log2, error2) {
   if (finalOptions.globals) {
-    globalThis.log = log;
-    globalThis.error = error;
+    globalThis.log = log2;
+    globalThis.error = error2;
   }
 }
 function setupEnvVars(finalOptions, req) {
@@ -21451,7 +21455,7 @@ function buildCorsOptions(finalOptions) {
     ]
   };
 }
-async function runRouter(router, { req, res, log, error }) {
+async function runRouter(router, { req, res, log: log2, error: error2 }) {
   const { headers, method, url } = req;
   const route = new URL(url);
   let nativeRequest;
@@ -21472,9 +21476,9 @@ async function runRouter(router, { req, res, log, error }) {
     // AppwriteRequest (an itty-router’s RequestLike object)
     res,
     // AppwriteResponse
-    log,
+    log2,
     // DefaultLogger
-    error,
+    error2,
     // ErrorLogger
     {
       request: nativeRequest
@@ -21483,9 +21487,9 @@ async function runRouter(router, { req, res, log, error }) {
   );
   return response;
 }
-function handleRequestError(err, finalOptions, req, res, log, error) {
-  if (isDevelopment && finalOptions.errorLog) {
-    error(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
+function handleRequestError(err, options, req, res, log2, error2) {
+  if (options.errorLog) {
+    error2(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
   }
   const message = isDevelopment ? err instanceof Error ? err.message : String(err) : "An error occurred during request processing the request.";
   const errorDetails = isDevelopment ? err instanceof Error && err.cause instanceof Error ? err.cause.message : "Reason unknown" : "Error details are not available unless in development mode.";
@@ -21503,27 +21507,20 @@ function handleRequestError(err, finalOptions, req, res, log, error) {
 }
 async function handleRequest(context, withRouter, options = {}) {
   let { req, res, log: apwLog, error: apwError } = context;
-  let finalOptions = {};
-  let log = () => {
-  };
-  let error = () => {
-  };
+  let finalOptions = { log: false, errorLog: false };
   try {
     normalizeHeaders(req);
-    finalOptions = buildFinalOptions(options, apwLog, apwError);
-    finalOptions.log && apwLog("[router] Function is starting...");
-    log = finalOptions.log ? apwLog : () => {
-    };
-    error = finalOptions.errorLog ? apwError : () => {
-    };
-    setupGlobalLoggers(finalOptions, log, error);
+    finalOptions = buildFinalOptions(options);
+    const log2 = finalOptions.log ? apwLog : noop;
+    const error2 = finalOptions.errorLog ? apwError : noop;
+    setupGlobalLoggers(finalOptions, log2, error2);
     setupEnvVars(finalOptions, req);
     const corsOptions = buildCorsOptions(finalOptions);
     const { preflight, corsify } = cors(corsOptions);
     const { ittyOptions = {} } = finalOptions;
     const { before: userBefore = [], finally: userFinally = [] } = ittyOptions;
     const before = [
-      (req2, res2, log2, error2, internals, ...args) => corsPreflightMiddleware(req2, res2, log2, error2, {
+      (req2, res2, log3, error3, internals, ...args) => corsPreflightMiddleware(req2, res2, log3, error3, {
         ...internals || {},
         preflight
       }),
@@ -21531,7 +21528,7 @@ async function handleRequest(context, withRouter, options = {}) {
     ];
     const finallyArr = [
       ...[].concat(userFinally),
-      (responseFromRoute, request, res2, log2, error2, internals, ...args) => corsFinallyMiddleware(responseFromRoute, request, res2, log2, error2, {
+      (responseFromRoute, request, res2, log3, error3, internals, ...args) => corsFinallyMiddleware(responseFromRoute, request, res2, log3, error3, {
         ...internals || {},
         corsify
       })
@@ -21543,17 +21540,7 @@ async function handleRequest(context, withRouter, options = {}) {
       // catch, etc. sont transmis automatiquement
     });
     withRouter(router);
-    log(
-      "[DEBUG] router.routes (after withRouter call):",
-      JSON.stringify(
-        router.routes,
-        (k, v) => typeof v === "function" ? `[Function: ${v.name || "anonymous"}]` : v,
-        2
-      )
-    );
-    const response = await runRouter(router, { req, res, log, error });
-    log("-------- Response from router:");
-    log(inspect(response, { depth: null }));
+    const response = await runRouter(router, { req, res, log: log2, error: error2 });
     if (!response) {
       return res.text("Not Found", 404);
     }
@@ -21568,6 +21555,7 @@ export {
   corsFinallyMiddleware,
   corsPreflightMiddleware,
   createRouter,
+  defaultLogFn,
   handleRequest,
   handleRequestError,
   normalizeHeaders,

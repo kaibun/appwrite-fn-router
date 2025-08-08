@@ -61,8 +61,9 @@ export type RunArgs = {
 export type Options = {
   globals?: boolean;
   env?: boolean;
-  log?: boolean;
-  errorLog?: boolean;
+  // log?: boolean;
+  // errorLog?: boolean;
+  logs?: logEnableFn | boolean;
   cors?: {
     allowedOrigins?: (string | RegExp)[];
     allowMethods?: string[];
@@ -82,6 +83,8 @@ export type Options = {
     [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[]
   >;
 };
+
+export type FinalOptions = Options & { log: boolean; errorLog: boolean };
 
 export type AppwriteRequest = {
   get body(): JSONObject | string;
@@ -148,3 +151,5 @@ export type RouterJSONResponse = {
  * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
  */
 export type WrapperRequestType = IRequest & AppwriteRequest;
+
+export type logEnableFn = (mode: 'log' | 'errorLog') => boolean;
