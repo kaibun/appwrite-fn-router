@@ -1,6 +1,7 @@
+import { inspect } from 'node:util';
 import { cors, RouterOptions, Router } from 'itty-router';
 import type {
-  FetchObjects,
+  InternalObjects,
   Context as AppwriteContext,
   Request as AppwriteRequest,
   Response as AppwriteResponse,
@@ -23,7 +24,7 @@ export async function corsPreflightMiddleware(
   res: AppwriteResponse,
   log: DefaultLogger,
   error: ErrorLogger,
-  internals: FetchObjects & {
+  internals: InternalObjects & {
     preflight: (req: Request) => Response | undefined;
   }
 ) {
@@ -46,7 +47,7 @@ export async function corsFinallyMiddleware(
   res: AppwriteResponse,
   log: DefaultLogger,
   error: ErrorLogger,
-  internals: FetchObjects & {
+  internals: InternalObjects & {
     corsify: (res: Response, req: Request) => Response;
   }
 ) {
@@ -83,11 +84,11 @@ export function createRouter({
   ...args
 }: RouterOptions<
   WrapperRequestType,
-  [AppwriteResponse, DefaultLogger, ErrorLogger, FetchObjects] & any[]
+  [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[]
 > = {}) {
   return Router<
     WrapperRequestType,
-    [AppwriteResponse, DefaultLogger, ErrorLogger, FetchObjects] & any[],
+    [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[],
     AppwriteResponse
   >({
     ...args,
@@ -268,24 +269,19 @@ export function handleRequestError(
   finalOptions: Options,
   req: AppwriteRequest,
   res: AppwriteResponse,
-  apwError: ErrorLogger
+  log: DefaultLogger,
+  error: ErrorLogger
 ) {
-  // Préparer les loggers selon les options
-  const log = finalOptions.log
-    ? typeof globalThis.log === 'function'
-      ? globalThis.log
-      : () => {}
-    : () => {};
-  const error = finalOptions.errorLog ? apwError : () => {};
-  if (typeof finalOptions.onError === 'function') {
-    finalOptions.onError(err, req, res, log, error);
+  log(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
+  if (typeof finalOptions.catch === 'function') {
+    finalOptions.catch(err, req, res, log, error);
   } else if (process.env.NODE_ENV !== 'production') {
     // Affiche l’erreur réelle en développement
     // eslint-disable-next-line no-console
     console.error('[appwrite-fn-router] Unhandled error:', err);
   }
   finalOptions.errorLog &&
-    apwError(
+    error(
       `\n[router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
     );
   const message = err instanceof Error ? err.message : String(err);
@@ -311,13 +307,13 @@ export function handleRequestError(
 
 export async function handleRequest(
   context: AppwriteContext,
-  // Accepting a function that receives the router instance, so the end-user
-  // may define their own routes, customize that router’s behavior, etc.
   withRouter: (router: ReturnType<typeof createRouter>) => void,
   options: Options = {}
 ) {
   let { req, res, log: apwLog, error: apwError } = context;
   let finalOptions: Options = {};
+  let log: (...args: any[]) => void = () => {};
+  let error: (...args: any[]) => void = () => {};
 
   try {
     normalizeHeaders(req);
@@ -325,8 +321,8 @@ export async function handleRequest(
     finalOptions = buildFinalOptions(options, apwLog, apwError);
     finalOptions.log && apwLog('[router] Function is starting...');
 
-    const log = finalOptions.log ? apwLog : () => {};
-    const error = finalOptions.errorLog ? apwError : () => {};
+    log = finalOptions.log ? apwLog : () => {};
+    error = finalOptions.errorLog ? apwError : () => {};
     setupGlobalLoggers(finalOptions, log, error);
 
     setupEnvVars(finalOptions, req);
@@ -349,16 +345,36 @@ export async function handleRequest(
             corsify,
           }),
       ],
+      ...(typeof finalOptions.catch === 'function'
+        ? {
+            catch: finalOptions.catch,
+          }
+        : {}),
     });
     withRouter(router);
+    log(
+      '[DEBUG] router.routes (after withRouter call):',
+      JSON.stringify(
+        router.routes,
+        (k, v) =>
+          typeof v === 'function' ? `[Function: ${v.name || 'anonymous'}]` : v,
+        2
+      )
+    );
 
     const response = await runRouter(router, { req, res, log, error });
 
+    log('-------- Response from router:');
+    log(inspect(response, { depth: null }));
+
     if (!response) {
+      // TODO: abide by content-type
+      // TODO: do that only if options.autoNotFound is set and truthy (the default);
+      // otherwise, throw so that it returns a 500
       return res.text('Not Found', 404);
     }
     return response;
   } catch (err) {
-    return handleRequestError(err, finalOptions, req, res, apwError);
+    return handleRequestError(err, finalOptions, req, res, log, error);
   }
 }

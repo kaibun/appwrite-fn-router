@@ -2,11 +2,12 @@
 
 import type { IRequest } from 'itty-router';
 import type { Request as FetchRequest } from 'undici';
+import { E } from 'vitest/dist/chunks/environment.d.cL3nLXbE.js';
 
 export type DefaultLogger = (message: string) => void;
 export type ErrorLogger = (message: string) => void;
 
-export type FetchObjects = {
+export type InternalObjects = {
   request: FetchRequest;
 };
 
@@ -23,6 +24,26 @@ export type ResponseObject<T = any> = {
 export type RunArgs = {
   data: {
     domainSlice: string;
+  };
+};
+
+export type Options = {
+  globals?: boolean;
+  env?: boolean;
+  log?: boolean;
+  errorLog?: boolean;
+  catch?: (
+    err: unknown,
+    req: AppwriteRequest,
+    res: AppwriteResponse,
+    log: DefaultLogger,
+    error: ErrorLogger,
+    internals?: InternalObjects
+  ) => void;
+  cors?: {
+    allowedOrigins?: (string | RegExp)[];
+    allowMethods?: string[];
+    allowHeaders?: string[];
   };
 };
 
@@ -78,26 +99,6 @@ export type Context = {
   res: Response;
   log: DefaultLogger;
   error: ErrorLogger;
-};
-
-// Router types from main.ts
-export type Options = {
-  globals?: boolean;
-  env?: boolean;
-  log?: boolean;
-  errorLog?: boolean;
-  onError?: (
-    err: unknown,
-    req: AppwriteRequest,
-    res: AppwriteResponse,
-    log: (...args: any[]) => void,
-    error: (...args: any[]) => void
-  ) => void;
-  cors?: {
-    allowedOrigins?: (string | RegExp)[];
-    allowMethods?: string[];
-    allowHeaders?: string[];
-  };
 };
 
 export type RouterJSONResponse = {

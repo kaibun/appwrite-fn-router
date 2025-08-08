@@ -3625,7 +3625,7 @@ var require_data_url = __commonJS({
 var require_webidl = __commonJS({
   "../../node_modules/undici/lib/web/webidl/index.js"(exports, module) {
     "use strict";
-    var { types, inspect: inspect2 } = __require("util");
+    var { types, inspect: inspect3 } = __require("util");
     var { markAsUncloneable } = __require("worker_threads");
     var UNDEFINED = 1;
     var BOOLEAN = 2;
@@ -3817,7 +3817,7 @@ var require_webidl = __commonJS({
         case SYMBOL:
           return `Symbol(${V.description})`;
         case OBJECT:
-          return inspect2(V);
+          return inspect3(V);
         case STRING:
           return `"${V}"`;
         case BIGINT:
@@ -21320,9 +21320,10 @@ var require_undici = __commonJS({
 });
 
 // src/main.ts
-import { inspect } from "util";
+import { inspect as inspect2 } from "util";
 
 // ../../src/main.ts
+import { inspect } from "util";
 import { cors, Router } from "itty-router";
 async function corsPreflightMiddleware(req, res, log, error, internals) {
   const response = internals.preflight(internals.request);
@@ -21448,7 +21449,7 @@ function buildCorsOptions(finalOptions) {
     ]
   };
 }
-async function runRouter(router2, { req, res, log, error }) {
+async function runRouter(router3, { req, res, log, error }) {
   const { headers, method, url } = req;
   const route = new URL(url);
   let nativeRequest;
@@ -21461,7 +21462,7 @@ async function runRouter(router2, { req, res, log, error }) {
       method
     });
   }
-  const response = await router2.fetch(
+  const response = await router3.fetch(
     req,
     // AppwriteRequest (an itty-router’s RequestLike object)
     res,
@@ -21477,18 +21478,14 @@ async function runRouter(router2, { req, res, log, error }) {
   );
   return response;
 }
-function handleRequestError(err, finalOptions, req, res, apwError) {
-  const log = finalOptions.log ? typeof globalThis.log === "function" ? globalThis.log : () => {
-  } : () => {
-  };
-  const error = finalOptions.errorLog ? apwError : () => {
-  };
-  if (typeof finalOptions.onError === "function") {
-    finalOptions.onError(err, req, res, log, error);
+function handleRequestError(err, finalOptions, req, res, log, error) {
+  log(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
+  if (typeof finalOptions.catch === "function") {
+    finalOptions.catch(err, req, res, log, error);
   } else if (process.env.NODE_ENV !== "production") {
     console.error("[appwrite-fn-router] Unhandled error:", err);
   }
-  finalOptions.errorLog && apwError(
+  finalOptions.errorLog && error(
     `
 [router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
   );
@@ -21510,19 +21507,23 @@ function handleRequestError(err, finalOptions, req, res, apwError) {
 async function handleRequest(context, withRouter, options = {}) {
   let { req, res, log: apwLog, error: apwError } = context;
   let finalOptions = {};
+  let log = () => {
+  };
+  let error = () => {
+  };
   try {
     normalizeHeaders(req);
     finalOptions = buildFinalOptions(options, apwLog, apwError);
     finalOptions.log && apwLog("[router] Function is starting...");
-    const log = finalOptions.log ? apwLog : () => {
+    log = finalOptions.log ? apwLog : () => {
     };
-    const error = finalOptions.errorLog ? apwError : () => {
+    error = finalOptions.errorLog ? apwError : () => {
     };
     setupGlobalLoggers(finalOptions, log, error);
     setupEnvVars(finalOptions, req);
     const corsOptions = buildCorsOptions(finalOptions);
     const { preflight, corsify } = cors(corsOptions);
-    const router2 = createRouter({
+    const router3 = createRouter({
       before: [
         (req2, res2, log2, error2, fetch) => corsPreflightMiddleware(req2, res2, log2, error2, {
           ...fetch,
@@ -21534,16 +21535,29 @@ async function handleRequest(context, withRouter, options = {}) {
           ...fetch,
           corsify
         })
-      ]
+      ],
+      ...typeof finalOptions.catch === "function" ? {
+        catch: finalOptions.catch
+      } : {}
     });
-    withRouter(router2);
-    const response = await runRouter(router2, { req, res, log, error });
+    withRouter(router3);
+    log(
+      "[DEBUG] router.routes (after withRouter call):",
+      JSON.stringify(
+        router3.routes,
+        (k, v) => typeof v === "function" ? `[Function: ${v.name || "anonymous"}]` : v,
+        2
+      )
+    );
+    const response = await runRouter(router3, { req, res, log, error });
+    log("-------- Response from router:");
+    log(inspect(response, { depth: null }));
     if (!response) {
       return res.text("Not Found", 404);
     }
     return response;
   } catch (err) {
-    return handleRequestError(err, finalOptions, req, res, apwError);
+    return handleRequestError(err, finalOptions, req, res, log, error);
   }
 }
 
@@ -21661,13 +21675,20 @@ router.post("/:id", (req, res, _log, _error) => {
 });
 var widgets_default = router;
 
+// src/routes/errors.ts
+var router2 = createRouter({ base: "/errors" });
+router2.get("/throw", (_req, res, log, _error) => {
+  throw new Error("E2E: This is a test error from /throw");
+});
+var errors_default = router2;
+
 // src/main.ts
-function routes(router2) {
-  router2.get("/", (_request, res, log, _error) => {
-    const response = res.text("Root route hit!");
-    return response;
+function routes(router3) {
+  router3.get("/", (_request, res, log, _error) => {
+    return res.text("Root route hit!");
   });
-  router2.all("/widgets*", widgets_default.fetch);
+  router3.all("/widgets*", widgets_default.fetch);
+  router3.all("/errors*", errors_default.fetch);
 }
 var ignoredRoutes = ["/favicon.ico", "/robots.txt", "/.well-known/"];
 var main_default = async (context) => {
@@ -21680,10 +21701,24 @@ var main_default = async (context) => {
   }
   log(greetings + "\n");
   const response = await handleRequest(context, routes, {
-    log: false,
-    errorLog: true
+    log: process.env.NODE_ENV !== "production",
+    errorLog: process.env.NODE_ENV !== "production",
+    catch: (err, req2, res2, log2, error2) => {
+      log2(err ? inspect2(err) : "Unknown error");
+      if (req2.path.startsWith("/errors")) {
+        return res2.json(
+          {
+            status: "error",
+            message: "E2E_CUSTOM_ERROR_TRIGGERED",
+            error: err instanceof Error ? err.message : String(err)
+          },
+          500
+        );
+      }
+      throw err;
+    }
   });
-  log(inspect(response, { depth: null }));
+  log(inspect2(response, { depth: null }));
   log("\n");
   return response;
 };

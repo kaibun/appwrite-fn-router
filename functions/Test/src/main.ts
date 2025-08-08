@@ -3,6 +3,7 @@ import { inspect } from 'node:util';
 import type { Context } from '@kaibun/appwrite-fn-router/types';
 import { createRouter, handleRequest } from '@kaibun/appwrite-fn-router';
 import widgetsRouter from './routes/widgets.ts';
+import errorsRouter from './routes/errors.ts';
 
 // Optionally define a custom JSON response schema:
 // Already available as RouterJSONResponse from the core library
@@ -11,50 +12,17 @@ function routes(router: ReturnType<typeof createRouter>) {
   // TODO: test with an async/await handler as well
 
   router.get('/', (_request, res, log, _error) => {
-    // log('\n--- Root route hit:');
-    // log(inspect(res));
-    const response = res.text('Root route hit!');
-    // log('  -');
-    // log(inspect(response, { depth: null }));
-    // log('---');
-    return response;
+    return res.text('Root route hit!');
   });
-
   router.all('/widgets*', widgetsRouter.fetch);
-
-  // router.all('*', (_request, _req, res, log, _error) => {
-  //   log('\n--- Catchall route hit:');
-  //   log(inspect(res));
-  //   const response = res.text('Catchall route!', 201, {
-  //     'Content-Type': 'text/plain',
-  //   });
-  //   log('  -');
-  //   log(inspect(response, { depth: null }));
-  //   log('---');
-  //   const response = res.text('Catchall route!', 404, {
-  //     'Content-Type': 'text/plain',
-  //   });
-  //   return response;
-  // });
-
-  //   router.get('/hello', (req, res, _log, _error) => {
-  //     return res.json({
-  //       status: 'success',
-  //       message: 'Hello, world!',
-  //     }) satisfies ResponseObject<MyJSONResponse>;
-  //   });
-  //   router.post('/mirror', async (req, res, _log, _error) => {
-  //     const data = await req.bodyJson;
-  //     return res.json({
-  //       received: data,
-  //     });
-  //   });
-  //   router.get('/mystery', myRouteHandler);
+  router.all('/errors*', errorsRouter.fetch);
 }
 
 // TODO: publish a lib allowing to whitelist/blacklist well-known URIs
 // CSV is available at https://www.iana.org/assignments/well-known-uris/well-known-uris.xhtml
 // For now, let’s brute-force ignore any request starting with these paths:
+// TODO: use a route handler to handle these (but can a route handler match
+// on a list or regex?)
 const ignoredRoutes = ['/favicon.ico', '/robots.txt', '/.well-known/'];
 
 /**
@@ -74,8 +42,23 @@ export default async (context: Context) => {
   log(greetings + '\n');
 
   const response = await handleRequest(context, routes, {
-    log: false,
-    errorLog: true,
+    log: process.env.NODE_ENV !== 'production',
+    errorLog: process.env.NODE_ENV !== 'production',
+    catch: (err, req, res, log, error) => {
+      log(err ? inspect(err) : 'Unknown error');
+      // Catching E2E tests’ errors.
+      if (req.path.startsWith('/errors')) {
+        return res.json(
+          {
+            status: 'error',
+            message: 'E2E_CUSTOM_ERROR_TRIGGERED',
+            error: err instanceof Error ? err.message : String(err),
+          },
+          500
+        );
+      }
+      throw err; // Otherwise, re-throw to trigger library’s default error handling.
+    },
   });
 
   // log('\nFINAL RESPONSE:');
