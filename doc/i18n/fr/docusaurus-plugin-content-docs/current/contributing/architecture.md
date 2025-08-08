@@ -1,6 +1,6 @@
 ---
-sidebar_position: 2
-title: Architecture et Build
+sidebar_position: 3
+title: Architecture et build
 ---
 
 # Architecture et Build

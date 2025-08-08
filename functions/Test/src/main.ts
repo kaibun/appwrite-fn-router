@@ -2,7 +2,7 @@ import { inspect } from 'node:util';
 
 import type {
   AFRContextArgs,
-  Context,
+  AppwriteContext,
   CatchHandler,
 } from '@kaibun/appwrite-fn-router/types';
 import { createRouter, handleRequest } from '@kaibun/appwrite-fn-router';
@@ -32,7 +32,7 @@ const ignoredRoutes = ['/favicon.ico', '/robots.txt', '/.well-known/'];
 /**
  * Test function
  */
-export default async (context: Context) => {
+export default async (context: AppwriteContext) => {
   const { req, res, log, error } = context;
   let greetings = `${req.method} ${req.path}`;
   // log(inspect(req, { depth: null }));

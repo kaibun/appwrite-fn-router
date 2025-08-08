@@ -83,7 +83,7 @@ export type Options = {
   >;
 };
 
-export type Request = {
+export type AppwriteRequest = {
   get body(): JSONObject | string;
   get bodyRaw(): string;
   get bodyText(): string;
@@ -101,7 +101,7 @@ export type Request = {
 };
 
 export type BufferFromArgTypes = Parameters<typeof Buffer.from>[0];
-export type Response = {
+export type AppwriteResponse = {
   send: (
     body: string,
     statusCode?: number,
@@ -130,9 +130,9 @@ export type Response = {
   ) => ResponseObject<string>;
 };
 
-export type Context = {
-  req: Request;
-  res: Response;
+export type AppwriteContext = {
+  req: AppwriteRequest;
+  res: AppwriteResponse;
   log: DefaultLogger;
   error: ErrorLogger;
 };
@@ -144,7 +144,7 @@ export type RouterJSONResponse = {
 } & JSONObject;
 
 /**
- * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers.
+ * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers. Also, it allows the end-user to inject her own properties. Basically, it’s AppwriteRequest on steroids and fit for itty-router consumption.
  * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
  */
-export type WrapperRequestType = IRequest & Request;
+export type WrapperRequestType = IRequest & AppwriteRequest;

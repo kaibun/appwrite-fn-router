@@ -1,11 +1,12 @@
 import { inspect } from 'node:util';
 import { cors, RouterOptions, Router } from 'itty-router';
+import type { Request as UndiciRequestType } from 'undici';
 import type {
   AFRContextArgs,
   InternalObjects,
-  Context as AppwriteContext,
-  Request as AppwriteRequest,
-  Response as AppwriteResponse,
+  AppwriteContext,
+  AppwriteRequest,
+  AppwriteResponse,
   DefaultLogger,
   ErrorLogger,
   Options,
@@ -18,7 +19,7 @@ const $ = globalThis;
 
 /**
  * @internal
- * Middleware CORS preflight pour itty-router (à utiliser dans before[])
+ * CORS preflight middleware for itty-router (to use in before[])
  */
 export async function corsPreflightMiddleware(
   req: AppwriteRequest,
@@ -26,7 +27,7 @@ export async function corsPreflightMiddleware(
   log: DefaultLogger,
   error: ErrorLogger,
   internals: InternalObjects & {
-    preflight: (req: Request) => Response | undefined;
+    preflight: (req: UndiciRequestType) => Response | undefined;
   }
 ) {
   const response = internals.preflight(internals.request);
@@ -40,7 +41,7 @@ export async function corsPreflightMiddleware(
 
 /**
  * @internal
- * Middleware CORS finalisation pour itty-router (à utiliser dans finally[])
+ * CORS finalization middleware for itty-router (to use in finally[])
  */
 export async function corsFinallyMiddleware(
   responseFromRoute: any,
@@ -49,7 +50,7 @@ export async function corsFinallyMiddleware(
   log: DefaultLogger,
   error: ErrorLogger,
   internals: InternalObjects & {
-    corsify: (res: Response, req: Request) => Response;
+    corsify: (res: Response, req: UndiciRequestType) => Response;
   }
 ) {
   if (responseFromRoute) {
@@ -72,15 +73,12 @@ export async function corsFinallyMiddleware(
 }
 
 /**
- * Le routeur propage une signature standard Appwrite aux handlers :
- * `req, res, log, error` typés `AppwriteRequest`, `AppwriteResponse`,
- * `DefaultLogger`, `ErrorLogger` respectivement.
+ * The router propagates a standard Appwrite signature to handlers:
+ * `req, res, log, error` typed as `AppwriteRequest`, `AppwriteResponse`,
+ * `DefaultLogger`, `ErrorLogger` respectively.
  *
- * Les middlewares internes à Itty Router (par ex. preflight/corsify) peuvent
- * eux accéder à l’objet Request natif (Fetch API) via un cinquième argument
- * correspondant à `FetchObjects`.
+ * Internal Itty Router middlewares (e.g. preflight/corsify) can access the native Request object (Fetch API) via a fifth argument corresponding to `InternalObjects`.
  */
-
 export function createRouter({
   ...args
 }: RouterOptions<
@@ -98,10 +96,9 @@ export function createRouter({
 
 /**
  * @internal
- * Normalise les headers d'une requête Appwrite (clés insensibles à la casse).
+ * Normalizes Appwrite request headers (case-insensitive keys).
  *
- * Vous pouvez ainsi utiliser indifféremment les clés `Authorization` ou
- * `authorization` dans vos handlers, par exemple.
+ * You can use either `Authorization` or `authorization` keys in your handlers, for example.
  */
 export function normalizeHeaders(req: AppwriteRequest) {
   if (req && req.headers && typeof req.headers === 'object') {
@@ -139,8 +136,7 @@ export function normalizeHeaders(req: AppwriteRequest) {
 
 /**
  * @internal
- * Construit les options finales à partir des options utilisateur et de
- * l'environnement.
+ * Builds the final options from user options and environment.
  */
 export function buildFinalOptions(
   options: Options,
@@ -159,8 +155,7 @@ export function buildFinalOptions(
 
 /**
  * @internal
- * Propage les fonctions de logging d’Appwrite dans le contexte global, si
- * demandé.
+ * Propagates Appwrite logging functions to the global context, if requested.
  */
 export function setupGlobalLoggers(
   finalOptions: Options,
@@ -175,8 +170,7 @@ export function setupGlobalLoggers(
 
 /**
  * @internal
- * Met à jour la variable d'environnement `APPWRITE_FUNCTION_API_KEY`, si
- * demandé.
+ * Updates the `APPWRITE_FUNCTION_API_KEY` environment variable, if requested.
  */
 export function setupEnvVars(finalOptions: Options, req: AppwriteRequest) {
   if (finalOptions.env) {
@@ -186,7 +180,7 @@ export function setupEnvVars(finalOptions: Options, req: AppwriteRequest) {
 
 /**
  * @internal
- * Active la configuration CORS dynamique.
+ * Enables dynamic CORS configuration.
  */
 export function buildCorsOptions(finalOptions: Options) {
   const allowedOrigins: (string | RegExp)[] =
@@ -226,8 +220,7 @@ export function buildCorsOptions(finalOptions: Options) {
 }
 
 /**
- * Exécute le routeur avec le contexte Appwrite, ainsi qu’une `Request` native
- * pour le bon fonctionnement de CORS, etc. dans le routeur Itty.
+ * Runs the router with the Appwrite context, as well as a native `Request` for proper CORS, etc. in the Itty router.
  */
 export async function runRouter(
   router: ReturnType<typeof createRouter>,
@@ -236,17 +229,20 @@ export async function runRouter(
   const { headers, method, url } = req;
   const route = new URL(url);
 
-  // Construit la nativeRequest pour usage interne (CORS, etc.)
+  // Build the nativeRequest for internal use (CORS, etc.)
   let nativeRequest: Request;
   if (typeof Request !== 'undefined') {
-    nativeRequest = new Request(route, { headers, method });
+    nativeRequest = new Request(url, { headers, method });
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { Request: UndiciRequest } = require('undici');
-    nativeRequest = new UndiciRequest(url, {
-      headers,
-      method,
-    }) as unknown as Request;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { Request: UndiciRequest } = require('undici');
+      nativeRequest = new UndiciRequest(url, { headers, method });
+    } catch {
+      throw new Error(
+        'No compatible Request constructor found in this environment.'
+      );
+    }
   }
 
   const response = await router.fetch(
@@ -255,7 +251,7 @@ export async function runRouter(
     log, // DefaultLogger
     error, // ErrorLogger
     {
-      request: nativeRequest, // FetchObjects.FetchRequest ie. a native Request object
+      request: nativeRequest, // FetchObjects.FetchRequest i.e. a native Request object
     } as InternalObjects
   );
   return response;
@@ -263,7 +259,7 @@ export async function runRouter(
 
 /**
  * @internal
- * Gestion d’erreur centralisée pour handleRequest.
+ * Centralized error handling for handleRequest.
  */
 export function handleRequestError(
   err: unknown,
@@ -278,7 +274,7 @@ export function handleRequestError(
   if (typeof finalOptions.ittyOptions.catch === 'function') {
     finalOptions.ittyOptions.catch(err, req, res, log, error, internals);
   } else if (process.env.NODE_ENV !== 'production') {
-    // Affiche l’erreur réelle en développement
+    // Show the real error in development
     // eslint-disable-next-line no-console
     console.error('[appwrite-fn-router] Unhandled error:', err);
   }
@@ -382,8 +378,8 @@ export async function handleRequest(
     }
     return response;
   } catch (err) {
-    // As we’re handling a thrown error which break free of the routing cycle,
-    // there is no `internals` object available here (eg. no `internals.request`,
+    // As we’re handling a thrown error which breaks free of the routing cycle,
+    // there is no `internals` object available here (e.g. no `internals.request`,
     // although you shouldn’t need it anyway as everything about the request is
     // readily available through `req`).
     return handleRequestError(err, finalOptions, req, res, log, error);
