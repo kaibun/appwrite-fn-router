@@ -1,6 +1,7 @@
 import { inspect } from 'node:util';
 import { cors, RouterOptions, Router } from 'itty-router';
 import type {
+  AFRContextArgs,
   InternalObjects,
   Context as AppwriteContext,
   Request as AppwriteRequest,
@@ -255,7 +256,7 @@ export async function runRouter(
     error, // ErrorLogger
     {
       request: nativeRequest, // FetchObjects.FetchRequest ie. a native Request object
-    }
+    } as InternalObjects
   );
   return response;
 }
@@ -270,11 +271,12 @@ export function handleRequestError(
   req: AppwriteRequest,
   res: AppwriteResponse,
   log: DefaultLogger,
-  error: ErrorLogger
+  error: ErrorLogger,
+  internals?: InternalObjects
 ) {
   log(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
-  if (typeof finalOptions.catch === 'function') {
-    finalOptions.catch(err, req, res, log, error);
+  if (typeof finalOptions.ittyOptions.catch === 'function') {
+    finalOptions.ittyOptions.catch(err, req, res, log, error, internals);
   } else if (process.env.NODE_ENV !== 'production') {
     // Affiche l’erreur réelle en développement
     // eslint-disable-next-line no-console
@@ -330,27 +332,35 @@ export async function handleRequest(
     const corsOptions = buildCorsOptions(finalOptions);
     const { preflight, corsify } = cors(corsOptions);
 
+    const { ittyOptions = {} } = finalOptions;
+    const { before: userBefore = [], finally: userFinally = [] } = ittyOptions;
+
+    const before: Array<(...args: AFRContextArgs) => any> = [
+      (req, res, log, error, internals, ...args) =>
+        corsPreflightMiddleware(req, res, log, error, {
+          ...(internals || {}),
+          preflight,
+        }),
+      ...[].concat(userBefore),
+    ];
+
+    const finallyArr: Array<
+      (responseFromRoute: any, ...args: AFRContextArgs) => any
+    > = [
+      ...[].concat(userFinally),
+      (responseFromRoute, request, res, log, error, internals, ...args) =>
+        corsFinallyMiddleware(responseFromRoute, request, res, log, error, {
+          ...(internals || {}),
+          corsify,
+        }),
+    ];
+
     const router = createRouter({
-      before: [
-        (req, res, log, error, fetch) =>
-          corsPreflightMiddleware(req, res, log, error, {
-            ...fetch,
-            preflight,
-          }),
-      ],
-      finally: [
-        (responseFromRoute, request, res, log, error, fetch) =>
-          corsFinallyMiddleware(responseFromRoute, request, res, log, error, {
-            ...fetch,
-            corsify,
-          }),
-      ],
-      ...(typeof finalOptions.catch === 'function'
-        ? {
-            catch: finalOptions.catch,
-          }
-        : {}),
+      before,
+      finally: finallyArr,
+      ...ittyOptions, // catch, etc. sont transmis automatiquement
     });
+
     withRouter(router);
     log(
       '[DEBUG] router.routes (after withRouter call):',
@@ -368,13 +378,14 @@ export async function handleRequest(
     log(inspect(response, { depth: null }));
 
     if (!response) {
-      // TODO: abide by content-type
-      // TODO: do that only if options.autoNotFound is set and truthy (the default);
-      // otherwise, throw so that it returns a 500
       return res.text('Not Found', 404);
     }
     return response;
   } catch (err) {
+    // As we’re handling a thrown error which break free of the routing cycle,
+    // there is no `internals` object available here (eg. no `internals.request`,
+    // although you shouldn’t need it anyway as everything about the request is
+    // readily available through `req`).
     return handleRequestError(err, finalOptions, req, res, log, error);
   }
 }

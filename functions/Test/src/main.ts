@@ -1,6 +1,10 @@
 import { inspect } from 'node:util';
 
-import type { Context } from '@kaibun/appwrite-fn-router/types';
+import type {
+  AFRContextArgs,
+  Context,
+  CatchHandler,
+} from '@kaibun/appwrite-fn-router/types';
 import { createRouter, handleRequest } from '@kaibun/appwrite-fn-router';
 import widgetsRouter from './routes/widgets.ts';
 import errorsRouter from './routes/errors.ts';
@@ -41,23 +45,27 @@ export default async (context: Context) => {
   }
   log(greetings + '\n');
 
+  const CatchHandler: CatchHandler = (err, req, res, log, error, internals) => {
+    log(err ? inspect(err) : 'Unknown error');
+    // Catching E2E tests’ errors.
+    if (req.path.startsWith('/errors')) {
+      return res.json(
+        {
+          status: 'error',
+          message: 'E2E_CUSTOM_ERROR_TRIGGERED',
+          error: err instanceof Error ? err.message : String(err),
+        },
+        500
+      );
+    }
+    throw err; // Otherwise, re-throw to trigger library’s default error handling.
+  };
+
   const response = await handleRequest(context, routes, {
     log: process.env.NODE_ENV !== 'production',
     errorLog: process.env.NODE_ENV !== 'production',
-    catch: (err, req, res, log, error) => {
-      log(err ? inspect(err) : 'Unknown error');
-      // Catching E2E tests’ errors.
-      if (req.path.startsWith('/errors')) {
-        return res.json(
-          {
-            status: 'error',
-            message: 'E2E_CUSTOM_ERROR_TRIGGERED',
-            error: err instanceof Error ? err.message : String(err),
-          },
-          500
-        );
-      }
-      throw err; // Otherwise, re-throw to trigger library’s default error handling.
+    ittyOptions: {
+      catch: CatchHandler,
     },
   });
 
