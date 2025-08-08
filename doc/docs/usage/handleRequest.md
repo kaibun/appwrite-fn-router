@@ -6,9 +6,11 @@ sidebar_position: 2
 
 ## Philosophy: Familiar API, Enhanced Internals
 
-When you use this library, your route handlers always receive four arguments: `req`, `res`, `log`, and `error`. This matches exactly what you would get when writing a standard Appwrite function, so adopting the router does not change your mental model or code structure.
+Quand vous utilisez cette librairie, vos handlers reçoivent toujours quatre arguments : `req`, `res`, `log`, `error`. Cela correspond exactement à l’API Appwrite standard, donc l’adoption du routeur ne change ni votre modèle mental ni la structure de votre code.
 
-**Under the hood:** The `req` argument is a merged object that combines all properties and methods from both Appwrite's `req` and the native Web `Request` API. This allows the internal router (itty-router) to work seamlessly, while you, as a user, continue to interact with the familiar Appwrite context. The fact that `req` is "overloaded" with extra capabilities is an implementation detail—you can keep using it as you always have, but you also gain access to the full native `Request` API if you need it.
+**API simplifiée :** Le paramètre `req` est strictement un objet AppwriteRequest, sans fusion ni surcouche. L’API utilisateur reste donc 100% compatible Appwrite, sans surprise ni comportement caché. Le routeur utilise en interne un objet Request natif si besoin, mais cela ne concerne pas l’utilisateur.
+
+**Note :** Si vous avez un besoin avancé d’accéder à l’objet Request natif (Web API), il peut être exposé en cinquième argument optionnel, mais ce n’est pas documenté pour l’utilisateur standard.
 
 The `handleRequest` function is the main entry point for your Appwrite function when using this router. It sets up the environment, initializes the router with your routes and configuration, and handles incoming requests.
 
@@ -40,6 +42,29 @@ The `options` object allows you to configure various aspects of the router:
 | `errorLog` | `boolean`                | `true`      | Enables or disables error logging.                                                                     |
 | `onError`  | `(err: unknown) => void` | `undefined` | A custom error handler function.                                                                       |
 | `cors`     | `object`                 | `{...}`     | Configuration for Cross-Origin Resource Sharing (CORS). See below for details.                         |
+
+### Handling errors globally with `onError`
+
+You can provide a custom error handler using the `onError` option. This callback will be called whenever an unhandled error is intercepted by the router. For example, to log errors or send them to a monitoring service:
+
+```typescript
+import { handleRequest } from 'appwrite-fn-router';
+
+export default async ({ req, res, log, error }) => {
+  return await handleRequest(
+    { req, res, log, error },
+    (router) => {
+      // Define your routes here
+    },
+    {
+      onError: (err) => {
+        // Log or report the error
+        console.error('Error intercepted by onError:', err);
+      },
+    }
+  );
+};
+```
 
 ### CORS Configuration
 

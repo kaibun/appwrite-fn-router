@@ -62,7 +62,7 @@ Une configuration TypeScript soignée est essentielle pour que l'éditeur (VS Co
 Cypress est configuré pour tester l'API de la fonction en cours d'exécution :
 
 ```sh
-npm run test:e2e
+npm run test
 ```
 
 - **Problème** : Par défaut, Cypress ne comprend pas les alias de chemin TypeScript de notre `tsconfig.json`.

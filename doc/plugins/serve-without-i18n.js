@@ -8,7 +8,7 @@ module.exports = function serveWithoutI18N(context) {
   return {
     name: 'docusaurus-plugin-serve-without-i18n',
     configureServer(app) {
-      // Sert le fichier openapi.yaml à la racine
+      // Serves the openapi.yaml file at the root
       // app.get('/openapi.yaml', (req, res) => {
       //   res.sendFile(path.resolve(__dirname, '../static/openapi.yaml'));
       // });

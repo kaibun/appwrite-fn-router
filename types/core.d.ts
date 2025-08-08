@@ -1,9 +1,14 @@
 // Core types for Appwrite Functions and itty-router integration
 
 import type { IRequest } from 'itty-router';
+import type { Request as FetchRequest } from 'undici';
 
 export type DefaultLogger = (message: string) => void;
 export type ErrorLogger = (message: string) => void;
+
+export type FetchObjects = {
+  request: FetchRequest;
+};
 
 export type Headers = Record<string, string>;
 export type JSONObject = Record<string, unknown>;
@@ -95,5 +100,8 @@ export type RouterJSONResponse = {
   error?: string;
 } & JSONObject;
 
-// TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
+/**
+ * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers.
+ * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
+ */
 export type WrapperRequestType = IRequest & AppwriteRequest;
