@@ -17,9 +17,16 @@ import '../types/global.d.ts'; // Import global declarations
 
 const $ = globalThis;
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+const isNotProduction = process.env.NODE_ENV !== 'production';
+const isJSONLikeRequest = (req: AppwriteRequest) =>
+  // There so many JSON-like content types, our best bet is to be agnostic.
+  // @see https://www.iana.org/assignments/media-types/media-types.xhtml
+  req.headers['content-type']?.endsWith('+json');
+
 /**
  * @internal
- * CORS preflight middleware for itty-router (to use in before[])
+ * CORS preflight middleware that’s Appwrite-compatible (to be used first in before[]).
  */
 export async function corsPreflightMiddleware(
   req: AppwriteRequest,
@@ -41,7 +48,7 @@ export async function corsPreflightMiddleware(
 
 /**
  * @internal
- * CORS finalization middleware for itty-router (to use in finally[])
+ * CORS finalization middleware that’s Appwrite-compatible (to be used last in finally[]).
  */
 export async function corsFinallyMiddleware(
   responseFromRoute: any,
@@ -77,7 +84,9 @@ export async function corsFinallyMiddleware(
  * `req, res, log, error` typed as `AppwriteRequest`, `AppwriteResponse`,
  * `DefaultLogger`, `ErrorLogger` respectively.
  *
- * Internal Itty Router middlewares (e.g. preflight/corsify) can access the native Request object (Fetch API) via a fifth argument corresponding to `InternalObjects`.
+ * Internal Itty Router middlewares (e.g. preflight/corsify) can access the
+ * native Request object (Fetch API) via a fifth argument corresponding to
+ * `InternalObjects`.
  */
 export function createRouter({
   ...args
@@ -96,42 +105,40 @@ export function createRouter({
 
 /**
  * @internal
- * Normalizes Appwrite request headers (case-insensitive keys).
- *
- * You can use either `Authorization` or `authorization` keys in your handlers, for example.
+ * Normalizes Appwrite request headers as case-insensitive keys, so that you can
+ * use either eg. `Authorization` or `authorization` keys in your handlers.
  */
 export function normalizeHeaders(req: AppwriteRequest) {
-  if (req && req.headers && typeof req.headers === 'object') {
-    const normalized: Record<string, string> = {};
-    for (const k in req.headers) {
-      if (Object.prototype.hasOwnProperty.call(req.headers, k)) {
-        normalized[k.toLowerCase()] = req.headers[k];
-      }
+  if (!req || !req.headers || typeof req.headers !== 'object') return;
+  const normalized: Record<string, string> = {};
+  for (const k in req.headers) {
+    if (Object.prototype.hasOwnProperty.call(req.headers, k)) {
+      normalized[k.toLowerCase()] = req.headers[k];
     }
-    req.headers = new Proxy(normalized, {
-      get(target, prop: string) {
-        if (typeof prop === 'string') {
-          return target[prop.toLowerCase()];
-        }
-        return undefined;
-      },
-      has(target, prop: string) {
-        if (typeof prop === 'string') {
-          return prop.toLowerCase() in target;
-        }
-        return false;
-      },
-      ownKeys(target) {
-        return Reflect.ownKeys(target);
-      },
-      getOwnPropertyDescriptor(target, prop) {
-        if (typeof prop === 'string' && prop.toLowerCase() in target) {
-          return Object.getOwnPropertyDescriptor(target, prop.toLowerCase());
-        }
-        return undefined;
-      },
-    });
   }
+  req.headers = new Proxy(normalized, {
+    get(target, prop: string) {
+      if (typeof prop === 'string') {
+        return target[prop.toLowerCase()];
+      }
+      return undefined;
+    },
+    has(target, prop: string) {
+      if (typeof prop === 'string') {
+        return prop.toLowerCase() in target;
+      }
+      return false;
+    },
+    ownKeys(target) {
+      return Reflect.ownKeys(target);
+    },
+    getOwnPropertyDescriptor(target, prop) {
+      if (typeof prop === 'string' && prop.toLowerCase() in target) {
+        return Object.getOwnPropertyDescriptor(target, prop.toLowerCase());
+      }
+      return undefined;
+    },
+  });
 }
 
 /**
@@ -143,7 +150,6 @@ export function buildFinalOptions(
   apwLog: DefaultLogger,
   apwError: ErrorLogger
 ): Options {
-  const isNotProduction = process.env.NODE_ENV !== 'production';
   return {
     globals: options.globals ?? true,
     env: options.env ?? true,
@@ -185,7 +191,7 @@ export function setupEnvVars(finalOptions: Options, req: AppwriteRequest) {
 export function buildCorsOptions(finalOptions: Options) {
   const allowedOrigins: (string | RegExp)[] =
     finalOptions.cors?.allowedOrigins ?? [];
-  if (process.env.NODE_ENV !== 'production') {
+  if (isDevelopment) {
     if (!allowedOrigins.includes('http://localhost:3001')) {
       allowedOrigins.push('http://localhost:3001');
     }
@@ -259,7 +265,8 @@ export async function runRouter(
 
 /**
  * @internal
- * Centralized error handling for handleRequest.
+ * Centralized error handling for uncatched exceptions stemming from the router.
+ * This function may be circumvented by a custom `catch handler in `ittyOptions`.
  */
 export function handleRequestError(
   err: unknown,
@@ -267,42 +274,54 @@ export function handleRequestError(
   req: AppwriteRequest,
   res: AppwriteResponse,
   log: DefaultLogger,
-  error: ErrorLogger,
-  internals?: InternalObjects
+  error: ErrorLogger
 ) {
-  log(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
-  if (typeof finalOptions.ittyOptions.catch === 'function') {
-    finalOptions.ittyOptions.catch(err, req, res, log, error, internals);
-  } else if (process.env.NODE_ENV !== 'production') {
-    // Show the real error in development
-    // eslint-disable-next-line no-console
-    console.error('[appwrite-fn-router] Unhandled error:', err);
+  if (isDevelopment && finalOptions.errorLog) {
+    error(`[appwrite-fn-router] handleRequestError triggered: ${inspect(err)}`);
   }
-  finalOptions.errorLog &&
-    error(
-      `\n[router] Function has failed: ${err instanceof Error ? err.stack : String(err)}`
-    );
-  const message = err instanceof Error ? err.message : String(err);
-  if (
-    ['/json', '/ld+json'].some((type) =>
-      req.headers['content-type']?.endsWith(type)
-    )
-  ) {
+  const message = isDevelopment
+    ? err instanceof Error
+      ? err.message
+      : String(err)
+    : 'An error occurred during request processing the request.';
+  const errorDetails = isDevelopment
+    ? err instanceof Error && err.cause instanceof Error
+      ? err.cause.message
+      : 'Reason unknown'
+    : 'Error details are not available unless in development mode.';
+  if (isJSONLikeRequest(req)) {
     return res.json(
       {
         status: 'error',
         message,
-        error:
-          err instanceof Error && err.cause instanceof Error
-            ? err.cause.message
-            : 'Reason unknown',
+        error: errorDetails,
       } satisfies RouterJSONResponse,
       500
     );
   }
-  return res.text(message, 500);
+  return res.text(message + ' ' + errorDetails, 500);
 }
 
+/**
+ * Main entry point for handling an Appwrite function HTTP request using the router abstraction.
+ *
+ * This function orchestrates the full lifecycle of a request:
+ *
+ * - Normalizes headers for case-insensitive access.
+ * - Builds the final options from user options and environment.
+ * - Initializes log and error functions, and propagates them globally if requested.
+ * - Updates required environment variables (e.g., Appwrite API key) if requested.
+ * - Dynamically configures CORS according to environment and options.
+ * - Composes middlewares (before/finally) for the router, including CORS and user-provided ones.
+ * - Instantiates the router, then delegates to the user-provided `withRouter` callback to define routes.
+ * - Executes the router on the request, handles the response and logging.
+ * - Handles uncaught errors via handleRequestError.
+ *
+ * @param context   Appwrite context (req, res, log, error)
+ * @param withRouter User function to define routes on the router
+ * @param options   Advanced options (CORS, logs, middlewares, etc.)
+ * @returns         AppwriteResponseObject generated by the router, or a formatted error
+ */
 export async function handleRequest(
   context: AppwriteContext,
   withRouter: (router: ReturnType<typeof createRouter>) => void,
@@ -378,6 +397,8 @@ export async function handleRequest(
     }
     return response;
   } catch (err) {
+    // By default, in the absence of a catch handler in `ittyOptions`, itty’s
+    // Router will throw an error. This is the place to handle it.
     // As we’re handling a thrown error which breaks free of the routing cycle,
     // there is no `internals` object available here (e.g. no `internals.request`,
     // although you shouldn’t need it anyway as everything about the request is

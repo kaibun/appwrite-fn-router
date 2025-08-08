@@ -62,8 +62,8 @@ export default async (context: AppwriteContext) => {
   };
 
   const response = await handleRequest(context, routes, {
-    log: process.env.NODE_ENV !== 'production',
-    errorLog: process.env.NODE_ENV !== 'production',
+    log: process.env.NODE_ENV === 'development',
+    errorLog: process.env.NODE_ENV === 'development',
     ittyOptions: {
       catch: CatchHandler,
     },
