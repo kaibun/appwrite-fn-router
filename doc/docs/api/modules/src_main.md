@@ -24,7 +24,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[src/main.ts:37](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/src/main.ts#L37)
+[src/main.ts:37](https://github.com/kaibun/appwrite-fn-router/blob/a3cf6c6/src/main.ts#L37)
 
 ___
 
@@ -46,7 +46,7 @@ ___
 
 #### Defined in
 
-[src/main.ts:76](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/src/main.ts#L76)
+[src/main.ts:76](https://github.com/kaibun/appwrite-fn-router/blob/a3cf6c6/src/main.ts#L76)
 
 ___
 
@@ -67,7 +67,7 @@ ___
 
 #### Defined in
 
-[src/main.ts:53](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/src/main.ts#L53)
+[src/main.ts:53](https://github.com/kaibun/appwrite-fn-router/blob/a3cf6c6/src/main.ts#L53)
 
 ___
 
@@ -87,4 +87,4 @@ ___
 
 #### Defined in
 
-[src/main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/dcd860b/src/main.ts#L20)
+[src/main.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/a3cf6c6/src/main.ts#L20)

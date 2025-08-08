@@ -10,7 +10,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Appwrite Function Router',
   tagline: 'A simple router for Appwrite Functions',
-  favicon: 'img/logo.svg',
+  favicon: 'img/afr-logo-maze.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -93,7 +93,7 @@ const config: Config = {
       title: 'Appwrite Function Router',
       logo: {
         alt: 'Appwrite Function Router Logo',
-        src: 'img/logo.svg',
+        src: 'img/afr-logo-maze.png',
       },
       items: [
         {
