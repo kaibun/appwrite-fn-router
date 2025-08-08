@@ -5,6 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "npm run doc:api && PORT=3001 docusaurus start",
+    "start:fr": "npm run doc:api && PORT=3001 docusaurus start --locale fr",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
