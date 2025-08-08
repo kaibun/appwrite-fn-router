@@ -64,20 +64,17 @@ This function creates a new router instance. You will register your routes on th
 
 Inside `handleRequest`’s `withRouter` callback, you define your routes.
 
-The handler for each route receives both the vanilla `Request` and Appwrite’s `req` objects, as well as the rest of Appwrite’s context (`res`, `log` and `error`), so you can keep workingg in a familiar environment.
+Each route handler now receives a single merged `req` object (combining the native `Request` and Appwrite's `req`), followed by `res`, `log`, and `error`. This means your handler signature should be:
 
 ```typescript
-// ... let’s implement the withRouter callback, registering our routes:
 handleRequest(context, (router) => {
-  router.get('/', (vanillaRequest, req, res, log, error) => {
-    // req and res are Appwrite's abstractions
-    // Using res methods, the route handler must return
-    // AppwriteResponseObject which are expected by the runtime
+  router.get('/', (req, res, log, error) => {
+    // req is the merged request (Request & AppwriteRequest)
     return res.send('Hello, World!');
   });
 
-  router.post('/users', async (vanillaRequest, req, res, log, error) => {
-    const user = req.body;
+  router.post('/users', async (req, res, log, error) => {
+    const user = await req.bodyJson;
     // Do something with the user... maybe await some result...
     return res.json({ success: true, user });
   });

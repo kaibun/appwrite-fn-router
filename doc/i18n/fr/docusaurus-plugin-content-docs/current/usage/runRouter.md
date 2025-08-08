@@ -37,7 +37,9 @@ export default async (context) => {
   const { log, error } = context;
 
   const router = createRouter();
-  router.get('/', () => ({ message: 'Exécution manuelle du routeur !' }));
+  router.get('/', (req, res, log, error) => {
+    return res.json({ message: 'Exécution manuelle du routeur !' });
+  });
 
   // Vous auriez besoin de répliquer la logique de configuration de handleRequest ici
   // (par ex., CORS, configuration de l'environnement, conversions de types, etc.)

@@ -10,7 +10,7 @@ import widgetsRouter from './routes/widgets.ts';
 function routes(router: ReturnType<typeof createRouter>) {
   // TODO: test with an async/await handler as well
 
-  router.get('/', (_request, _req, res, log, _error) => {
+  router.get('/', (_request, res, log, _error) => {
     // log('\n--- Root route hit:');
     // log(inspect(res));
     const response = res.text('Root route hit!');

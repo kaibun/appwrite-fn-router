@@ -38,11 +38,11 @@ export function createRouter({
   ...args
 }: RouterOptions<
   WrapperRequestType,
-  [AppwriteRequest, AppwriteResponse, DefaultLogger, ErrorLogger] & any[]
+  [AppwriteResponse, DefaultLogger, ErrorLogger] & any[]
 > = {}) {
   return Router<
     WrapperRequestType,
-    [AppwriteRequest, AppwriteResponse, DefaultLogger, ErrorLogger] & any[],
+    [AppwriteResponse, DefaultLogger, ErrorLogger] & any[],
     AppwriteResponse
   >({
     ...args,
@@ -56,15 +56,33 @@ export async function runRouter(
 ) {
   const { headers, method, url } = req;
   const route = new URL(url);
-  const request = new Request(route, {
+  const nativeRequest = new Request(route, {
     headers,
     method,
   });
 
-  // Passing along the request and misc. objects from the Appwrite context
+  // Merge native Request and AppwriteRequest into a single object without overwriting read-only properties
+  const mergedRequest = Object.create(Object.getPrototypeOf(nativeRequest));
+  // Copy all properties from nativeRequest (enumerable and non-enumerable)
+  for (const key of Reflect.ownKeys(nativeRequest)) {
+    try {
+      const desc = Object.getOwnPropertyDescriptor(nativeRequest, key);
+      if (desc) Object.defineProperty(mergedRequest, key, desc);
+    } catch {}
+  }
+  // Copy only properties from req that do not already exist or are not read-only
+  for (const key of Reflect.ownKeys(req)) {
+    if (!(key in mergedRequest)) {
+      try {
+        const desc = Object.getOwnPropertyDescriptor(req, key);
+        if (desc) Object.defineProperty(mergedRequest, key, desc);
+      } catch {}
+    }
+  }
+
+  // Pass mergedRequest as the first argument, then the rest
   const response = await router.fetch(
-    request, // IRequest
-    req, // The original Appwrite’s Request
+    mergedRequest, // WrapperRequestType: IRequest & AppwriteRequest
     res, // The original Appwrite’s Response
     log, // The original or muted Appwrite’s DefaultLogger
     error // The original or muted Appwrite’s ErrorLogger
@@ -150,7 +168,7 @@ export async function handleRequest(
     const router = createRouter({
       // The `before` middleware handles preflight (OPTIONS) requests.
       before: [
-        async (req, req_appwrite, res, log, error) => {
+        async (req, res, log, error) => {
           // itty-router's `preflight` expects a native `Request` object.
           const response = preflight(req);
           if (response) {
@@ -164,7 +182,7 @@ export async function handleRequest(
       ],
       // The `finally` middleware applies CORS headers to the outgoing response.
       finally: [
-        async (responseFromRoute, request, req_appwrite, res, log, error) => {
+        async (responseFromRoute, request, res, log, error) => {
           if (responseFromRoute) {
             // Re-create a native `Response` to pass it to `corsify`.
             // The `Response` constructor throws if a body is provided with a 204 status.

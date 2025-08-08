@@ -96,5 +96,4 @@ export type RouterJSONResponse = {
 } & JSONObject;
 
 // TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
-// export type WrapperRequestType = AppwriteRequest & IRequest;
-export type WrapperRequestType = IRequest;
+export type WrapperRequestType = IRequest & AppwriteRequest;

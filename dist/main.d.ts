@@ -87,8 +87,7 @@ type Options = {
 };
 
 // TODO: https://github.com/kaibun/appwrite-fn-router/issues/6
-// export type WrapperRequestType = AppwriteRequest & IRequest;
-type WrapperRequestType = IRequest;
+type WrapperRequestType = IRequest & AppwriteRequest;
 
 // Global type declarations for the library
 
@@ -114,11 +113,10 @@ declare global {
  */
 declare function tracePrototypeChainOf(object: object): string;
 declare function createRouter({ ...args }?: RouterOptions<WrapperRequestType, [
-    Request,
     Response,
     DefaultLogger,
     ErrorLogger
-] & any[]>): itty_router.RouterType<itty_router.IRequest, [Request, Response, DefaultLogger, ErrorLogger] & any[], Response>;
+] & any[]>): itty_router.RouterType<any, [Response, DefaultLogger, ErrorLogger] & any[], Response>;
 declare function runRouter(router: ReturnType<typeof createRouter>, { req, res, log, error }: Context): Promise<Response>;
 declare function handleRequest(context: Context, withRouter: (router: ReturnType<typeof createRouter>) => void, options?: Options): Promise<Response | ResponseObject<string> | ResponseObject<{
     status: "error";

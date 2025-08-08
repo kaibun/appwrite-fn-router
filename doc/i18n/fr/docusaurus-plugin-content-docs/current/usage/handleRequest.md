@@ -4,6 +4,12 @@ sidebar_position: 2
 
 # `handleRequest`
 
+## Philosophie : une API familière, des entrailles surchargées
+
+Lorsque vous utilisez cette bibliothèque, vos gestionnaires de route reçoivent toujours quatre arguments : `req`, `res`, `log` et `error`. Cela correspond exactement à ce que vous manipulez dans une fonction Appwrite classique, donc l'adoption du routeur ne change ni votre logique ni la structure de votre code.
+
+**Sous le capot :** L'argument `req` est un objet fusionné qui combine toutes les propriétés et méthodes de l'`AppwriteRequest` et de l'API Web `Request` native. Cela permet au routeur interne (itty-router) de fonctionner de façon transparente, tandis que vous continuez à utiliser le contexte Appwrite habituel. Le fait que `req` soit « surchargé » avec des capacités supplémentaires est un détail d'implémentation : vous pouvez continuer à l'utiliser comme avant, tout en bénéficiant de l'API native si besoin.
+
 La fonction `handleRequest` est le point d'entrée principal de votre fonction Appwrite lorsque vous utilisez ce routeur. Elle configure l'environnement, initialise le routeur avec vos routes et votre configuration, et gère les requêtes entrantes.
 
 C'est probablement la seule méthode que vous aurez besoin d'appeler pour utiliser cette bibliothèque.
@@ -58,6 +64,10 @@ export default async ({ req, res, log, error }) => {
     { req, res, log, error },
     (router) => {
       // Définissez vos routes ici
+      // Exemple :
+      router.get('/', (req, res, log, error) => {
+        return res.send('Bonjour, le monde !');
+      });
       router.get('/', () => ({ message: 'Bonjour le monde !' }));
     },
     {
