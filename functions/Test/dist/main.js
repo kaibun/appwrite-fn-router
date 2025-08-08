@@ -21478,8 +21478,13 @@ async function runRouter(router2, { req, res, log, error }) {
   return response;
 }
 function handleRequestError(err, finalOptions, req, res, apwError) {
+  const log = finalOptions.log ? typeof globalThis.log === "function" ? globalThis.log : () => {
+  } : () => {
+  };
+  const error = finalOptions.errorLog ? apwError : () => {
+  };
   if (typeof finalOptions.onError === "function") {
-    finalOptions.onError(err);
+    finalOptions.onError(err, req, res, log, error);
   } else if (process.env.NODE_ENV !== "production") {
     console.error("[appwrite-fn-router] Unhandled error:", err);
   }

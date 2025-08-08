@@ -83,7 +83,13 @@ type Options = {
   env?: boolean;
   log?: boolean;
   errorLog?: boolean;
-  onError?: (err: unknown) => void;
+  onError?: (
+    err: unknown,
+    req: AppwriteRequest,
+    res: AppwriteResponse,
+    log: (...args: any[]) => void,
+    error: (...args: any[]) => void
+  ) => void;
   cors?: {
     allowedOrigins?: (string | RegExp)[];
     allowMethods?: string[];
