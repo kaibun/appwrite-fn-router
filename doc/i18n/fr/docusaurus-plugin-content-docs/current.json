@@ -20,7 +20,7 @@
     "description": "The label for category Contributing in sidebar tutorialSidebar"
   },
   "sidebar.tutorialSidebar.doc.Getting Started": {
-    "message": "Premiers pas",
+    "message": "Accueil",
     "description": "The label for the doc item Getting Started in sidebar tutorialSidebar, linking to the doc intro"
   }
 }

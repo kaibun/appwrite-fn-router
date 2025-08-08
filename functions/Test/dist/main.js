@@ -21454,13 +21454,16 @@ async function runRouter(router3, { req, res, log, error }) {
   const route = new URL(url);
   let nativeRequest;
   if (typeof Request !== "undefined") {
-    nativeRequest = new Request(route, { headers, method });
+    nativeRequest = new Request(url, { headers, method });
   } else {
-    const { Request: UndiciRequest } = require_undici();
-    nativeRequest = new UndiciRequest(url, {
-      headers,
-      method
-    });
+    try {
+      const { Request: UndiciRequest } = require_undici();
+      nativeRequest = new UndiciRequest(url, { headers, method });
+    } catch {
+      throw new Error(
+        "No compatible Request constructor found in this environment."
+      );
+    }
   }
   const response = await router3.fetch(
     req,
@@ -21473,7 +21476,7 @@ async function runRouter(router3, { req, res, log, error }) {
     // ErrorLogger
     {
       request: nativeRequest
-      // FetchObjects.FetchRequest ie. a native Request object
+      // FetchObjects.FetchRequest i.e. a native Request object
     }
   );
   return response;

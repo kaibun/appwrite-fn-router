@@ -59,11 +59,11 @@ router.get('/secret', (req, res) => {
 
 All callbacks/handlers (not just middlewares) technically receive a fifth argument, `internals`, which exposes a replica of the native `Request` as `internals.request`.
 
-However, this is an internal detail of itty-router and the library. The `internals.request` object is only a best-effort replica of the original request received by the Appwrite runtime (which does not transmit the native Request to the function). There is no reason for end-users to rely on this argument in their code; it is only used internally by the library for CORS and similar features.
+However, this is an internal detail of itty-router and the library. The `internals.request` object is only a best-effort replica of the original request received by the Appwrite runtime (which does not transmit the native Request to the function). **There is no reason for end-users to rely on this argument in their code; it is only used internally by the library for CORS and similar features.**
 
 ## 4. Dynamic Option Merging
 
-Options passed to `handleRequest` are merged with environment-dependent defaults (e.g., logging, error handling), making the library robust in both dev and prod. See [Options](../usage/handleRequest.md#options).
+Options passed to `handleRequest` are merged with environment-dependent defaults (e.g., logging, error handling), making the library robust in both dev and prod. See [Options](/usage/handleRequest.md#options).
 
 ### Example
 
@@ -74,20 +74,13 @@ handleRequest(context, withRouter, {
     allowedOrigins: [/^https:\/\/mydomain\.com$/],
     allowHeaders: ['Authorization', 'Content-Type'],
   },
-});
-```
-
-## 5. Centralized Error Handling
-
-Unhandled errors in handlers are processed by a central function, which respects the request's `Content-Type` (returns JSON or text accordingly).
-
-### Example
-
-```ts
-handleRequest(context, withRouter, {
-  onError: (err) => {
-    // Custom error logging or reporting.
-    console.error('Custom error handler:', err);
+  ittyOptions: {
+    // All itty-router options (catch, before, finally, etc.) go here!
+    catch: (err, req, res, log, error) => {
+      log('Caught error:', err);
+      return res.json({ message: 'Custom error' }, 500);
+    },
+    before: [(req, res, log) => log('Before every route!')],
   },
 });
 ```

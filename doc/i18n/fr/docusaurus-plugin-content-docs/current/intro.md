@@ -15,7 +15,7 @@ sidebar_position: 1
 
 Les [Fonctions Appwrite](https://appwrite.io/products/functions) sont un moyen puissant de renforcer votre logique backend, mais elles ne disposent pas d'un système de routage intégré.
 
-Pour cette raison, la gestion de différents chemins d'URL ou méthodes HTTP nécessite souvent des blocs if/else complexes, qui peuvent rapidement devenir difficiles à maintenir. Or, une fonction n’a pas nécessairement vocation à ête atomique ; il existe de nombreux cas d'utilisation et de raisons justifiant la création d’une fonction avec plusieurs points de terminaison : économiser sur les coûts d'exécution, consolider une surface d'API, améliorer la maintenabilité, etc.
+Pour cette raison, la gestion de différents chemins d'URL ou méthodes HTTP nécessite souvent des blocs if/else complexes, qui peuvent rapidement devenir difficiles à maintenir, au point de vous décourager. Pourtant, une fonction n’a pas nécessairement vocation à être atomique ; il existe de nombreux cas d'utilisation et de raisons justifiant la création d’une fonction avec plusieurs points de terminaison : économiser sur les coûts d'exécution, consolider une surface d'API, améliorer la maintenabilité, etc.
 
 Cette bibliothèque résout ce problème en apportant une couche de routage simple mais puissante à vos fonctions Appwrite. Elle embarque le routeur léger d’[itty-router](https://itty.dev/itty-router/), vous permettant de définir des routes claires et déclaratives pour vos fonctions.
 
