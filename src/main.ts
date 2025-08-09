@@ -1,6 +1,6 @@
 import { inspect } from 'node:util';
 import { cors, RouterOptions, Router } from 'itty-router';
-import type { Request as UndiciRequestType } from 'undici';
+
 import type {
   AFRContextArgs,
   InternalObjects,
@@ -12,7 +12,7 @@ import type {
   Options,
   FinalOptions,
   RouterJSONResponse,
-  WrapperRequestType,
+  AFRRequest,
   logEnableFn,
 } from '../types/core';
 import '../types/global.d.ts'; // Import global declarations
@@ -23,14 +23,18 @@ const noop = (...args: any[]) => {};
 const isBoolean = (obj: unknown): obj is boolean => typeof obj === 'boolean';
 const isFunction = (obj: unknown): obj is CallableFunction =>
   obj instanceof Function;
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment =
+  process.env.NODE_ENV === 'development' ||
+  process.env.APP_ENV === 'development';
+const isTest =
+  process.env.NODE_ENV === 'test' || process.env.APP_ENV === 'test';
 
 /**
  * Default log activation callback: logs are enabled only in development.
  * Users can override this by passing their own function to handleRequest.
  */
 export const defaultLogFn: logEnableFn = (mode: 'log' | 'errorLog') =>
-  isDevelopment;
+  isDevelopment || isTest;
 
 const isJSONLikeRequest = (req: AppwriteRequest) =>
   // There so many JSON-like content types, our best bet is to be agnostic.
@@ -47,7 +51,7 @@ export async function corsPreflightMiddleware(
   log: DefaultLogger,
   error: ErrorLogger,
   internals: InternalObjects & {
-    preflight: (req: UndiciRequestType) => Response | undefined;
+    preflight: (req: Request) => Response | undefined;
   }
 ) {
   const response = internals.preflight(internals.request);
@@ -70,7 +74,7 @@ export async function corsFinallyMiddleware(
   log: DefaultLogger,
   error: ErrorLogger,
   internals: InternalObjects & {
-    corsify: (res: Response, req: UndiciRequestType) => Response;
+    corsify: (res: Response, req: Request) => Response;
   }
 ) {
   if (responseFromRoute) {
@@ -104,11 +108,11 @@ export async function corsFinallyMiddleware(
 export function createRouter({
   ...args
 }: RouterOptions<
-  WrapperRequestType,
+  AFRRequest,
   [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[]
 > = {}) {
   return Router<
-    WrapperRequestType,
+    AFRRequest,
     [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[],
     AppwriteResponse
   >({
@@ -253,20 +257,8 @@ export async function runRouter(
   const route = new URL(url);
 
   // Build the nativeRequest for internal use (CORS, etc.)
-  let nativeRequest: Request;
-  if (typeof Request !== 'undefined') {
-    nativeRequest = new Request(url, { headers, method });
-  } else {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { Request: UndiciRequest } = require('undici');
-      nativeRequest = new UndiciRequest(url, { headers, method });
-    } catch {
-      throw new Error(
-        'No compatible Request constructor found in this environment.'
-      );
-    }
-  }
+  // Node 18+ and all modern runtimes provide the global Request API
+  let nativeRequest: Request = new Request(url, { headers, method });
 
   const response = await router.fetch(
     req, // AppwriteRequest (an itty-router’s RequestLike object)
@@ -405,6 +397,7 @@ export async function handleRequest(
 
     const response = await runRouter(router, { req, res, log, error });
     if (!response) {
+      // TODO: abide by request’s Accept header (fallback to Content-type, then to text/plain)
       return res.text('Not Found', 404);
     }
     return response;

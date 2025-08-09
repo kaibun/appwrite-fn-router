@@ -304,7 +304,11 @@ interface Widgets {
     @path id: string,
   ): AnalyzeResult | InternalServerErrorResponse | ErrorResponse;
 
-  /** Accessing the daily secret widget is a premium feature requiring authentication */
+  /**
+   * Accessing the daily secret widget is a premium feature!
+   *
+   * Pass in an Authorization header with a "Bearer token" value.
+   * */
   @route("/secret")
   @tag("Secret Widget")
   @useAuth(BearerAuth)

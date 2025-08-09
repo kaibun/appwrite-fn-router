@@ -144,7 +144,10 @@ paths:
   /widgets/secret:
     get:
       operationId: Widgets_secretOperation
-      description: Accessing the daily secret widget is a premium feature requiring authentication
+      description: |-
+        Accessing the daily secret widget is a premium feature!
+
+        Pass in an Authorization header with a "Bearer token" value.
       parameters: []
       responses:
         '200':

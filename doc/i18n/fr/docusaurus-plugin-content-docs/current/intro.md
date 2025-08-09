@@ -25,7 +25,7 @@ La bibliothèque gère automatiquement la conversion entre le [contexte de fonct
 
 ```ts
 // highlight-start
-import type { Context, JSONObject, ResponseObject } from "appwrite-fn-router"
+import type { AppwriteContext ResponseObject } from "appwrite-fn-router"
 import { handleRequest } from "appwrite-fn-router";
 import { myRouteHandler } from "./routes";
 // highlight-end
@@ -36,11 +36,11 @@ type MyJSONResponse = {
   status: 'success' | 'error';
   message: string;
   error?: string;
-} & JSONObject;
+};
 // highlight-end
 
 // Cette fonction asynchrone est votre gestionnaire de fonction obligatoire standard d'Appwrite :
-export default async (context: Context) => {
+export default async (context: AppwriteContext) => {
   // On peut exploiter les propriétés du contexte fournies par Appwrite si nécessaire :
   // const { req, res, log, error } = context;
 
@@ -55,7 +55,7 @@ export default async (context: Context) => {
     // ces éléments comme arguments permet d'importer des gestionnaires de route définis en dehors
     // de cette fermeture (voir myRouteHandler ci-dessous).
     // highlight-start
-    router.get('/hello', (request, req, res, log, error) => {
+    router.get('/hello', (req, res, log, error) => {
       return res.json({
         status: 'success',
         message: 'Bonjour, le monde !',
@@ -66,7 +66,7 @@ export default async (context: Context) => {
     // Un gestionnaire de route peut être asynchrone, tant qu'il renvoie finalement un
     // ResponseObject d'Appwrite.
     // highlight-start
-    router.post('/data', async (request, req, res, log, error) => {
+    router.post('/data', async (req, res, log, error) => {
       const data = await req.bodyJson;
       return res.json({
         received: data,

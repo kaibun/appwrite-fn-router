@@ -5,7 +5,7 @@ This library is a wrapper for [Itty’s `Router`](https://itty.dev/itty-router/c
 ## Usage
 
 ```ts
-import type { Context, JSONObject, ResponseObject } from "appwrite-fn-router"
+import type { AppwriteContext, AppwriteResponseObject, JSONObject } from "appwrite-fn-router"
 import { handleRequest } from "appwrite-fn-router";
 import { myRouteHandler } from "./routes";
 
@@ -17,7 +17,7 @@ type MyJSONResponse = {
 } & JSONObject;
 
 // This async function is your regular Appwrite’s mandatory function handler:
-export default async (context: Context) => {
+export default async (context: AppwriteContext) => {
   // One may leverage Appwrite’s provided context properties if need be:
   // const { req, res, log, error } = context;
 
@@ -34,7 +34,7 @@ export default async (context: Context) => {
       return res.json({
         status: 'success',
         message: 'Hello, world!',
-      }) satisfies ResponseObject<MyJSONResponse>;
+      }) satisfies AppwriteResponseObject<MyJSONResponse>;
     });
 
     router.post('/data', async (request, req, res, log, error) => {

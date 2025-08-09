@@ -12,8 +12,8 @@ export type InternalObjects = {
   [key: any]: unknown; // Allows for additional properties to be added dynamically
 };
 
-export type AFRContext = Context & {
-  req: WrapperRequestType;
+export type AFRContext = AppwriteContext & {
+  req: AFRRequest;
   internals: InternalObjects;
 };
 
@@ -22,7 +22,7 @@ export type AFRContext = Context & {
  *
  * It extends the standard Appwrite `Context` with the following tweaks:
  *
- * - `req` is a `WrapperRequestType` (which includes all AppwriteRequest properties and getters)
+ * - `req` is a `AFRRequest` (which includes all AppwriteRequest properties and getters)
  * - `internals` is an optional object that can hold additional internal state or objects.
  *
  * You may still pass any additional arguments to the context. They they will be ignored by the library, but will show up in your route handlers and
@@ -45,41 +45,24 @@ export type CatchHandler = (...args: [Error, ...AFRContextArgs]) => any;
 export type Headers = Record<string, string>;
 export type JSONObject = Record<string, unknown>;
 
-export type ResponseObject<T = any> = {
+export type AppwriteResponseObject<T = any> = {
   body: T;
-  headers: Headers;
+  headers?: Headers;
   statusCode: number;
   toString(): string;
-};
-
-export type RunArgs = {
-  data: {
-    domainSlice: string;
-  };
 };
 
 export type Options = {
   globals?: boolean;
   env?: boolean;
-  // log?: boolean;
-  // errorLog?: boolean;
   logs?: logEnableFn | boolean;
   cors?: {
     allowedOrigins?: (string | RegExp)[];
     allowMethods?: string[];
     allowHeaders?: string[];
   };
-  ittyOptions?: // [key: string]: (
-  //   err: unknown,
-  //   req: AppwriteRequest,
-  //   res: AppwriteResponse,
-  //   log: DefaultLogger,
-  //   error: ErrorLogger,
-  //   internals: InternalObjects
-  //   [key: string]: any;
-  // ) => void;
-  RouterOptions<
-    WrapperRequestType,
+  ittyOptions?: RouterOptions<
+    AFRRequest,
     [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[]
   >;
 };
@@ -150,6 +133,6 @@ export type RouterJSONResponse = {
  * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers. Also, it allows the end-user to inject her own properties. Basically, it’s AppwriteRequest on steroids and fit for itty-router consumption.
  * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
  */
-export type WrapperRequestType = IRequest & AppwriteRequest;
+export type AFRRequest = IRequest & AppwriteRequest;
 
 export type logEnableFn = (mode: 'log' | 'errorLog') => boolean;

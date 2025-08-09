@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type {
-  JSONObject,
-  Request as AppwriteRequest,
-  WrapperRequestType,
-} from '../../types';
+import type { JSONObject, AppwriteRequest } from '../../types';
 
 // Type guard to check if an object conforms to AppwriteRequest
 function isAppwriteRequest(req: any): req is AppwriteRequest {

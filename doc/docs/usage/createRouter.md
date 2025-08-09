@@ -15,11 +15,11 @@ You typically don't need to call `createRouter` yourself, as an instance is crea
 ```typescript
 function createRouter(
   options?: RouterOptions<
-    AppwriteRequest,
+    AFRRequest,
     [AppwriteResponse, DefaultLogger, ErrorLogger] & any[]
   >
 ): Router<
-  AppwriteRequest,
+  AFRRequest,
   [AppwriteResponse, DefaultLogger, ErrorLogger] & any[],
   AppwriteResponseObject
 >;

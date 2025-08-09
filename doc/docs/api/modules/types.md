@@ -8,19 +8,58 @@ custom_edit_url: null
 
 ## Type Aliases
 
-### BufferFromArgTypes
+### AFRContext
 
-Ƭ **BufferFromArgTypes**: `Parameters`\<typeof `Buffer.from`\>[``0``]
+Ƭ **AFRContext**: [`AppwriteContext`](types.md#appwritecontext) & \{ `internals`: [`InternalObjects`](types.md#internalobjects) ; `req`: [`AFRRequest`](types.md#afrrequest)  }
 
 #### Defined in
 
-[types/core.d.ts:41](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L41)
+[types/core.d.ts:15](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L15)
 
 ___
 
-### Context
+### AFRContextArgs
 
-Ƭ **Context**: `Object`
+Ƭ **AFRContextArgs**: [[`AFRContext`](types.md#afrcontext)[``"req"``], [`AFRContext`](types.md#afrcontext)[``"res"``], [`AFRContext`](types.md#afrcontext)[``"log"``], [`AFRContext`](types.md#afrcontext)[``"error"``], [`AFRContext`](types.md#afrcontext)[``"internals"``], ...any[]]
+
+Type describing an Appwrite Function Router’s context.
+
+It extends the standard Appwrite `Context` with the following tweaks:
+
+- `req` is a `AFRRequest` (which includes all AppwriteRequest properties and getters)
+- `internals` is an optional object that can hold additional internal state or objects.
+
+You may still pass any additional arguments to the context. They they will be ignored by the library, but will show up in your route handlers and
+middlewares for you to use.
+
+Don’t forget you may also use the request object (first argument) as a mean
+to pass additional data to your callbacks, which may be more semantic.
+
+#### Defined in
+
+[types/core.d.ts:34](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L34)
+
+___
+
+### AFRRequest
+
+Ƭ **AFRRequest**: `IRequest` & [`AppwriteRequest`](types.md#appwriterequest)
+
+itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers. Also, it allows the end-user to inject her own properties. Basically, it’s AppwriteRequest on steroids and fit for itty-router consumption.
+
+**`See`**
+
+https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
+
+#### Defined in
+
+[types/core.d.ts:136](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L136)
+
+___
+
+### AppwriteContext
+
+Ƭ **AppwriteContext**: `Object`
 
 #### Type declaration
 
@@ -28,12 +67,121 @@ ___
 | :------ | :------ |
 | `error` | [`ErrorLogger`](types.md#errorlogger) |
 | `log` | [`DefaultLogger`](types.md#defaultlogger) |
-| `req` | [`Request`](types.md#request) |
-| `res` | [`Response`](types.md#response) |
+| `req` | [`AppwriteRequest`](types.md#appwriterequest) |
+| `res` | [`AppwriteResponse`](types.md#appwriteresponse) |
 
 #### Defined in
 
-[types/core.d.ts:71](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L71)
+[types/core.d.ts:119](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L119)
+
+___
+
+### AppwriteRequest
+
+Ƭ **AppwriteRequest**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `headers` | [`Headers`](types.md#headers) |
+| `host` | `string` |
+| `method` | ``"GET"`` \| ``"POST"`` \| ``"PUT"`` \| ``"DELETE"`` \| ``"PATCH"`` \| ``"OPTIONS"`` |
+| `path` | `string` |
+| `port` | `string` |
+| `query` | [`JSONObject`](types.md#jsonobject) |
+| `queryString` | `string` |
+| `scheme` | ``"http"`` \| ``"https"`` |
+| `url` | `string` |
+| `get body()` | `string` \| [`JSONObject`](types.md#jsonobject) |
+| `get bodyBinary()` | `Buffer` |
+| `get bodyJson()` | [`JSONObject`](types.md#jsonobject) |
+| `get bodyRaw()` | `string` |
+| `get bodyText()` | `string` |
+
+#### Defined in
+
+[types/core.d.ts:72](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L72)
+
+___
+
+### AppwriteResponse
+
+Ƭ **AppwriteResponse**: `Object`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `binary` | (`data`: [`BufferFromArgTypes`](types.md#bufferfromargtypes), `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => `ResponseObject`\<`string`\> |
+| `empty` | () => `ResponseObject` |
+| `redirect` | (`url`: `string`, `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => `ResponseObject`\<`string`\> |
+| `send` | (`body`: `string`, `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => `ResponseObject`\<`string`\> |
+| `text` | (`body`: `string`, `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => `ResponseObject`\<`string`\> |
+| `json` | \<DataType\>(`data`: `DataType`, `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => `ResponseObject`\<`DataType`\> |
+
+#### Defined in
+
+[types/core.d.ts:90](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L90)
+
+___
+
+### AppwriteResponseObject
+
+Ƭ **AppwriteResponseObject**\<`T`\>: `Object`
+
+#### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | `any` |
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `body` | `T` |
+| `headers?` | [`Headers`](types.md#headers) |
+| `statusCode` | `number` |
+| `toString` | () => `string` |
+
+#### Defined in
+
+[types/core.d.ts:48](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L48)
+
+___
+
+### BufferFromArgTypes
+
+Ƭ **BufferFromArgTypes**: `Parameters`\<typeof `Buffer.from`\>[``0``]
+
+#### Defined in
+
+[types/core.d.ts:89](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L89)
+
+___
+
+### CatchHandler
+
+Ƭ **CatchHandler**: (...`args`: [`Error`, ...AFRContextArgs]) => `any`
+
+#### Type declaration
+
+▸ (`...args`): `any`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `...args` | [`Error`, ...AFRContextArgs] |
+
+##### Returns
+
+`any`
+
+#### Defined in
+
+[types/core.d.ts:43](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L43)
 
 ___
 
@@ -57,7 +205,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:5](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L5)
+[types/core.d.ts:7](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L7)
 
 ___
 
@@ -81,7 +229,17 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:6](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L6)
+[types/core.d.ts:8](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L8)
+
+___
+
+### FinalOptions
+
+Ƭ **FinalOptions**: [`Options`](types.md#options) & \{ `errorLog`: `boolean` ; `log`: `boolean`  }
+
+#### Defined in
+
+[types/core.d.ts:70](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L70)
 
 ___
 
@@ -91,7 +249,27 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:8](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L8)
+[types/core.d.ts:45](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L45)
+
+___
+
+### InternalObjects
+
+Ƭ **InternalObjects**: `Object`
+
+#### Index signature
+
+▪ [key: `any`]: `unknown`
+
+#### Type declaration
+
+| Name | Type |
+| :------ | :------ |
+| `request` | `FetchRequest` |
+
+#### Defined in
+
+[types/core.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L10)
 
 ___
 
@@ -101,7 +279,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:9](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L9)
+[types/core.d.ts:46](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L46)
 
 ___
 
@@ -118,89 +296,13 @@ ___
 | `cors.allowMethods?` | `string`[] |
 | `cors.allowedOrigins?` | (`string` \| `RegExp`)[] |
 | `env?` | `boolean` |
-| `errorLog?` | `boolean` |
 | `globals?` | `boolean` |
-| `log?` | `boolean` |
-| `onError?` | (`err`: `unknown`) => `void` |
+| `ittyOptions?` | `RouterOptions`\<[`AFRRequest`](types.md#afrrequest), [[`AppwriteResponse`](types.md#appwriteresponse), [`DefaultLogger`](types.md#defaultlogger), [`ErrorLogger`](types.md#errorlogger), [`InternalObjects`](types.md#internalobjects)] & `any`[]\> |
+| `logs?` | [`logEnableFn`](types.md#logenablefn) \| `boolean` |
 
 #### Defined in
 
-[types/core.d.ts:79](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L79)
-
-___
-
-### Request
-
-Ƭ **Request**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `headers` | [`Headers`](types.md#headers) |
-| `host` | `string` |
-| `method` | ``"GET"`` \| ``"POST"`` \| ``"PUT"`` \| ``"DELETE"`` \| ``"PATCH"`` \| ``"OPTIONS"`` |
-| `path` | `string` |
-| `port` | `string` |
-| `query` | [`JSONObject`](types.md#jsonobject) |
-| `queryString` | `string` |
-| `scheme` | ``"http"`` \| ``"https"`` |
-| `url` | `string` |
-| `get body()` | `string` \| [`JSONObject`](types.md#jsonobject) |
-| `get bodyBinary()` | `Buffer` |
-| `get bodyJson()` | [`JSONObject`](types.md#jsonobject) |
-| `get bodyRaw()` | `string` |
-| `get bodyText()` | `string` |
-
-#### Defined in
-
-[types/core.d.ts:24](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L24)
-
-___
-
-### Response
-
-Ƭ **Response**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `binary` | (`data`: [`BufferFromArgTypes`](types.md#bufferfromargtypes), `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => [`ResponseObject`](types.md#responseobject)\<`string`\> |
-| `empty` | () => [`ResponseObject`](types.md#responseobject) |
-| `redirect` | (`url`: `string`, `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => [`ResponseObject`](types.md#responseobject)\<`string`\> |
-| `send` | (`body`: `string`, `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => [`ResponseObject`](types.md#responseobject)\<`string`\> |
-| `text` | (`body`: `string`, `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => [`ResponseObject`](types.md#responseobject)\<`string`\> |
-| `json` | \<DataType\>(`data`: `DataType`, `statusCode?`: `number`, `headers?`: [`Headers`](types.md#headers)) => [`ResponseObject`](types.md#responseobject)\<`DataType`\> |
-
-#### Defined in
-
-[types/core.d.ts:42](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L42)
-
-___
-
-### ResponseObject
-
-Ƭ **ResponseObject**\<`T`\>: `Object`
-
-#### Type parameters
-
-| Name | Type |
-| :------ | :------ |
-| `T` | `any` |
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `body` | `T` |
-| `headers` | [`Headers`](types.md#headers) |
-| `statusCode` | `number` |
-| `toString` | () => `string` |
-
-#### Defined in
-
-[types/core.d.ts:11](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L11)
+[types/core.d.ts:55](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L55)
 
 ___
 
@@ -210,24 +312,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:92](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L92)
-
-___
-
-### RunArgs
-
-Ƭ **RunArgs**: `Object`
-
-#### Type declaration
-
-| Name | Type |
-| :------ | :------ |
-| `data` | \{ `domainSlice`: `string`  } |
-| `data.domainSlice` | `string` |
-
-#### Defined in
-
-[types/core.d.ts:18](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L18)
+[types/core.d.ts:126](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L126)
 
 ___
 
@@ -245,17 +330,31 @@ ___
 
 #### Defined in
 
-[types/widget.d.ts:3](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/widget.d.ts#L3)
+[types/widget.d.ts:3](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/widget.d.ts#L3)
 
 ___
 
-### WrapperRequestType
+### logEnableFn
 
-Ƭ **WrapperRequestType**: `IRequest`
+Ƭ **logEnableFn**: (`mode`: ``"log"`` \| ``"errorLog"``) => `boolean`
+
+#### Type declaration
+
+▸ (`mode`): `boolean`
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `mode` | ``"log"`` \| ``"errorLog"`` |
+
+##### Returns
+
+`boolean`
 
 #### Defined in
 
-[types/core.d.ts:100](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/core.d.ts#L100)
+[types/core.d.ts:138](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/core.d.ts#L138)
 
 ## Functions
 
@@ -275,7 +374,7 @@ obj is Widget
 
 #### Defined in
 
-[types/widget.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/widget.d.ts#L10)
+[types/widget.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/widget.d.ts#L10)
 
 ___
 
@@ -295,4 +394,4 @@ obj is Widget[]
 
 #### Defined in
 
-[types/widget.d.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/c6fa0ad/types/widget.d.ts#L20)
+[types/widget.d.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/1534e96/types/widget.d.ts#L20)
