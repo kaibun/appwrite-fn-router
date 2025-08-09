@@ -68,7 +68,7 @@ function DelayedScalar() {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { i18n } = useDocusaurusContext();
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { colorMode } = useColorMode();
+  const { colorMode, setColorMode } = useColorMode();
 
   // Manually sync the body class with the current theme.
   // This is a workaround for a Docusaurus issue where the body class
@@ -77,6 +77,50 @@ function DelayedScalar() {
     document.body.classList.remove('light-mode', 'dark-mode');
     document.body.classList.add(`${colorMode}-mode`);
   }, [colorMode]);
+
+  // --- DOM observer hack for Scalar theme toggle (observe <body> class) ---
+  useEffect(() => {
+    if (!isMounted) return;
+
+    function getBodyTheme() {
+      const classList = document.body.classList;
+      if (classList.contains('dark-mode')) return 'dark';
+      if (classList.contains('light-mode')) return 'light';
+      return null;
+    }
+
+    function syncHtmlDataTheme(theme: 'dark' | 'light' | null) {
+      const html = document.documentElement;
+      if (theme === 'dark' || theme === 'light') {
+        html.setAttribute('data-theme', theme);
+        html.setAttribute('data-theme-choice', theme);
+      }
+    }
+
+    // Initial sync
+    const bodyTheme = getBodyTheme();
+    if (bodyTheme && bodyTheme !== colorMode) {
+      setColorMode(bodyTheme);
+      syncHtmlDataTheme(bodyTheme);
+    }
+
+    const observer = new MutationObserver(() => {
+      const newTheme = getBodyTheme();
+      if (newTheme) {
+        syncHtmlDataTheme(newTheme);
+        if (newTheme !== colorMode) {
+          setColorMode(newTheme);
+        }
+      }
+    });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted, setColorMode]);
 
   // Render a spinner until the component is mounted.
   if (!isMounted) {
