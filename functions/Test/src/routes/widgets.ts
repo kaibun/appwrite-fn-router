@@ -51,13 +51,8 @@ router.post('/', async (req, res, _log, _error) => {
       );
     }
     _error(String(e));
-    return res.json(
-      {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'An unexpected error occurred',
-      },
-      500
-    );
+    // Laisser la gestion de l'erreur à la librairie/appwrite-fn-router
+    throw e;
   }
 });
 
@@ -105,13 +100,8 @@ router.patch('/:id', async (req, res, _log, _error) => {
       );
     }
     _error(String(e));
-    return res.json(
-      {
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'An unexpected error occurred',
-      },
-      500
-    );
+    // Laisser la gestion de l'erreur à la librairie/appwrite-fn-router
+    throw e;
   }
 });
 

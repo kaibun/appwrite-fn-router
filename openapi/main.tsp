@@ -7,15 +7,54 @@ using Http;
 using OpenAPI;
 using Versioning;
 /**
- * Welcome to this fake-yet-live API for testing Appwrite Function Router!
- *
+ * Welcome to the Widgets API for testing Appwrite Function Router!
+
+ * **This is a live API that is [implemented as an Appwrite Function](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test) that uses the very Appwrite Function Router library**.
+
  * This API is designed to demonstrate and test the capabilities of the library.
- * It includes various operations for managing so-called "widgets", including creating, reading, updating, and deleting them in a RESTful manner.
- * It also includes non-standard operations, such as "analyzing widgets", and "accessing a secret widget" which requires authentication with a Bearer token.
+ * It showcases how to use AFR and its router to manage a fake resource "widgets": creating, reading, updating, and deleting them in a RESTful manner, as well as some non-standard operations, such as "analyzing widgets", and "accessing a secret widget" (which requires authentication with a Bearer token).
  *
- * **The API is of course [implemented as an Appwrite Function](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test) which uses the Appwrite Function Router library**. Upon triggering a query, it is expected the function will successfully execute the matching endpoints and return the expected response.
+ * Here’s what the actual code looks like (non-exhaustive):
+ *
+ * ```typescript
+ * import { inspect } from 'node:util';
+ * import type { AppwriteContext, CatchHandler } from '@kaibun/appwrite-fn-router';
+ * import { handleRequest } from '@kaibun/appwrite-fn-router';
+ * // The /widgets routes are defined in a separate file,
+ * // and you’ll get to see each exported route handler in
+ * // the examples associated to the different routes below.
+ * import widgetsRouter from './routes/widgets.ts';
+ *
+ * // The API routes
+ * function routes(router: ReturnType<typeof createRouter>) {
+ *   router.all('/widgets*', widgetsRouter.fetch);
+ *   router.all('*', (req, res) => res.json({ message: "?!" }, 404));
+ * }
+ * 
+ * // Global request routing/processing error catcher
+ * const catchHandler: CatchHandler = (err, req, res, log, error) => {
+ *   error(err ? inspect(err) : 'Unknown error');
+ *   errorService.send(err, req);
+ *   throw err; // re-throwing triggers library’s default error handling
+ * };
+ *
+ * // Appwrite Function entrypoint
+ * export default async function main(context: AppwriteContext) {
+ *   return await handleRequest(context, routes, {
+ *     ittyOptions: {
+ *       catch: catchHandler,
+ *     },
+ *   });
+ * }
+ * ```
+ * 
+ * <scalar-button title="test" href="http://google.com"></scalar-button>
+ * 
+ * <scalar-callout type="info" title="Note importante">
+ * Ce point est crucial pour l’utilisation de l’API.
+ * </scalar-callout>
  * */
-@service(#{ title: "The Widget API" })
+@service(#{ title: "The Widgets API" })
 @info(#{
   `x-termsOfService`: "https://appwrite-fn-router.appwrite.io/terms",
   `x-version`: "1.0.0",
@@ -206,7 +245,21 @@ model InternalServerErrorResponse {
 @tag("Widgets")
 interface Widgets {
   /**
-   * List widgets
+   * Retrieve the list of widgets.
+   *
+   * ```typescript
+   * // GET /widgets => List widgets
+   * router.get('/', (_req, res, _log, _error) => {
+   *   const response = res.json({
+   *     items: [
+   *       { id: 'widget1', weight: 10, color: 'red' },
+   *       { id: 'widget2', weight: 20, color: 'blue' },
+   *     ],
+   *   });
+   *   return response;
+   * });
+   * ```
+   *
    * @param locale The locale for the request.
    * @param clientVersion The client version for the request.
    */
@@ -222,7 +275,19 @@ interface Widgets {
   ): WidgetListResponse | InternalServerErrorResponse | ErrorResponse;
 
   /**
-   * Read widgets
+   * Retrieve a specific widget.
+   *
+   * ```typescript
+   * // GET /widgets/{id} => Retrieve a specific widget
+   * router.get('/:id', (req, res, _log, _error) => {
+   *   const { id } = req.params;
+   *   if (id === 'not-found') {
+   *     return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
+   *   }
+   *   return res.json({ id, weight: 10, color: 'red' });
+   * });
+   * ```
+   *
    * @param id The ID of the widget to retrieve.
    */
   @opExample(#{
@@ -237,7 +302,46 @@ interface Widgets {
     | ErrorResponse;
 
   /**
-   * Create a widget
+   * Create a widget.
+   *
+   * ```typescript
+   * // POST /widgets => Create a widget
+   * router.post('/', async (req, res, _log, _error) => {
+   *   try {
+   *     const body = req.bodyJson as Partial<Widget>;
+   *     if (typeof body.weight !== 'number' || !body.color) {
+   *       return res.json(
+   *         {
+   *           code: 'VALIDATION_ERROR',
+   *           message: 'Missing required fields',
+   *           errors: ['weight and color are required'],
+   *         },
+   *         400
+   *       );
+   *     }
+   *     const newWidget: Widget = {
+   *       id: `widget-${Date.now()}`,
+   *       weight: body.weight,
+   *       color: body.color,
+   *     };
+   *     return res.json(newWidget, 201);
+   *   } catch (e) {
+   *     if (e instanceof SyntaxError) {
+   *       return res.json(
+   *         {
+   *           code: 'BAD_REQUEST',
+   *           message: 'Invalid JSON in request body',
+   *         },
+   *         400
+   *       );
+   *     }
+   *     _error(String(e));
+   *     // Let the error be handled by the framework
+   *     throw e;
+   *   }
+   * });
+   * ```
+   *
    * @param body The widget to create.
    */
   @opExample(#{
@@ -254,7 +358,40 @@ interface Widgets {
     | ErrorResponse;
 
   /**
-   * Update a widget
+   * Update a widget.
+   *
+   * ```typescript
+   * // PATCH /widgets/{id} => Update a widget
+   * router.patch('/:id', async (req, res, _log, _error) => {
+   *   try {
+   *     const { id } = req.params;
+   *     if (id === 'not-found') {
+   *       return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
+   *     }
+   *     const body = req.bodyJson as Partial<Widget>;
+   *     const updatedWidget: Widget = {
+   *       id,
+   *       weight: body.weight ?? 10,
+   *       color: body.color ?? 'red',
+   *     };
+   *     return res.json(updatedWidget);
+   *   } catch (e) {
+   *     if (e instanceof SyntaxError) {
+   *       return res.json(
+   *         {
+   *           code: 'BAD_REQUEST',
+   *           message: 'Invalid JSON in request body',
+   *         },
+   *         400
+   *       );
+   *     }
+   *     _error(String(e));
+   *     // Let the error be handled by the framework
+   *     throw e;
+   *   }
+   * });
+   * ```
+   *
    * @param id The ID of the widget to update.
    * @param body The widget data to update.
    */
@@ -275,7 +412,19 @@ interface Widgets {
     | ErrorResponse;
 
   /**
-   * Delete a widget
+   * Delete a widget.
+   *
+   * ```typescript
+   * // DELETE /widgets/{id} => Delete a widget
+   * router.delete('/:id', (req, res, _log, _error) => {
+   *   const { id } = req.params;
+   *   if (id === 'not-found') {
+   *     return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
+   *   }
+   *   return res.send('', 204);
+   * });
+   * ```
+   *
    * @param id The ID of the widget to delete.
    */
   @opExample(#{ parameters: #{ id: "widget1" } })
@@ -288,7 +437,20 @@ interface Widgets {
     | ErrorResponse;
 
   /**
-   * Analyze a widget
+   * Analyze a widget.
+   *
+   * ```typescript
+   * // POST /widgets/{id} => Analyze a widget
+   * router.post('/:id', (req, res, _log, _error) => {
+   *   const { id } = req.params;
+   *   return res.json({
+   *     statusCode: 200,
+   *     id,
+   *     analysis: 'This widget is amazing!',
+   *   });
+   * });
+   * ```
+   *
    * @param id The ID of the widget to analyze.
    */
   @opExample(#{
@@ -308,7 +470,19 @@ interface Widgets {
    * Accessing the daily secret widget is a premium feature!
    *
    * Pass in an Authorization header with a "Bearer token" value.
-   * */
+   *
+   * ```typescript
+   * // GET /widgets/secret => Accessing the daily secret widget (requires Bearer token)
+   * router.get('/secret', (req, res, _log, _error) => {
+   *   const authHeader =
+   *     req.headers['Authorization'] || req.headers['authorization'];
+   *   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+   *     return res.json({ code: 'UNAUTHORIZED', message: 'Unauthorized' }, 401);
+   *   }
+   *   return res.json({ id: 'widget-secret', weight: 200, color: 'gold' });
+   * });
+   * ```
+   */
   @route("/secret")
   @tag("Secret Widget")
   @useAuth(BearerAuth)
