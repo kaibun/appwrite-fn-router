@@ -4,14 +4,6 @@ sidebar_position: 2
 
 # `handleRequest`
 
-## Philosophie : une API familière, des entrailles surchargées
-
-Lorsque vous utilisez cette bibliothèque, vos gestionnaires de route reçoivent toujours quatre arguments : `req`, `res`, `log` et `error`. Cela correspond exactement à l’API Appwrite standard, donc l’adoption du routeur ne change ni votre logique ni la structure de votre code.
-
-**API simplifiée :** Le paramètre `req` est strictement un objet AppwriteRequest, sans fusion ni surcouche. L’API utilisateur reste donc 100% compatible Appwrite, sans surprise ni comportement caché. Le routeur utilise en interne un objet Request natif si besoin, mais cela ne concerne pas l’utilisateur.
-
-**Note :** Si vous avez un besoin avancé d’accéder à l’objet Request natif (Web API), il peut être exposé en cinquième argument optionnel, mais ce n’est pas documenté pour l’utilisateur standard.
-
 La fonction `handleRequest` est le point d'entrée principal de votre fonction Appwrite lorsque vous utilisez ce routeur. Elle configure l'environnement, initialise le routeur avec vos routes et votre configuration, et gère les requêtes entrantes.
 
 C'est probablement la seule méthode que vous aurez besoin d'appeler pour utiliser cette bibliothèque.
@@ -26,81 +18,116 @@ async function handleRequest(
 ): Promise<AppwriteResponseObject | undefined>;
 ```
 
-- `context` : L'objet de contexte de fonction Appwrite standard (`req`, `res`, `log`, `error`).
-- `withRouter` : Une fonction de rappel où vous définissez toutes vos routes en appelant des méthodes sur l'instance `router` fournie.
-- `options` : Un objet de configuration facultatif pour personnaliser le comportement du routeur.
+### Paramètres
+
+- `context` : L’objet contexte standard d’une fonction Appwrite (`{ req, res, log, error }`).
+- `withRouter` : Une fonction de rappel où vous définissez toutes vos routes en utilisant les méthodes d’[itty-router](https://itty.dev/itty-router/getting-started#_3-register-routes) sur l’instance [`Router`](https://itty.dev/itty-router/api#router) fournie.
+- `options` : Un objet de configuration optionnel pour personnaliser le comportement d’AFR et de son routeur interne.
+
+### Valeur de retour
+
+Une promesse d’[AppwriteResponseObject](/api/modules/types#responseobject) ou le littéral `undefined`. La fonction peut lever une exception.
 
 ## Options
 
-L'objet `options` vous permet de configurer divers aspects du routeur :
+L’objet `options` permet de configurer divers aspects du routeur :
 
-| Option     | Type                                                                                                  | Défaut      | Description                                                                                                                                                                                                                             |
-| ---------- | ----------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `globals`  | `boolean`                                                                                             | `true`      | Si `true`, rend `log` et `error` disponibles en tant que fonctions globales.                                                                                                                                                            |
-| `env`      | `boolean`                                                                                             | `true`      | Si `true`, définit la variable d'environnement `APPWRITE_FUNCTION_API_KEY` à partir de l'en-tête `x-appwrite-key`.                                                                                                                      |
-| `log`      | `boolean`                                                                                             | `true`      | Active ou désactive la journalisation.                                                                                                                                                                                                  |
-| `errorLog` | `boolean`                                                                                             | `true`      | Active ou désactive la journalisation des erreurs.                                                                                                                                                                                      |
-| `onError`  | `(err: unknown, req: AppwriteRequest, res: AppwriteResponse, log: Function, error: Function) => void` | `undefined` | Fonction appelée à chaque erreur non interceptée dans un handler ou middleware. Reçoit l'erreur et le contexte Appwrite (`req`, `res`, `log`, `error`). Permet de logger, reporter ou personnaliser la gestion des erreurs globalement. |
-| `cors`     | `object`                                                                                              | `{...}`     | Configuration pour le partage des ressources entre origines (CORS). Voir ci-dessous pour plus de détails.                                                                                                                               |
+| Option    | Type                                                                                                          | Par défaut                                                     | Description                                                                                                                                                                                                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `globals` | `boolean`                                                                                                     | `true`                                                         | Si `true`, promeut certaines variables en globales, comme `log` et `error`.                                                                                                                                                                                                                   |
+| `env`     | `boolean`                                                                                                     | `true`                                                         | Si `true`, promeut certains headers en variables d’environnement, comme `x-appwrite-key` devenant `APPWRITE_FUNCTION_API_KEY`.                                                                                                                                                                |
+| `logs`    | `boolean \| (mode: "log" \| "errorLog") => boolean`                                                           | `true` si `NODE_ENV` ou `APP_ENV` vaut "development" ou "test" | Active ou désactive les logs et logs d’erreur. Peut être un booléen ou une fonction callback recevant un mode (appelée deux fois, pour chaque mode). Par défaut, les logs sont activés uniquement en développement et test.                                                                   |
+| `catch`   | `(err: unknown, req: AppwriteRequest, res: AppwriteResponse, log: DefaultLogger, error: ErrorLogger) => void` | `undefined`                                                    | Gestionnaire d’erreur personnalisé appelé à chaque erreur non gérée dans un handler ou middleware. Reçoit l’erreur et le contexte AFR (`req`, `res`, `log`, `error`). Permet de logger, reporter ou personnaliser la gestion d’erreur globalement. La signature est adaptée pour itty-router. |
+| `cors`    | `object`                                                                                                      | `{...}`                                                        | Configuration du CORS (Cross-Origin Resource Sharing).                                                                                                                                                                                                                                        |
 
-### Gestion globale des erreurs avec `onError`
+### Contrôle du logging avec `logs`
 
-Vous pouvez fournir un gestionnaire d’erreurs personnalisé via l’option `onError`. Ce callback est invoqué à chaque fois qu’une erreur non interceptée survient dans un handler ou un middleware. Il reçoit l’erreur ainsi que le contexte Appwrite (`req`, `res`, `log`, `error`). Utilisez-le pour logger, envoyer à un service de monitoring, ou personnaliser la réponse d’erreur globalement.
+Vous pouvez contrôler globalement les logs via l’option `logs` :
+
+- Un booléen (`true` ou `false`) pour activer/désactiver tous les logs (y compris les erreurs).
+- Une fonction callback `(mode: "log" \| "errorLog") => boolean`, appelée deux fois par la librairie avec chaque mode, qui retourne `true` pour activer ce mode ou `false` pour le désactiver. Par défaut, les deux modes sont actifs en développement et test (`process.env.[APP_ENV|NODE_ENV] === ['development'|'test']`).
+
+Exemple :
 
 ```typescript
-import { handleRequest } from 'appwrite-fn-router';
-
-export default async ({ req, res, log, error }) => {
-  return await handleRequest(
-    { req, res, log, error },
-    (router) => {
-      // Définissez vos routes ici
-    },
-    {
-      onError: (err, req, res, log, error) => {
-        // Log ou reporting custom avec tout le contexte
-        log('Erreur interceptée par onError :', err);
-        // Vous pouvez aussi utiliser req, res, error, etc.
-      },
-    }
-  );
-};
+handleRequest(
+  context,
+  (router) => {
+    // ...
+  },
+  {
+    // Active uniquement les logs d’erreur, et seulement si un header custom est présent.
+    logs: (mode) => mode === 'errorLog' && req.headers['x-debug'] === '1',
+  }
+);
 ```
 
-### Configuration CORS
+### Gestion globale des erreurs avec `catch`
 
-Vous pouvez fournir une configuration CORS flexible pour contrôler la manière dont votre fonction répond aux requêtes provenant de différentes origines.
+Bien que AFR gère les erreurs par défaut avec une réponse 500 "Internal Server Error", vous pouvez fournir un gestionnaire personnalisé via l’option `catch`.
 
-L'objet d'option `cors` a les propriétés suivantes :
+Ce callback est appelé à chaque erreur non gérée dans un handler ou middleware. Il reçoit l’erreur et un contexte AFR partiel (`req`, `res`, `log`, `error` mais pas `internals`). Utilisez-le pour logger, reporter ou personnaliser la réponse d’erreur globalement. Vous pouvez aussi relancer l’erreur pour déclencher le handler par défaut d’AFR.
 
-- `allowedOrigins` : Un tableau de chaînes de caractères ou d'objets `RegExp` pour les origines autorisées.
-- `allowMethods` : Un tableau des méthodes HTTP autorisées.
-- `allowHeaders` : Un tableau des en-têtes de requête autorisés.
+```typescript
+handleRequest(
+  { req, res, log, error },
+  (router) => {
+    // ...
+  },
+  {
+    catch: (err, req, res, log, error) => {
+      // Logging ou reporting personnalisé.
+      log('Erreur interceptée par catch :', err);
+      // Vous pouvez aussi utiliser req, res, error, etc.
+    },
+  }
+);
+```
+
+### Configuration CORS avec `cors`
+
+Vous pouvez configurer finement le CORS pour contrôler comment votre fonction répond aux requêtes provenant d’autres origines.
+
+L’objet `cors` accepte les propriétés suivantes :
+
+- `allowedOrigins` : Un tableau de chaînes ou de RegExp pour les origines autorisées.
+- `allowMethods` : Un tableau des méthodes HTTP autorisées.
+- `allowHeaders` : Un tableau des headers autorisés.
+
+:::note
+
+Pour un développement local plus fluide, en environnement "development" ou "test", `http://localhost:3000` (ex : [Test Function](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test)) et `https://localhost:3001` (ex : [Docusaurus](https://github.com/kaibun/appwrite-fn-router/tree/main/doc)) sont automatiquement ajoutés à la liste des origines autorisées. Cela permet d’envoyer des requêtes CORS entre ports localhost.
+
+:::
 
 ## Exemple
 
-Voici à quoi devrait ressembler l’utilisation de `handleRequest`, y compris la configuration CORS pour autoriser les requêtes provenant, dans cet exemple, de votre domaine de production.
+Voici comment utiliser `handleRequest`, y compris la configuration CORS pour autoriser votre domaine de production. Attention, `handleRequest` est une fonction asynchrone, il faut donc toujours l’`await` (et généralement la `return`).
 
 ```typescript
-// src/main.ts
-import { handleRequest } from 'appwrite-fn-router';
+import { handleRequest, AppwriteResponseObject } from 'appwrite-fn-router';
 
 export default async ({ req, res, log, error }) => {
   return await handleRequest(
     { req, res, log, error },
     (router) => {
-      // Définissez vos routes ici
-      // Exemple :
       router.get('/', (req, res, log, error) => {
-        return res.send('Bonjour, le monde !');
+        return res.send('Hello, World!');
       });
-      router.get('/', () => ({ message: 'Bonjour le monde !' }));
+      router.get(
+        '/foo',
+        () =>
+          ({
+            statusCode: 200,
+            body: 'bar',
+          }) satisfies AppwriteResponseObject<string>
+      );
     },
     {
       cors: {
         allowedOrigins: [
-          'https://my-domain.com',
-          /.*\.subdomain\.somedomain\.tld$/, // vous pouvez utiliser des regex
+          'https://mon-domaine.com',
+          /.*\.subdomain\.somedomain\.tld$/,
         ],
         allowMethods: ['GET', 'POST', 'PUT'],
         allowHeaders: ['Content-Type', 'Authorization', 'X-Custom-Header'],
@@ -109,5 +136,3 @@ export default async ({ req, res, log, error }) => {
   );
 };
 ```
-
-**Remarque :** Pour le développement local, `http://localhost:3000` (la [fonction de test](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test)) et `https://localhost:3001` ([ce même processus Docusaurus](https://github.com/kaibun/appwrite-fn-router/tree/main/doc)) sont automatiquement ajoutés à la liste `allowedOrigins`, à condition que `NODE_ENV` ne soit pas défini sur `production`. Cela permet d'envoyer des requêtes CORS entre les différents ports du localhost.

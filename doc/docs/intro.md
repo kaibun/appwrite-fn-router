@@ -25,7 +25,7 @@ The library automatically handles the conversion between [Appwrite's function co
 
 ```ts
 // highlight-start
-import type { Context, JSONObject, ResponseObject } from "appwrite-fn-router"
+import type { AppwriteContext, ResponseObject } from "appwrite-fn-router"
 import { handleRequest } from "appwrite-fn-router";
 import { myRouteHandler } from "./routes";
 // highlight-end
@@ -36,11 +36,11 @@ type MyJSONResponse = {
   status: 'success' | 'error';
   message: string;
   error?: string;
-} & JSONObject;
+};
 // highlight-end
 
 // This async function is your regular Appwrite’s mandatory function handler:
-export default async (context: Context) => {
+export default async (context: AppwriteContext) => {
   // One may leverage Appwrite’s provided context properties if need be:
   // const { req, res, log, error } = context;
 
@@ -55,7 +55,7 @@ export default async (context: Context) => {
     // these as arguments allows for importing route handlers defined outside
     // this very closure (see myRouteHandler below).
     // highlight-start
-    router.get('/hello', (request, req, res, log, error) => {
+    router.get('/hello', (req, res, log, error) => {
       return res.json({
         status: 'success',
         message: 'Hello, world!',
@@ -66,7 +66,7 @@ export default async (context: Context) => {
     // A route handler may be asynchronous, as long as it eventually returns an
     // Appwrite’s ResponseObject.
     // highlight-start
-    router.post('/data', async (request, req, res, log, error) => {
+    router.post('/data', async (req, res, log, error) => {
       const data = await req.bodyJson;
       return res.json({
         received: data,
