@@ -1,7 +1,6 @@
 import { inspect } from 'node:util';
 
 import type {
-  AFRContextArgs,
   AppwriteContext,
   CatchHandler,
 } from '@kaibun/appwrite-fn-router/types';

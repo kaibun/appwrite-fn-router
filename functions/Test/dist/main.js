@@ -262,13 +262,7 @@ router.post("/", async (req, res, _log, _error) => {
       );
     }
     _error(String(e));
-    return res.json(
-      {
-        code: "INTERNAL_SERVER_ERROR",
-        message: "An unexpected error occurred"
-      },
-      500
-    );
+    throw e;
   }
 });
 router.get("/secret", (req, res, _log, _error) => {
@@ -309,13 +303,7 @@ router.patch("/:id", async (req, res, _log, _error) => {
       );
     }
     _error(String(e));
-    return res.json(
-      {
-        code: "INTERNAL_SERVER_ERROR",
-        message: "An unexpected error occurred"
-      },
-      500
-    );
+    throw e;
   }
 });
 router.delete("/:id", (req, res, _log, _error) => {
