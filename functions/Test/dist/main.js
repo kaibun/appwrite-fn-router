@@ -223,33 +223,62 @@ async function handleRequest(context, withRouter, options = {}) {
 
 // src/routes/widgets.ts
 var router = createRouter({ base: "/widgets" });
-router.get("/", (_req, res, _log, _error) => {
-  const response = res.json({
-    items: [
-      { id: "widget1", weight: 10, color: "red" },
-      { id: "widget2", weight: 20, color: "blue" }
-    ]
-  });
-  return response;
+var widgets = {};
+var nextId = 1;
+router.get("/", (_req, res) => {
+  return res.json({ items: Object.values(widgets) });
 });
 router.post("/", async (req, res, _log, _error) => {
   try {
     const body = req.bodyJson;
-    if (typeof body.weight !== "number" || !body.color) {
+    if (Array.isArray(body)) {
+      const created = [];
+      const errors = [];
+      for (const item of body) {
+        if (typeof item.weight !== "number" || !item.color || !["red", "blue", "gold"].includes(String(item.color))) {
+          errors.push(
+            "weight and color (red|blue|gold) are required for all items"
+          );
+          continue;
+        }
+        const id2 = String(nextId++);
+        const newWidget2 = {
+          id: id2,
+          weight: item.weight,
+          color: item.color
+        };
+        widgets[id2] = newWidget2;
+        created.push(newWidget2);
+      }
+      if (created.length === 0) {
+        return res.json(
+          {
+            code: "VALIDATION_ERROR",
+            message: "No valid widgets to create",
+            errors
+          },
+          400
+        );
+      }
+      return res.json({ items: created, errors }, 201);
+    }
+    if (typeof body.weight !== "number" || !body.color || !["red", "blue", "gold"].includes(String(body.color))) {
       return res.json(
         {
           code: "VALIDATION_ERROR",
           message: "Missing required fields",
-          errors: ["weight and color are required"]
+          errors: ["weight and color (red|blue|gold) are required"]
         },
         400
       );
     }
+    const id = String(nextId++);
     const newWidget = {
-      id: `widget-${Date.now()}`,
+      id,
       weight: body.weight,
       color: body.color
     };
+    widgets[id] = newWidget;
     return res.json(newWidget, 201);
   } catch (e) {
     if (e instanceof SyntaxError) {
@@ -265,6 +294,13 @@ router.post("/", async (req, res, _log, _error) => {
     throw e;
   }
 });
+router.delete("/", (req, res) => {
+  const count = Object.keys(widgets).length;
+  for (const id of Object.keys(widgets)) {
+    delete widgets[id];
+  }
+  return res.json({ deleted: count });
+});
 router.get("/secret", (req, res, _log, _error) => {
   const authHeader = req.headers["Authorization"] || req.headers["authorization"];
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -272,25 +308,28 @@ router.get("/secret", (req, res, _log, _error) => {
   }
   return res.json({ id: "widget-secret", weight: 200, color: "gold" });
 });
-router.get("/:id", (req, res, _log, _error) => {
+router.get("/:id", (req, res) => {
   const { id } = req.params;
-  if (id === "not-found") {
+  const widget = widgets[id];
+  if (!widget) {
     return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
   }
-  return res.json({ id, weight: 10, color: "red" });
+  return res.json(widget);
 });
 router.patch("/:id", async (req, res, _log, _error) => {
   try {
     const { id } = req.params;
-    if (id === "not-found") {
+    const widget = widgets[id];
+    if (!widget) {
       return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
     }
     const body = req.bodyJson;
     const updatedWidget = {
       id,
-      weight: body.weight ?? 10,
-      color: body.color ?? "red"
+      weight: body.weight ?? widget.weight,
+      color: body.color ?? widget.color
     };
+    widgets[id] = updatedWidget;
     return res.json(updatedWidget);
   } catch (e) {
     if (e instanceof SyntaxError) {
@@ -306,11 +345,12 @@ router.patch("/:id", async (req, res, _log, _error) => {
     throw e;
   }
 });
-router.delete("/:id", (req, res, _log, _error) => {
+router.delete("/:id", (req, res) => {
   const { id } = req.params;
-  if (id === "not-found") {
+  if (!widgets[id]) {
     return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
   }
+  delete widgets[id];
   return res.send("", 204);
 });
 router.post("/:id", (req, res, _log, _error) => {
@@ -364,6 +404,9 @@ var main_default = async (context) => {
   };
   const response = await handleRequest(context, routes, {
     logs: process.env.NODE_ENV === "development",
+    cors: {
+      allowHeaders: ["Content-Type", "Authorization", "X-widget-user-id"]
+    },
     ittyOptions: {
       catch: CatchHandler
     }

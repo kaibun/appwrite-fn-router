@@ -62,6 +62,9 @@ export default async (context: AppwriteContext) => {
 
   const response = await handleRequest(context, routes, {
     logs: process.env.NODE_ENV === 'development',
+    cors: {
+      allowHeaders: ['Content-Type', 'Authorization', 'X-widget-user-id'],
+    },
     ittyOptions: {
       catch: CatchHandler,
     },

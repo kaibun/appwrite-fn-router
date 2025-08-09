@@ -9,36 +9,78 @@ export type { Widget };
  */
 const router = createRouter({ base: '/widgets' });
 
-// GET /widgets => List widgets
-router.get('/', (_req, res, _log, _error) => {
-  const response = res.json({
-    items: [
-      { id: 'widget1', weight: 10, color: 'red' },
-      { id: 'widget2', weight: 20, color: 'blue' },
-    ],
-  });
-  return response;
+// --- DÉMO PERSISTANTE EN MÉMOIRE ---
+// Stockage en mémoire (reset à chaque redémarrage du serveur)
+const widgets: Record<string, Widget> = {};
+let nextId = 1;
+
+// GET /widgets => Liste tous les widgets
+router.get('/', (_req, res) => {
+  return res.json({ items: Object.values(widgets) });
 });
 
-// POST /widgets => Create a widget
+// POST /widgets => Crée un ou plusieurs widgets (bulk)
 router.post('/', async (req, res, _log, _error) => {
   try {
-    const body = req.bodyJson as Partial<Widget>;
-    if (typeof body.weight !== 'number' || !body.color) {
+    const body = req.bodyJson;
+    // Si body est un tableau, bulk create
+    if (Array.isArray(body)) {
+      const created: Widget[] = [];
+      const errors: string[] = [];
+      for (const item of body) {
+        if (
+          typeof item.weight !== 'number' ||
+          !item.color ||
+          !['red', 'blue', 'gold'].includes(String(item.color))
+        ) {
+          errors.push(
+            'weight and color (red|blue|gold) are required for all items'
+          );
+          continue;
+        }
+        const id = String(nextId++);
+        const newWidget: Widget = {
+          id,
+          weight: item.weight,
+          color: item.color as Widget['color'],
+        };
+        widgets[id] = newWidget;
+        created.push(newWidget);
+      }
+      if (created.length === 0) {
+        return res.json(
+          {
+            code: 'VALIDATION_ERROR',
+            message: 'No valid widgets to create',
+            errors,
+          },
+          400
+        );
+      }
+      return res.json({ items: created, errors }, 201);
+    }
+    // Sinon, création simple (backward compatible)
+    if (
+      typeof body.weight !== 'number' ||
+      !body.color ||
+      !['red', 'blue', 'gold'].includes(String(body.color))
+    ) {
       return res.json(
         {
           code: 'VALIDATION_ERROR',
           message: 'Missing required fields',
-          errors: ['weight and color are required'],
+          errors: ['weight and color (red|blue|gold) are required'],
         },
         400
       );
     }
+    const id = String(nextId++);
     const newWidget: Widget = {
-      id: `widget-${Date.now()}`,
+      id,
       weight: body.weight,
-      color: body.color,
+      color: body.color as Widget['color'],
     };
+    widgets[id] = newWidget;
     return res.json(newWidget, 201);
   } catch (e) {
     if (e instanceof SyntaxError) {
@@ -51,9 +93,17 @@ router.post('/', async (req, res, _log, _error) => {
       );
     }
     _error(String(e));
-    // Laisser la gestion de l'erreur à la librairie/appwrite-fn-router
     throw e;
   }
+});
+
+// DELETE /widgets => Supprime tous les widgets (bulk delete)
+router.delete('/', (req, res) => {
+  const count = Object.keys(widgets).length;
+  for (const id of Object.keys(widgets)) {
+    delete widgets[id];
+  }
+  return res.json({ deleted: count });
 });
 
 // GET /widgets/secret => Accessing the daily secret widget (requires Bearer token)
@@ -66,28 +116,31 @@ router.get('/secret', (req, res, _log, _error) => {
   return res.json({ id: 'widget-secret', weight: 200, color: 'gold' });
 });
 
-// GET /widgets/{id} => Read a specific widget
-router.get('/:id', (req, res, _log, _error) => {
+// GET /widgets/{id} => Lire un widget spécifique
+router.get('/:id', (req, res) => {
   const { id } = req.params;
-  if (id === 'not-found') {
+  const widget = widgets[id];
+  if (!widget) {
     return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
   }
-  return res.json({ id, weight: 10, color: 'red' });
+  return res.json(widget);
 });
 
-// PATCH /widgets/{id} => Update a widget
+// PATCH /widgets/{id} => Met à jour un widget
 router.patch('/:id', async (req, res, _log, _error) => {
   try {
     const { id } = req.params;
-    if (id === 'not-found') {
+    const widget = widgets[id];
+    if (!widget) {
       return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
     }
     const body = req.bodyJson as Partial<Widget>;
     const updatedWidget: Widget = {
       id,
-      weight: body.weight ?? 10,
-      color: body.color ?? 'red',
+      weight: body.weight ?? widget.weight,
+      color: body.color ?? widget.color,
     };
+    widgets[id] = updatedWidget;
     return res.json(updatedWidget);
   } catch (e) {
     if (e instanceof SyntaxError) {
@@ -100,17 +153,17 @@ router.patch('/:id', async (req, res, _log, _error) => {
       );
     }
     _error(String(e));
-    // Laisser la gestion de l'erreur à la librairie/appwrite-fn-router
     throw e;
   }
 });
 
-// DELETE /widgets/{id} => Delete a widget
-router.delete('/:id', (req, res, _log, _error) => {
+// DELETE /widgets/{id} => Supprime un widget
+router.delete('/:id', (req, res) => {
   const { id } = req.params;
-  if (id === 'not-found') {
+  if (!widgets[id]) {
     return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
   }
+  delete widgets[id];
   return res.send('', 204);
 });
 
