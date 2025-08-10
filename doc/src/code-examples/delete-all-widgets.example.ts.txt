@@ -1,0 +1,6 @@
+router.delete('/widgets', (req, res) => {
+  // highlight-start
+  // Ici, on supprime tous les widgets d’un coup
+  // highlight-end
+  return res.json({ deleted: 'all' });
+});

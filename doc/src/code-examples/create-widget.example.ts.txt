@@ -1,0 +1,19 @@
+router.post('/widgets', async (req, res) => {
+  const body = req.bodyJson;
+  if (typeof body.weight !== 'number' || !body.color) {
+    return res.json(
+      {
+        code: 'VALIDATION_ERROR',
+        message: 'Missing required fields',
+        errors: ['weight and color are required'],
+      },
+      400
+    );
+  }
+  const newWidget = {
+    id: `widget-${Date.now()}`,
+    weight: body.weight,
+    color: body.color,
+  };
+  return res.json(newWidget, 201);
+});

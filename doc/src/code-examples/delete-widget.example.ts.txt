@@ -1,0 +1,7 @@
+router.delete('/widgets/:id', (req, res) => {
+  const { id } = req.params;
+  if (id === 'not-found') {
+    return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
+  }
+  return res.send('', 204);
+});
