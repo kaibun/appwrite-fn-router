@@ -2,6 +2,6 @@ import { handleRequest } from '@kaibun/appwrite-fn-router';
 
 export default async function main(context) {
   return await handleRequest(context, (router) => {
-    // You’ll add routes here
+    // Ici, on ajoutera les routes dans les étapes suivantes
   });
 }

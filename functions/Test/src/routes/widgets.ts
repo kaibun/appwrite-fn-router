@@ -23,43 +23,6 @@ router.get('/', (_req, res) => {
 router.post('/', async (req, res, _log, _error) => {
   try {
     const body = req.bodyJson;
-    // Si body est un tableau, bulk create
-    if (Array.isArray(body)) {
-      const created: Widget[] = [];
-      const errors: string[] = [];
-      for (const item of body) {
-        if (
-          typeof item.weight !== 'number' ||
-          !item.color ||
-          !['red', 'blue', 'gold'].includes(String(item.color))
-        ) {
-          errors.push(
-            'weight and color (red|blue|gold) are required for all items'
-          );
-          continue;
-        }
-        const id = String(nextId++);
-        const newWidget: Widget = {
-          id,
-          weight: item.weight,
-          color: item.color as Widget['color'],
-        };
-        widgets[id] = newWidget;
-        created.push(newWidget);
-      }
-      if (created.length === 0) {
-        return res.json(
-          {
-            code: 'VALIDATION_ERROR',
-            message: 'No valid widgets to create',
-            errors,
-          },
-          400
-        );
-      }
-      return res.json({ items: created, errors }, 201);
-    }
-    // Sinon, création simple (backward compatible)
     if (
       typeof body.weight !== 'number' ||
       !body.color ||
@@ -97,13 +60,66 @@ router.post('/', async (req, res, _log, _error) => {
   }
 });
 
-// DELETE /widgets => Supprime tous les widgets (bulk delete)
 router.delete('/', (req, res) => {
   const count = Object.keys(widgets).length;
   for (const id of Object.keys(widgets)) {
     delete widgets[id];
   }
   return res.json({ deleted: count });
+});
+
+router.post('/bulk', (req, res, _log, _error) => {
+  const body = req.bodyJson;
+  try {
+    if (!Array.isArray(body)) {
+      throw new SyntaxError('Expected an array of widgets to create');
+    }
+    const created: Widget[] = [];
+    const errors: string[] = [];
+    for (const item of body) {
+      if (
+        typeof item.weight !== 'number' ||
+        !item.color ||
+        !['red', 'blue', 'gold'].includes(String(item.color))
+      ) {
+        errors.push(
+          'weight and color (red|blue|gold) are required for all items'
+        );
+        continue;
+      }
+      const id = String(nextId++);
+      const newWidget: Widget = {
+        id,
+        weight: item.weight,
+        color: item.color as Widget['color'],
+      };
+      widgets[id] = newWidget;
+      created.push(newWidget);
+    }
+    if (created.length === 0) {
+      return res.json(
+        {
+          code: 'VALIDATION_ERROR',
+          message: 'No valid widgets to create',
+          errors,
+        },
+        400
+      );
+    }
+    return res.json({ items: created, errors }, 201);
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      return res.json(
+        {
+          code: 'BAD_REQUEST',
+          message: 'Invalid JSON in request body',
+        },
+        400
+      );
+    }
+    _error(String(e));
+    throw e;
+  }
 });
 
 // GET /widgets/secret => Accessing the daily secret widget (requires Bearer token)
