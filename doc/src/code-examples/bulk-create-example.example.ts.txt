@@ -1,0 +1,33 @@
+router.post('/widgets', async (req, res) => {
+  const body = req.bodyJson;
+  // highlight-start
+  if (Array.isArray(body)) {
+    const created = [];
+    for (const item of body) {
+      if (typeof item.weight !== 'number' || !item.color) continue;
+      created.push({
+        id: `widget-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        weight: item.weight,
+        color: item.color,
+      });
+    }
+    return res.json({ items: created }, 201);
+  }
+  // highlight-end
+  if (typeof body.weight !== 'number' || !body.color) {
+    return res.json(
+      {
+        code: 'VALIDATION_ERROR',
+        message: 'Missing required fields',
+        errors: ['weight and color are required'],
+      },
+      400
+    );
+  }
+  const newWidget = {
+    id: `widget-${Date.now()}`,
+    weight: body.weight,
+    color: body.color,
+  };
+  return res.json(newWidget, 201);
+});

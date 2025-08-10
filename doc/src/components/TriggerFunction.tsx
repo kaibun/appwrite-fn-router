@@ -1,12 +1,4 @@
-// Extension du type Window pour la variable globale de mode pas à pas
-declare global {
-  interface Window {
-    __triggerStepByStep__?: boolean;
-    __triggerStepProgress__?: number;
-  }
-}
-import React, { useState, useEffect } from 'react';
-import * as ReactDOM from 'react-dom';
+import React, { useState } from 'react';
 import { useTriggerFunctionSync } from './TriggerFunctionSyncContext';
 import { useDocusaurusLocale } from './useDocusaurusLocale';
 import { useDocusaurusColorMode } from './useDocusaurusColorMode';
@@ -93,7 +85,7 @@ interface TriggerFunctionProps {
   label?: string;
   urlParams?: string[]; // ex: ['id'] pour /widgets/:id
   step?: number; // Numéro d’étape (1, 2, 3, ...)
-  stepType?: 'static' | 'dynamic'; // Par défaut 'dynamic'
+  // plus de stepType
   onStepDone?: (response: any) => void;
   showHttpError?: boolean; // Affiche le code et message d’erreur HTTP (par défaut true)
   /**
@@ -143,7 +135,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   label = 'Trigger Function',
   urlParams,
   step = 1,
-  stepType = 'dynamic',
+  // plus de stepType
   onStepDone,
   showHttpError = true,
   showUrlDebug = true,
@@ -151,99 +143,29 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   readOnlyBody = false,
   mockApi,
 }) => {
-  // --- Mode pas à pas global (checkbox unique pour toute la page via portail React) ---
-  const [stepByStep, setStepByStep] = useState(() => {
-    if (
-      typeof window !== 'undefined' &&
-      typeof window.__triggerStepByStep__ === 'boolean'
-    ) {
-      return window.__triggerStepByStep__;
-    }
-    return true;
-  });
-  const [stepProgress, setStepProgress] = useState(() => {
-    if (
-      typeof window !== 'undefined' &&
-      typeof window.__triggerStepProgress__ === 'number'
-    ) {
-      return window.__triggerStepProgress__;
-    }
-    return 1;
-  });
-
-  // Pour éviter le flashing content, on ne rend la checkbox qu'une seule fois dans le body via un portail React
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (document.getElementById('trigger-stepbystep-checkbox-global')) return;
-    const div = document.createElement('div');
-    div.id = 'trigger-stepbystep-checkbox-global';
-    document.body.appendChild(div);
-    return () => {
-      document.body.removeChild(div);
-    };
-  }, []);
-
-  // Synchronise le mode pas à pas entre toutes les instances (événements + variable globale)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    // Handler pour les changements globaux
-    const handler = (e: any) => {
-      if (e?.detail && typeof e.detail.stepByStep === 'boolean') {
-        setStepByStep(e.detail.stepByStep);
-      }
-    };
-    window.addEventListener('trigger-stepbystep-toggle', handler);
-    return () => {
-      window.removeEventListener('trigger-stepbystep-toggle', handler);
-    };
-  }, []);
-
-  // Met à jour la variable globale et notifie les autres instances
-  const handleStepByStepChange = (checked: boolean) => {
-    setStepByStep(checked);
-    if (typeof window !== 'undefined') {
-      window.__triggerStepByStep__ = checked;
-      window.dispatchEvent(
-        new CustomEvent('trigger-stepbystep-toggle', {
-          detail: { stepByStep: checked },
-        })
-      );
-      // À chaque changement de mode, on réinitialise la progression
-      window.__triggerStepProgress__ = 1;
-      window.dispatchEvent(
-        new CustomEvent('trigger-stepbystep-progress', {
-          detail: { stepProgress: 1 },
-        })
-      );
-    }
-  };
-
-  // Synchronise la progression des étapes entre toutes les instances (événements + variable globale)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const handler = (e: any) => {
-      if (e?.detail && typeof e.detail.stepProgress === 'number') {
-        setStepProgress(e.detail.stepProgress);
-      }
-    };
-    window.addEventListener('trigger-stepbystep-progress', handler);
-    return () => {
-      window.removeEventListener('trigger-stepbystep-progress', handler);
-    };
-  }, []);
-
-  // Met à jour la variable globale et notifie les autres instances lors de l'avancement
-  const setStepProgressGlobal = (newStep: number) => {
-    setStepProgress(newStep);
-    if (typeof window !== 'undefined') {
-      window.__triggerStepProgress__ = newStep;
-      window.dispatchEvent(
-        new CustomEvent('trigger-stepbystep-progress', {
-          detail: { stepProgress: newStep },
-        })
-      );
-    }
-  };
+  if (
+    typeof window !== 'undefined' &&
+    window.location &&
+    window.location.search.includes('debugStep=1')
+  ) {
+    // eslint-disable-next-line no-console
+    console.log('[TriggerFunction props]', {
+      method,
+      url,
+      body: initialBody,
+      headers,
+      label,
+      urlParams,
+      step,
+      // plus de stepType
+      onStepDone,
+      showHttpError,
+      showUrlDebug,
+      showDebugInfo,
+      readOnlyBody,
+      mockApi,
+    });
+  }
 
   // Synchronisation d’id de widget entre exemples
   let sync: ReturnType<typeof useTriggerFunctionSync> | undefined = undefined;
@@ -281,22 +203,6 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
 
   // Erreur de parsing JSON live
   const [bodyJsonError, setBodyJsonError] = useState<string | null>(null);
-  useEffect(() => {
-    if (method === 'GET') {
-      setBodyJsonError(null);
-      return;
-    }
-    if (!body.trim()) {
-      setBodyJsonError(null);
-      return;
-    }
-    try {
-      JSON.parse(body);
-      setBodyJsonError(null);
-    } catch (e) {
-      setBodyJsonError(t.invalidJson);
-    }
-  }, [body, method, t.invalidJson]);
 
   // Headers custom dynamiques (clé/valeur), synchronisés si disponibles
   const [customHeaders, setCustomHeaders] = useState<
@@ -349,17 +255,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   );
 
   // Si l’id partagé change (création d’un widget), met à jour le champ id si présent
-  useEffect(() => {
-    if (!sync?.lastWidgetId) return;
-    setParams((ps) =>
-      ps.map((p) =>
-        p.name === 'id' && p.value !== sync!.lastWidgetId
-          ? { ...p, value: sync!.lastWidgetId! }
-          : p
-      )
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sync?.lastWidgetId]);
+
   const [useAuth, setUseAuth] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [httpError, setHttpError] = useState<{
@@ -483,15 +379,9 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           },
           ...h.slice(0, 4),
         ]);
-        if (onStepDone) onStepDone(text);
-        // Progression automatique des étapes dynamiques en mode pas à pas
-        if (
-          stepByStep &&
-          stepType === 'dynamic' &&
-          status < 400 &&
-          step === stepProgress
-        ) {
-          setStepProgressGlobal(Math.max(stepProgress, step + 1));
+        // Progression automatique : onStepDone appelé en cas de succès
+        if (status < 400 && onStepDone) {
+          onStepDone(text);
         }
       } catch (e: any) {
         setResponse('Erreur mock: ' + (e?.message || e));
@@ -565,15 +455,9 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           }
         } catch {}
       }
-      if (onStepDone) onStepDone(text);
-      // Progression automatique des étapes dynamiques en mode pas à pas
-      if (
-        stepByStep &&
-        stepType === 'dynamic' &&
-        res.status < 400 &&
-        step === stepProgress
-      ) {
-        setStepProgressGlobal(Math.max(stepProgress, step + 1));
+      // Progression automatique : onStepDone appelé en cas de succès
+      if (res.status < 400 && onStepDone) {
+        onStepDone(text);
       }
     } catch (e: any) {
       setResponse('Erreur: ' + (e?.message || e));
@@ -640,429 +524,128 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           errorText: '#a00',
         };
 
-  // Portail React pour la checkbox unique (évite le flashing content)
-  const checkboxContainer =
-    typeof window !== 'undefined'
-      ? document.getElementById('trigger-stepbystep-checkbox-global')
-      : null;
-  const checkboxPortal = checkboxContainer
-    ? ReactDOM.createPortal(
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            background: palette.bg,
-            borderRadius: 8,
-            boxShadow: '0 2px 8px #0001',
-            padding: '8px 20px',
-            border: `1px solid ${palette.border}`,
-          }}
-        >
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: 15,
-              userSelect: 'none',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={stepByStep}
-              onChange={(e) => handleStepByStepChange(e.target.checked)}
-              style={{
-                width: 20,
-                height: 20,
-                accentColor: palette.accent,
-                marginRight: 8,
-                borderRadius: 6,
-                boxShadow: stepByStep
-                  ? `0 0 0 2px ${palette.accent2}`
-                  : undefined,
-                transition: 'box-shadow 0.2s',
-              }}
-              aria-checked={stepByStep}
-            />
-            Pas à pas
-          </label>
-          <span
-            style={{ color: palette.subtext, fontSize: 13, fontWeight: 400 }}
-          >
-            {stepByStep
-              ? 'Les étapes se débloquent une à une.'
-              : 'Toutes les étapes sont visibles.'}
-          </span>
-        </div>,
-        checkboxContainer
-      )
-    : null;
-
-  // Logique d’affichage pas à pas :
-  // - Toujours afficher les étapes statiques
-  // - En mode pas à pas, n’afficher que jusqu’à stepProgress
-  // - En mode déroulé, tout afficher
-  // Correction : bien prendre en compte les props (step, stepType) et l'état global
-  const isStaticStep =
-    stepType === 'static' || (stepType === 'dynamic' && step === 3);
-  let shouldShow = true;
-  if (stepByStep) {
-    if (!isStaticStep && step > stepProgress) {
-      shouldShow = false;
-    }
-  }
-  // Masquer l'étape si elle ne doit pas être affichée (mode pas à pas)
-  if (!shouldShow) {
-    return null;
-  }
-
   // Rendu principal
+  // Rendu principal (sans aucune logique step-by-step)
   return (
-    <React.Fragment>
-      {checkboxPortal}
+    <div
+      style={{
+        margin: '1.5em 0',
+        border: `1.5px solid ${palette.border}`,
+        borderRadius: 12,
+        padding: 0,
+        background: palette.bg,
+        boxShadow: palette.shadow,
+        fontFamily: 'inherit',
+        position: 'relative',
+        overflow: 'visible',
+        color: palette.text,
+      }}
+    >
+      {/* ZONE DEBUG/URL */}
       <div
         style={{
-          margin: '1.5em 0',
-          border: `1.5px solid ${palette.border}`,
-          borderRadius: 12,
-          padding: 0,
-          background: palette.bg,
-          boxShadow: palette.shadow,
-          fontFamily: 'inherit',
-          position: 'relative',
-          overflow: 'visible',
-          color: palette.text,
+          padding: '18px 24px 0 24px',
+          borderBottom: `1px solid ${palette.border}`,
+          background: 'none',
         }}
       >
-        {/* Badge de synchronisation global, centré en haut */}
-        {isAnySync && (
+        {showDebugInfo && (
           <div
-            style={{
-              position: 'absolute',
-              left: '50%',
-              top: -18,
-              transform: 'translateX(-50%)',
-              zIndex: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            style={{ fontSize: 13, color: palette.subtext, marginBottom: 4 }}
           >
-            <span
-              style={{
-                background: palette.syncBg,
-                color: palette.syncText,
-                fontWeight: 700,
-                fontSize: 13,
-                borderRadius: 16,
-                padding: '4px 16px',
-                boxShadow: '0 2px 8px 0 rgba(59,130,246,0.10)',
-                border: '2px solid #fff',
-                letterSpacing: 0.5,
-                textShadow: '0 1px 2px rgba(0,0,0,0.08)',
-                display: 'inline-block',
-                minWidth: 80,
-                textAlign: 'center',
-                outline: `2px solid ${palette.syncOutline}`,
-                outlineOffset: '2px',
-                animation:
-                  'sync-bounce 1.2s infinite cubic-bezier(.6,-0.28,.74,.05)',
-              }}
-              title="Synchronisation automatique des exemples (id, body, headers)"
-              aria-label="Synchronisation activée"
-            >
-              🔄 Sync
+            <span>
+              Prop <code>url</code> : <code>{String(rawUrlProp)}</code>
             </span>
-            <style>{`
-            @keyframes sync-bounce {
-              0%, 100% { transform: scale(1); }
-              50% { transform: scale(1.08); }
-            }
-          `}</style>
+            <br />
+            <span>
+              URL utilisée : <code>{computedUrl}</code>
+            </span>
+            {urlWarning && (
+              <>
+                <br />
+                <span
+                  style={{ color: palette.errorText, fontWeight: 500 }}
+                  role="alert"
+                >
+                  ⚠️ {urlWarning}
+                </span>
+              </>
+            )}
           </div>
         )}
-        {/* ZONE DEBUG/URL */}
-        <div
-          style={{
-            padding: '18px 24px 0 24px',
-            borderBottom: `1px solid ${palette.border}`,
-            background: 'none',
-          }}
-        >
-          {showDebugInfo && (
-            <div
-              style={{ fontSize: 13, color: palette.subtext, marginBottom: 4 }}
-            >
-              <span>
-                Prop <code>url</code> : <code>{String(rawUrlProp)}</code>
-              </span>
-              <br />
-              <span>
-                URL utilisée : <code>{computedUrl}</code>
-              </span>
-              {urlWarning && (
-                <>
-                  <br />
-                  <span
-                    style={{ color: palette.errorText, fontWeight: 500 }}
-                    role="alert"
-                  >
-                    ⚠️ {urlWarning}
-                  </span>
-                </>
-              )}
-            </div>
-          )}
-          <strong>{method}</strong> {computedUrl}
-        </div>
+        <strong>{method}</strong> {computedUrl}
+      </div>
 
-        {/* ZONE PRÉPARATION REQUÊTE */}
-        <div
-          style={{
-            padding: '18px 24px',
-            borderBottom: `1px solid ${palette.border}`,
-            background: 'none',
-          }}
-        >
-          {/* Params */}
-          {paramNames.length > 0 && (
-            <fieldset style={{ margin: '8px 0 18px 0', border: 0, padding: 0 }}>
-              <legend
-                style={{
-                  fontSize: 13,
-                  marginBottom: 4,
-                  color: palette.subtext,
-                }}
-              >
-                {t.params}
-              </legend>
-              <div style={{ display: 'flex', gap: 16 }}>
-                {paramNames.map((name, idx) => {
-                  const inputId = `param-${name}-${idx}`;
-                  const isIdSynced =
-                    name === 'id' &&
-                    sync?.lastWidgetId &&
-                    params.find((p) => p.name === name)?.value ===
-                      sync.lastWidgetId;
-                  return (
-                    <label
-                      key={name}
-                      htmlFor={inputId}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        position: 'relative',
-                        minWidth: 120,
-                      }}
-                    >
-                      <span style={{ fontSize: 13, marginRight: 4 }}>
-                        {name}:
-                      </span>
-                      <input
-                        id={inputId}
-                        type="text"
-                        value={params.find((p) => p.name === name)?.value || ''}
-                        onChange={(e) =>
-                          setParams((ps) =>
-                            ps.map((p) =>
-                              p.name === name
-                                ? { ...p, value: e.target.value }
-                                : p
-                            )
-                          )
-                        }
-                        style={{
-                          marginLeft: 0,
-                          width: 120,
-                          background: isIdSynced ? '#e0f7fa' : palette.inputBg,
-                          border: `1.5px solid ${isIdSynced ? '#00bcd4' : palette.inputBorder}`,
-                          borderRadius: 6,
-                          fontWeight: isIdSynced ? 600 : 400,
-                          color: isIdSynced ? '#00796b' : palette.inputText,
-                          fontSize: 14,
-                          padding: '4px 8px',
-                          transition: 'background 0.2s, border 0.2s',
-                        }}
-                        aria-label={name}
-                      />
-                      {isIdSynced && (
-                        <span
-                          style={{
-                            position: 'absolute',
-                            right: -38,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            background: '#00bcd4',
-                            color: '#fff',
-                            borderRadius: 12,
-                            padding: '2px 10px',
-                            fontSize: 11,
-                            fontWeight: 700,
-                            marginLeft: 6,
-                            boxShadow: '0 1px 4px #00bcd455',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            letterSpacing: 0.5,
-                          }}
-                          title="Synchronisé avec la dernière création"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            style={{ marginRight: 2 }}
-                          >
-                            <circle cx="10" cy="10" r="10" fill="#fff" />
-                            <path
-                              d="M6 10a4 4 0 1 1 4 4"
-                              stroke="#00bcd4"
-                              strokeWidth="2"
-                            />
-                            <path
-                              d="M10 14v2m0 0h2m-2 0h-2"
-                              stroke="#00bcd4"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                          SYNC
-                        </span>
-                      )}
-                    </label>
-                  );
-                })}
-              </div>
-            </fieldset>
-          )}
-          {/* Auth toggle */}
-          <div style={{ marginBottom: 12 }}>
-            <label
-              htmlFor="auth-toggle"
-              style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-            >
-              <input
-                id="auth-toggle"
-                type="checkbox"
-                checked={useAuth}
-                onChange={() => setUseAuth((v) => !v)}
-                style={{ marginRight: 4 }}
-                aria-checked={useAuth}
-                aria-label={t.addAuth + t.authValue}
-              />
-              {t.addAuth}
-              <code>{t.authValue}</code>
-            </label>
-          </div>
-          {/* Custom headers */}
-          <div style={{ marginBottom: 18 }}>
-            <label
+      {/* ZONE PRÉPARATION REQUÊTE */}
+      <div
+        style={{
+          padding: '18px 24px',
+          borderBottom: `1px solid ${palette.border}`,
+          background: 'none',
+        }}
+      >
+        {/* Params */}
+        {paramNames.length > 0 && (
+          <fieldset style={{ margin: '8px 0 18px 0', border: 0, padding: 0 }}>
+            <legend
               style={{
                 fontSize: 13,
                 marginBottom: 4,
-                display: 'block',
                 color: palette.subtext,
               }}
             >
-              {t.customHeaders}
-            </label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {customHeaders.length === 0 && (
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: palette.subtext,
-                    marginBottom: 4,
-                  }}
-                >
-                  {t.noCustomHeader}
-                </div>
-              )}
-              {customHeaders.map((h, idx) => {
-                const keyId = `custom-header-key-${idx}`;
-                const valueId = `custom-header-value-${idx}`;
-                const isHeaderSynced =
-                  isHeadersSynced &&
-                  sync?.lastWidgetHeaders &&
-                  h.key &&
-                  sync.lastWidgetHeaders[h.key] === h.value;
+              {t.params}
+            </legend>
+            <div style={{ display: 'flex', gap: 16 }}>
+              {paramNames.map((name, idx) => {
+                const inputId = `param-${name}-${idx}`;
+                const isIdSynced =
+                  name === 'id' &&
+                  sync?.lastWidgetId &&
+                  params.find((p) => p.name === name)?.value ===
+                    sync.lastWidgetId;
                 return (
-                  <div
-                    key={idx}
+                  <label
+                    key={name}
+                    htmlFor={inputId}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      background: isHeaderSynced ? '#e0f7fa' : palette.inputBg,
-                      borderRadius: isHeaderSynced ? 8 : 6,
-                      border: `1.5px solid ${isHeaderSynced ? '#00bcd4' : palette.inputBorder}`,
-                      boxShadow: isHeaderSynced
-                        ? '0 1px 4px #00bcd455'
-                        : undefined,
                       position: 'relative',
-                      padding: '2px 0',
-                      marginBottom: 2,
+                      minWidth: 120,
                     }}
                   >
-                    <input
-                      id={keyId}
-                      type="text"
-                      placeholder={t.key}
-                      value={h.key}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setCustomHeaders((chs) =>
-                          chs.map((c, i) => (i === idx ? { ...c, key: v } : c))
-                        );
-                      }}
-                      style={{
-                        width: 120,
-                        marginRight: 6,
-                        fontSize: 13,
-                        fontWeight: isHeaderSynced ? 600 : 400,
-                        color: isHeaderSynced ? '#00796b' : palette.inputText,
-                        background: 'none',
-                        border: 'none',
-                        outline: 'none',
-                        padding: '4px 8px',
-                      }}
-                      aria-label={`${t.key} ${idx + 1}`}
-                    />
-                    <span style={{ margin: '0 4px', color: palette.subtext }}>
-                      :
+                    <span style={{ fontSize: 13, marginRight: 4 }}>
+                      {name}:
                     </span>
                     <input
-                      id={valueId}
+                      id={inputId}
                       type="text"
-                      placeholder={t.value}
-                      value={h.value}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setCustomHeaders((chs) =>
-                          chs.map((c, i) =>
-                            i === idx ? { ...c, value: v } : c
+                      value={params.find((p) => p.name === name)?.value || ''}
+                      onChange={(e) =>
+                        setParams((ps) =>
+                          ps.map((p) =>
+                            p.name === name
+                              ? { ...p, value: e.target.value }
+                              : p
                           )
-                        );
-                      }}
+                        )
+                      }
                       style={{
-                        width: 180,
-                        marginRight: 6,
-                        fontSize: 13,
-                        fontWeight: isHeaderSynced ? 600 : 400,
-                        color: isHeaderSynced ? '#00796b' : palette.inputText,
-                        background: 'none',
-                        border: 'none',
-                        outline: 'none',
+                        marginLeft: 0,
+                        width: 120,
+                        background: isIdSynced ? '#e0f7fa' : palette.inputBg,
+                        border: `1.5px solid ${isIdSynced ? '#00bcd4' : palette.inputBorder}`,
+                        borderRadius: 6,
+                        fontWeight: isIdSynced ? 600 : 400,
+                        color: isIdSynced ? '#00796b' : palette.inputText,
+                        fontSize: 14,
                         padding: '4px 8px',
+                        transition: 'background 0.2s, border 0.2s',
                       }}
-                      aria-label={`${t.value} ${idx + 1}`}
+                      aria-label={name}
                     />
-                    {isHeaderSynced && (
+                    {isIdSynced && (
                       <span
                         style={{
                           position: 'absolute',
@@ -1082,399 +665,565 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
                           gap: 4,
                           letterSpacing: 0.5,
                         }}
-                        title="Header synchronisé avec la dernière création"
+                        title="Synchronisé avec la dernière création"
                       >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          style={{ marginRight: 2 }}
+                        >
+                          <circle cx="10" cy="10" r="10" fill="#fff" />
+                          <path
+                            d="M6 10a4 4 0 1 1 4 4"
+                            stroke="#00bcd4"
+                            strokeWidth="2"
+                          />
+                          <path
+                            d="M10 14v2m0 0h2m-2 0h-2"
+                            stroke="#00bcd4"
+                            strokeWidth="2"
+                          />
+                        </svg>
                         SYNC
                       </span>
                     )}
-                    <button
-                      type="button"
-                      aria-label={t.removeHeader + ` ${idx + 1}`}
-                      onClick={() =>
-                        setCustomHeaders((chs) =>
-                          chs.filter((_, i) => i !== idx)
-                        )
-                      }
-                      style={{
-                        fontSize: 13,
-                        color: palette.errorText,
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '2px 6px',
-                      }}
-                      title={t.removeHeader}
-                    >
-                      ✕
-                    </button>
-                  </div>
+                  </label>
                 );
               })}
-              <button
-                type="button"
-                onClick={() =>
-                  setCustomHeaders((chs) => [...chs, { key: '', value: '' }])
-                }
+            </div>
+          </fieldset>
+        )}
+        {/* Auth toggle */}
+        <div style={{ marginBottom: 12 }}>
+          <label
+            htmlFor="auth-toggle"
+            style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+          >
+            <input
+              id="auth-toggle"
+              type="checkbox"
+              checked={useAuth}
+              onChange={() => setUseAuth((v) => !v)}
+              style={{ marginRight: 4 }}
+              aria-checked={useAuth}
+              aria-label={t.addAuth + t.authValue}
+            />
+            {t.addAuth}
+            <code>{t.authValue}</code>
+          </label>
+        </div>
+        {/* Custom headers */}
+        <div style={{ marginBottom: 18 }}>
+          <label
+            style={{
+              fontSize: 13,
+              marginBottom: 4,
+              display: 'block',
+              color: palette.subtext,
+            }}
+          >
+            {t.customHeaders}
+          </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {customHeaders.length === 0 && (
+              <div
                 style={{
                   fontSize: 13,
-                  marginTop: 2,
-                  background: palette.inputBg,
-                  border: `1px solid ${palette.inputBorder}`,
-                  borderRadius: 6,
-                  padding: '2px 12px',
-                  cursor: 'pointer',
-                  color: palette.accent,
-                  fontWeight: 600,
+                  color: palette.subtext,
+                  marginBottom: 4,
                 }}
               >
-                {t.addHeader}
-              </button>
-              {hasNonSimpleCustomHeader && (
+                {t.noCustomHeader}
+              </div>
+            )}
+            {customHeaders.map((h, idx) => {
+              const keyId = `custom-header-key-${idx}`;
+              const valueId = `custom-header-value-${idx}`;
+              const isHeaderSynced =
+                isHeadersSynced &&
+                sync?.lastWidgetHeaders &&
+                h.key &&
+                sync.lastWidgetHeaders[h.key] === h.value;
+              return (
                 <div
+                  key={idx}
                   style={{
-                    fontSize: 12,
-                    color: palette.errorText,
-                    marginTop: 8,
-                    maxWidth: 480,
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: isHeaderSynced ? '#e0f7fa' : palette.inputBg,
+                    borderRadius: isHeaderSynced ? 8 : 6,
+                    border: `1.5px solid ${isHeaderSynced ? '#00bcd4' : palette.inputBorder}`,
+                    boxShadow: isHeaderSynced
+                      ? '0 1px 4px #00bcd455'
+                      : undefined,
+                    position: 'relative',
+                    padding: '2px 0',
+                    marginBottom: 2,
                   }}
                 >
-                  {t.customHeaderWarning}
-                  <br />
-                  {t.seeDoc}&nbsp;
-                  <a
-                    href="https://developer.mozilla.org/fr/docs/Web/HTTP/CORS#acc%C3%A9der_ressources_avec_credentiels"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: palette.accent2 }}
+                  <input
+                    id={keyId}
+                    type="text"
+                    placeholder={t.key}
+                    value={h.key}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCustomHeaders((chs) =>
+                        chs.map((c, i) => (i === idx ? { ...c, key: v } : c))
+                      );
+                    }}
+                    style={{
+                      width: 120,
+                      marginRight: 6,
+                      fontSize: 13,
+                      fontWeight: isHeaderSynced ? 600 : 400,
+                      color: isHeaderSynced ? '#00796b' : palette.inputText,
+                      background: 'none',
+                      border: 'none',
+                      outline: 'none',
+                      padding: '4px 8px',
+                    }}
+                    aria-label={`${t.key} ${idx + 1}`}
+                  />
+                  <span style={{ margin: '0 4px', color: palette.subtext }}>
+                    :
+                  </span>
+                  <input
+                    id={valueId}
+                    type="text"
+                    placeholder={t.value}
+                    value={h.value}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCustomHeaders((chs) =>
+                        chs.map((c, i) => (i === idx ? { ...c, value: v } : c))
+                      );
+                    }}
+                    style={{
+                      width: 180,
+                      marginRight: 6,
+                      fontSize: 13,
+                      fontWeight: isHeaderSynced ? 600 : 400,
+                      color: isHeaderSynced ? '#00796b' : palette.inputText,
+                      background: 'none',
+                      border: 'none',
+                      outline: 'none',
+                      padding: '4px 8px',
+                    }}
+                    aria-label={`${t.value} ${idx + 1}`}
+                  />
+                  {isHeaderSynced && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        right: -38,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: '#00bcd4',
+                        color: '#fff',
+                        borderRadius: 12,
+                        padding: '2px 10px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        marginLeft: 6,
+                        boxShadow: '0 1px 4px #00bcd455',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        letterSpacing: 0.5,
+                      }}
+                      title="Header synchronisé avec la dernière création"
+                    >
+                      SYNC
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    aria-label={t.removeHeader + ` ${idx + 1}`}
+                    onClick={() =>
+                      setCustomHeaders((chs) => chs.filter((_, i) => i !== idx))
+                    }
+                    style={{
+                      fontSize: 13,
+                      color: palette.errorText,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '2px 6px',
+                    }}
+                    title={t.removeHeader}
                   >
-                    {t.mdnCors}
-                  </a>
-                  .
+                    ✕
+                  </button>
                 </div>
-              )}
-            </div>
-          </div>
-          {/* Body */}
-          {method !== 'GET' && (
-            <details open style={{ marginBottom: 8 }}>
-              <summary
+              );
+            })}
+            <button
+              type="button"
+              onClick={() =>
+                setCustomHeaders((chs) => [...chs, { key: '', value: '' }])
+              }
+              style={{
+                fontSize: 13,
+                marginTop: 2,
+                background: palette.inputBg,
+                border: `1px solid ${palette.inputBorder}`,
+                borderRadius: 6,
+                padding: '2px 12px',
+                cursor: 'pointer',
+                color: palette.accent,
+                fontWeight: 600,
+              }}
+            >
+              {t.addHeader}
+            </button>
+            {hasNonSimpleCustomHeader && (
+              <div
                 style={{
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  marginBottom: 2,
-                  color: palette.subtext,
+                  fontSize: 12,
+                  color: palette.errorText,
+                  marginTop: 8,
+                  maxWidth: 480,
                 }}
               >
-                {t.body}
-                {readOnlyBody ? '' : t.bodyEditable}
-              </summary>
-              <div>
-                {readOnlyBody ? (
-                  <pre
+                {t.customHeaderWarning}
+                <br />
+                {t.seeDoc}&nbsp;
+                <a
+                  href="https://developer.mozilla.org/fr/docs/Web/HTTP/CORS#acc%C3%A9der_ressources_avec_credentiels"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: palette.accent2 }}
+                >
+                  {t.mdnCors}
+                </a>
+                .
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Body */}
+        {method !== 'GET' && (
+          <details open style={{ marginBottom: 8 }}>
+            <summary
+              style={{
+                cursor: 'pointer',
+                fontSize: 13,
+                marginBottom: 2,
+                color: palette.subtext,
+              }}
+            >
+              {t.body}
+              {readOnlyBody ? '' : t.bodyEditable}
+            </summary>
+            <div>
+              {readOnlyBody ? (
+                <pre
+                  style={{
+                    background: isBodySynced ? '#e0f7fa' : palette.inputBg,
+                    fontFamily: 'monospace',
+                    fontSize: 14,
+                    borderRadius: 6,
+                    border: isBodySynced
+                      ? '2px solid #00bcd4'
+                      : `1.5px solid ${palette.inputBorder}`,
+                    padding: 8,
+                    marginTop: 4,
+                    color: palette.inputText,
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all',
+                    position: 'relative',
+                  }}
+                >
+                  <code>{body}</code>
+                  {isBodySynced && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        background: '#00bcd4',
+                        color: '#fff',
+                        borderRadius: 12,
+                        padding: '2px 10px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        boxShadow: '0 1px 4px #00bcd455',
+                        letterSpacing: 0.5,
+                      }}
+                      title="Body synchronisé avec la dernière création"
+                    >
+                      SYNC
+                    </span>
+                  )}
+                </pre>
+              ) : (
+                <div style={{ position: 'relative' }}>
+                  <textarea
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    rows={6}
                     style={{
-                      background: isBodySynced ? '#e0f7fa' : palette.inputBg,
+                      width: '100%',
                       fontFamily: 'monospace',
                       fontSize: 14,
                       borderRadius: 6,
                       border: isBodySynced
                         ? '2px solid #00bcd4'
                         : `1.5px solid ${palette.inputBorder}`,
+                      background: isBodySynced ? '#e0f7fa' : palette.inputBg,
                       padding: 8,
                       marginTop: 4,
                       color: palette.inputText,
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-all',
-                      position: 'relative',
+                      fontWeight: isBodySynced ? 600 : 400,
+                      transition: 'background 0.2s, border 0.2s',
                     }}
-                  >
-                    <code>{body}</code>
-                    {isBodySynced && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          right: 8,
-                          top: 8,
-                          background: '#00bcd4',
-                          color: '#fff',
-                          borderRadius: 12,
-                          padding: '2px 10px',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          boxShadow: '0 1px 4px #00bcd455',
-                          letterSpacing: 0.5,
-                        }}
-                        title="Body synchronisé avec la dernière création"
-                      >
-                        SYNC
-                      </span>
-                    )}
-                  </pre>
-                ) : (
-                  <div style={{ position: 'relative' }}>
-                    <textarea
-                      value={body}
-                      onChange={(e) => setBody(e.target.value)}
-                      rows={6}
+                  />
+                  {isBodySynced && (
+                    <span
                       style={{
-                        width: '100%',
-                        fontFamily: 'monospace',
-                        fontSize: 14,
-                        borderRadius: 6,
-                        border: isBodySynced
-                          ? '2px solid #00bcd4'
-                          : `1.5px solid ${palette.inputBorder}`,
-                        background: isBodySynced ? '#e0f7fa' : palette.inputBg,
-                        padding: 8,
-                        marginTop: 4,
-                        color: palette.inputText,
-                        fontWeight: isBodySynced ? 600 : 400,
-                        transition: 'background 0.2s, border 0.2s',
+                        position: 'absolute',
+                        right: 12,
+                        top: 10,
+                        background: '#00bcd4',
+                        color: '#fff',
+                        borderRadius: 12,
+                        padding: '2px 10px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        boxShadow: '0 1px 4px #00bcd455',
+                        letterSpacing: 0.5,
                       }}
-                    />
-                    {isBodySynced && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          right: 12,
-                          top: 10,
-                          background: '#00bcd4',
-                          color: '#fff',
-                          borderRadius: 12,
-                          padding: '2px 10px',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          boxShadow: '0 1px 4px #00bcd455',
-                          letterSpacing: 0.5,
-                        }}
-                        title="Body synchronisé avec la dernière création"
-                      >
-                        SYNC
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </details>
-          )}
-          {/* Headers envoyés + bouton cURL */}
-          <div
-            style={{
-              marginBottom: 8,
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 16,
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 13,
-                  marginBottom: 2,
-                  color: palette.subtext,
-                }}
-              >
-                {t.sentHeaders}
-              </label>
-              <pre
-                style={{
-                  background: palette.inputBg,
-                  padding: 8,
-                  borderRadius: 6,
-                  fontSize: 13,
-                  margin: 0,
-                  overflowX: 'auto',
-                  color: palette.inputText,
-                }}
-              >
-                {JSON.stringify(effectiveHeaders, null, 2)}
-              </pre>
-            </div>
-
-            <CurlCopyButton
-              method={method}
-              url={computedUrl}
-              headers={effectiveHeaders}
-              body={body}
-              palette={palette}
-            />
-          </div>
-
-          {/* Bouton d’envoi */}
-          <button
-            onClick={sendRequest}
-            disabled={loading || !!missingParam || !!bodyJsonError}
-            style={{
-              marginBottom: 8,
-              marginTop: 8,
-              background: `linear-gradient(90deg, ${palette.accent} 0%, ${palette.accent2} 100%)`,
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              fontWeight: 700,
-              fontSize: 15,
-              padding: '10px 32px',
-              boxShadow: '0 2px 8px 0 rgba(59,130,246,0.10)',
-              cursor:
-                loading || !!missingParam || !!bodyJsonError
-                  ? 'not-allowed'
-                  : 'pointer',
-              opacity: loading || !!missingParam || !!bodyJsonError ? 0.6 : 1,
-              transition: 'background 0.2s, opacity 0.2s',
-              outline: 'none',
-            }}
-            aria-busy={loading}
-            aria-label={label}
-            title={
-              missingParam
-                ? `Le paramètre « ${missingParam} » est requis`
-                : bodyJsonError
-                  ? bodyJsonError
-                  : ''
-            }
-          >
-            {loading ? t.send : label}
-          </button>
-          {bodyJsonError && (
-            <div
-              style={{ color: palette.errorText, fontSize: 13, marginTop: 4 }}
-              role="alert"
-            >
-              ⚠️ {bodyJsonError}
-            </div>
-          )}
-          {missingParam && (
-            <div
-              style={{ color: palette.errorText, fontSize: 13, marginTop: 4 }}
-              role="alert"
-            >
-              ⚠️ Le paramètre <b>{missingParam}</b> est requis pour compléter
-              l’URL.
-            </div>
-          )}
-        </div>
-
-        {/* ZONE RÉPONSE HTTP */}
-        <div
-          style={{
-            padding: '18px 24px',
-            background: 'none',
-          }}
-        >
-          {/* Temps de réponse */}
-          {responseTime !== null && (
-            <div
-              style={{ fontSize: 13, color: palette.subtext, marginBottom: 4 }}
-            >
-              ⏱️ Temps de réponse : <b>{responseTime} ms</b>
-            </div>
-          )}
-          {showHttpError && httpError && (
-            <div
-              role="alert"
-              aria-live="assertive"
-              style={{
-                background: palette.errorBg,
-                color: palette.errorText,
-                border: `1px solid ${palette.errorText}`,
-                borderRadius: 6,
-                padding: 12,
-                marginTop: 8,
-                marginBottom: 8,
-                fontWeight: 500,
-              }}
-            >
-              {t.httpError} <b>{httpError.status}</b> {httpError.statusText}
-              {httpError.body && (
-                <>
-                  <br />
-                  <span style={{ fontWeight: 400, fontSize: 13 }}>
-                    {t.httpErrorBody}
-                  </span>
-                  <pre
-                    style={{
-                      background: palette.inputBg,
-                      padding: 8,
-                      borderRadius: 6,
-                      margin: 0,
-                      color: palette.inputText,
-                    }}
-                  >
-                    {httpError.body}
-                  </pre>
-                </>
+                      title="Body synchronisé avec la dernière création"
+                    >
+                      SYNC
+                    </span>
+                  )}
+                </div>
               )}
             </div>
-          )}
-          {response && (
-            <CollapsibleResponseBody response={response} palette={palette} />
-          )}
-          {/* Affichage des headers de la réponse HTTP */}
-          {responseHeaders && Object.keys(responseHeaders).length > 0 && (
-            <details style={{ marginTop: 8 }}>
-              <summary
-                style={{
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  color: palette.subtext,
-                }}
-              >
-                Headers de la réponse HTTP
-              </summary>
-              <pre
-                style={{
-                  background: palette.inputBg,
-                  padding: 8,
-                  borderRadius: 6,
-                  fontSize: 13,
-                  margin: 0,
-                  overflowX: 'auto',
-                  color: palette.inputText,
-                }}
-              >
-                {JSON.stringify(responseHeaders, null, 2)}
-              </pre>
-            </details>
-          )}
-          {history.length > 0 && (
-            <details style={{ marginTop: 12 }}>
-              <summary style={{ cursor: 'pointer', color: palette.subtext }}>
-                Historique (5 dernières requêtes)
-              </summary>
-              <ol style={{ fontSize: 13 }}>
-                {history.map((h, i) => (
-                  <li key={i} style={{ marginBottom: 8 }}>
-                    <div>
-                      <b>{h.req.method}</b> {h.req.url}
-                    </div>
-                    {h.req.body && (
-                      <div>
-                        Body: <code>{JSON.stringify(h.req.body)}</code>
-                      </div>
-                    )}
-                    <div>
-                      Headers: <code>{JSON.stringify(h.req.headers)}</code>
-                    </div>
-                    <div>
-                      Réponse :{' '}
-                      <pre
-                        style={{
-                          display: 'inline',
-                          background: palette.inputBg,
-                          color: palette.inputText,
-                        }}
-                      >
-                        {h.res}
-                      </pre>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </details>
-          )}
+          </details>
+        )}
+        {/* Headers envoyés + bouton cURL */}
+        <div
+          style={{
+            marginBottom: 8,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 16,
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: 13,
+                marginBottom: 2,
+                color: palette.subtext,
+              }}
+            >
+              {t.sentHeaders}
+            </label>
+            <pre
+              style={{
+                background: palette.inputBg,
+                padding: 8,
+                borderRadius: 6,
+                fontSize: 13,
+                margin: 0,
+                overflowX: 'auto',
+                color: palette.inputText,
+              }}
+            >
+              {JSON.stringify(effectiveHeaders, null, 2)}
+            </pre>
+          </div>
+
+          <CurlCopyButton
+            method={method}
+            url={computedUrl}
+            headers={effectiveHeaders}
+            body={body}
+            palette={palette}
+          />
         </div>
+
+        {/* Bouton d’envoi */}
+        <button
+          onClick={sendRequest}
+          disabled={loading || !!missingParam || !!bodyJsonError}
+          style={{
+            marginBottom: 8,
+            marginTop: 8,
+            background: `linear-gradient(90deg, ${palette.accent} 0%, ${palette.accent2} 100%)`,
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            fontWeight: 700,
+            fontSize: 15,
+            padding: '10px 32px',
+            boxShadow: '0 2px 8px 0 rgba(59,130,246,0.10)',
+            cursor:
+              loading || !!missingParam || !!bodyJsonError
+                ? 'not-allowed'
+                : 'pointer',
+            opacity: loading || !!missingParam || !!bodyJsonError ? 0.6 : 1,
+            transition: 'background 0.2s, opacity 0.2s',
+            outline: 'none',
+          }}
+          aria-busy={loading}
+          aria-label={label}
+          title={
+            missingParam
+              ? `Le paramètre « ${missingParam} » est requis`
+              : bodyJsonError
+                ? bodyJsonError
+                : ''
+          }
+        >
+          {loading ? t.send : label}
+        </button>
+        {bodyJsonError && (
+          <div
+            style={{ color: palette.errorText, fontSize: 13, marginTop: 4 }}
+            role="alert"
+          >
+            ⚠️ {bodyJsonError}
+          </div>
+        )}
+        {missingParam && (
+          <div
+            style={{ color: palette.errorText, fontSize: 13, marginTop: 4 }}
+            role="alert"
+          >
+            ⚠️ Le paramètre <b>{missingParam}</b> est requis pour compléter
+            l’URL.
+          </div>
+        )}
       </div>
-    </React.Fragment>
+
+      {/* ZONE RÉPONSE HTTP */}
+      <div
+        style={{
+          padding: '18px 24px',
+          background: 'none',
+        }}
+      >
+        {/* Temps de réponse */}
+        {responseTime !== null && (
+          <div
+            style={{ fontSize: 13, color: palette.subtext, marginBottom: 4 }}
+          >
+            ⏱️ Temps de réponse : <b>{responseTime} ms</b>
+          </div>
+        )}
+        {showHttpError && httpError && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            style={{
+              background: palette.errorBg,
+              color: palette.errorText,
+              border: `1px solid ${palette.errorText}`,
+              borderRadius: 6,
+              padding: 12,
+              marginTop: 8,
+              marginBottom: 8,
+              fontWeight: 500,
+            }}
+          >
+            {t.httpError} <b>{httpError.status}</b> {httpError.statusText}
+            {httpError.body && (
+              <>
+                <br />
+                <span style={{ fontWeight: 400, fontSize: 13 }}>
+                  {t.httpErrorBody}
+                </span>
+                <pre
+                  style={{
+                    background: palette.inputBg,
+                    padding: 8,
+                    borderRadius: 6,
+                    margin: 0,
+                    color: palette.inputText,
+                  }}
+                >
+                  {httpError.body}
+                </pre>
+              </>
+            )}
+          </div>
+        )}
+        {response && (
+          <CollapsibleResponseBody response={response} palette={palette} />
+        )}
+        {/* Affichage des headers de la réponse HTTP */}
+        {responseHeaders && Object.keys(responseHeaders).length > 0 && (
+          <details style={{ marginTop: 8 }}>
+            <summary
+              style={{
+                cursor: 'pointer',
+                fontSize: 13,
+                color: palette.subtext,
+              }}
+            >
+              Headers de la réponse HTTP
+            </summary>
+            <pre
+              style={{
+                background: palette.inputBg,
+                padding: 8,
+                borderRadius: 6,
+                fontSize: 13,
+                margin: 0,
+                overflowX: 'auto',
+                color: palette.inputText,
+              }}
+            >
+              {JSON.stringify(responseHeaders, null, 2)}
+            </pre>
+          </details>
+        )}
+        {history.length > 0 && (
+          <details style={{ marginTop: 12 }}>
+            <summary style={{ cursor: 'pointer', color: palette.subtext }}>
+              Historique (5 dernières requêtes)
+            </summary>
+            <ol style={{ fontSize: 13 }}>
+              {history.map((h, i) => (
+                <li key={i} style={{ marginBottom: 8 }}>
+                  <div>
+                    <b>{h.req.method}</b> {h.req.url}
+                  </div>
+                  {h.req.body && (
+                    <div>
+                      Body: <code>{JSON.stringify(h.req.body)}</code>
+                    </div>
+                  )}
+                  <div>
+                    Headers: <code>{JSON.stringify(h.req.headers)}</code>
+                  </div>
+                  <div>
+                    Réponse :{' '}
+                    <pre
+                      style={{
+                        display: 'inline',
+                        background: palette.inputBg,
+                        color: palette.inputText,
+                      }}
+                    >
+                      {h.res}
+                    </pre>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </details>
+        )}
+      </div>
+    </div>
   );
 };
 
