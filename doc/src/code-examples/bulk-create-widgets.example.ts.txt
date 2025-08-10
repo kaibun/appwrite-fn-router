@@ -24,5 +24,24 @@ export default async function main(context) {
       }
       return res.json({ id, weight: 10, color: 'red' });
     });
+    router.patch('/widgets/:id', (req, res) => {
+      const { id } = req.params;
+      const updates = req.body;
+      // Simule la mise à jour
+      return res.json({ id, ...updates });
+    });
+    router.delete('/widgets/:id', (req, res) => {
+      const { id } = req.params;
+      // Simule la suppression
+      return res.json({ id, deleted: true });
+    });
+    router.post('/widgets/bulk', (req, res) => {
+      const widgets = req.body;
+      // Simule la création groupée
+      return res.json(
+        widgets.map((w, i) => ({ ...w, id: String(i + 1) })),
+        201
+      );
+    });
   });
 }

@@ -1,6 +1,51 @@
-router.delete('/widgets', (req, res) => {
-  // highlight-start
-  // Ici, on supprime tous les widgets d’un coup
-  // highlight-end
-  return res.json({ deleted: 'all' });
-});
+import { handleRequest } from '@kaibun/appwrite-fn-router';
+
+export default async function main(context) {
+  return await handleRequest(context, (router) => {
+    router.get('/widgets', (req, res) => {
+      // Exemple de retour statique
+      return res.json([
+        { id: '1', weight: 10, color: 'red' },
+        { id: '2', weight: 20, color: 'blue' },
+      ]);
+    });
+    router.post('/widgets', (req, res) => {
+      const widget = req.body;
+      // Simule la création
+      return res.json({ ...widget, id: 'new-id' }, 201);
+    });
+    router.get('/widgets/:id', (req, res) => {
+      const { id } = req.params;
+      if (id === 'not-found') {
+        return res.json(
+          { code: 'NOT_FOUND', message: 'Widget not found' },
+          404
+        );
+      }
+      return res.json({ id, weight: 10, color: 'red' });
+    });
+    router.patch('/widgets/:id', (req, res) => {
+      const { id } = req.params;
+      const updates = req.body;
+      // Simule la mise à jour
+      return res.json({ id, ...updates });
+    });
+    router.delete('/widgets/:id', (req, res) => {
+      const { id } = req.params;
+      // Simule la suppression
+      return res.json({ id, deleted: true });
+    });
+    router.post('/widgets/bulk', (req, res) => {
+      const widgets = req.body;
+      // Simule la création groupée
+      return res.json(
+        widgets.map((w, i) => ({ ...w, id: String(i + 1) })),
+        201
+      );
+    });
+    router.delete('/widgets', (req, res) => {
+      // Simule la purge
+      return res.json({ deleted: true });
+    });
+  });
+}

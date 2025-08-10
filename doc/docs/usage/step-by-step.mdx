@@ -10,12 +10,14 @@ title: Create a REST API with AFR & Appwrite
 import TriggerFunction from '@site/src/components/TriggerFunction';
 import StepByStepToc from '@site/src/components/StepByStepToc';
 import CodeFromFile from '@site/src/components/CodeFromFile';
+import DiffCodeBlock from '@site/src/components/DiffCodeBlock';
 import Install from '@site/src/steps/Install';
 import Main from '@site/src/steps/Main';
 import { TRIGGER_API_BASE_URL } from '@site/src/components/trigger-function-config';
 import { TriggerFunctionSyncProvider } from '@site/src/components/TriggerFunctionSyncContext';
 import { StepProvider } from '@site/src/components/StepProvider';
 import Step from '@site/src/components/Step';
+import { useStep } from '@site/src/components/StepProvider';
 import StepNextButton from '@site/src/components/StepNextButton';
 import ListWidgets from '@site/src/steps/ListWidgets';
 import GetWidget from '@site/src/steps/GetWidget';
@@ -25,104 +27,110 @@ import DeleteWidget from '@site/src/steps/DeleteWidget';
 import BulkCreateWidgets from '@site/src/steps/BulkCreateWidgets';
 import DeleteAllWidgets from '@site/src/steps/DeleteAllWidgets';
 
-
 # Créer une API REST Appwrite avec AFR, étape par étape
 
 Ce guide vous accompagne pas à pas pour créer une API REST pour la ressource fictive `Widget` avec la librairie **Appwrite Function Router (AFR)**. Il s’adresse aux débutants ou à toute personne découvrant les fonctions Appwrite.
 
-:::note Pourquoi créer sa propre API REST avec AFR ?
-Appwrite expose déjà une [API REST native pour accéder à ses collections](https://appwrite.io/docs/apis/rest). Cependant, développer votre propre API REST présente de nombreux avantages :
-
-- **Logique métier personnalisée** : ajoutez des traitements avant/après lecture/écriture (validation, enrichissement, calculs, etc.).
-- **Validation avancée** : contrôlez finement les données entrantes/sortantes, gérez des cas métier complexes.
-- **Sécurité renforcée** : appliquez vos propres règles d’authentification, d’autorisation, de filtrage, etc.
-- **Intégration avec des outils tiers** : connectez facilement d’autres services (API externes, analytics, emails, etc.) dans vos endpoints.
-- **API sur-mesure et réutilisable** : exposez uniquement les routes et les formats utiles à vos clients (front, mobile, partenaires…) ; masquez la structure interne Appwrite, ce qui découple votre API de Appwrite.
-- **Interopérabilité** : adaptez les conventions de votre API (RESTful, GraphQL, RPC…) à vos besoins ou à ceux de vos utilisateurs.
-- **Versionning et documentation** : maîtrisez le cycle de vie, la documentation et l’évolution de votre API indépendamment du backend Appwrite.
-
-En résumé, construire une surcouche, par exemple ici de type API REST, vous permet de transformer Appwrite en un véritable backend programmable, adapté à vos besoins métier et à vos standards d’API.
-:::
-
-<div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
-  <TriggerFunctionSyncProvider>
-    <StepProvider initialStep={1}>
-      <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1 }}>
-          <Step number={1}>
-            {({ next }) => <>
-              <h2>1. Installer la librairie</h2>
-              <Install next={next} />
-            </>}
-          </Step>
-          <Step number={2}>
-            {({ next }) => <>
-              <h2>2. Créer le routeur principal</h2>
-              <Main next={next} />
-            </>}
-          </Step>
-          <Step number={3}>
-            {({ next }) => <>
-              <h2>3. Ajouter une route GET pour lister les widgets</h2>
-              <ListWidgets next={next} />
-            </>}
-          </Step>
-          <Step number={4}>
-            {({ next }) => <>
-              <h2>4. Ajouter une route POST pour créer un widget</h2>
-              <CreateWidget next={next} />
-            </>}
-          </Step>
-          <Step number={5}>
-            {({ next }) => <>
-              <h2>5. Ajouter une route GET pour récupérer un widget par ID</h2>
-              <GetWidget next={next} />
-            </>}
-          </Step>
-          <Step number={6}>
-            {({ next }) => <>
-              <h2>6. Ajouter une route PATCH pour mettre à jour un widget</h2>
-              <PatchWidget next={next} />
-            </>}
-          </Step>
-          <Step number={7}>
-            {({ next }) => <>
-              <h2>7. Ajouter une route DELETE pour supprimer un widget</h2>
-              <DeleteWidget next={next} />
-            </>}
-          </Step>
-          <Step number={8}>
-            {({ next }) => <>
-              <h2>8. Ajouter un endpoint POST /widgets pour la création groupée (bulk)</h2>
-              <BulkCreateWidgets next={next} />
-            </>}
-          </Step>
-          <Step number={9}>
-            {({ next }) => <>
-              <h2>9. Ajouter un endpoint DELETE /widgets pour tout supprimer (purge)</h2>
-              <DeleteAllWidgets next={next} />
-            </>}
-          </Step>
-          <Step number={10}>
-            {({ next }) => <>
-              <h2>Aller plus loin</h2>
-              <p>
-                Vous avez maintenant une API REST fonctionnelle pour gérer des widgets. Pour aller plus loin, vous pouvez :
-                <ul>
-                  <li>Ajouter des fonctionnalités avancées comme la pagination, le tri, la recherche… (souvent au moyen de _query parameters_)</li>
-                  <li>Intégrer des middlewares pour la sécurité (authentification, autorisation, CORS, etc.),</li>
-                  <li>Mettre en place des tests unitaires et d’intégration pour valider le comportement de votre API.</li>
-                  <li>Consulter la <a href="https://appwrite.io/docs">documentation d’Appwrite</a> pour explorer d’autres fonctionnalités qui s’intégreraient bien à vos fonctions.</li>
-                  <li>Contribuer à la librairie AFR en proposant des améliorations ou des corrections !</li>
-                </ul>
-              </p>
-            </>}
-          </Step>
-        </div>
-        <div style={{ width: 340, marginLeft: 32 }}>
-          <StepByStepToc />
+import React from 'react';
+export function WhyAFRNote() {
+  const { currentStep } = useStep();
+  // On ne veut ouvrir la note que lors du tout premier affichage de l’étape 1
+  const [alreadyLeftStep1, setAlreadyLeftStep1] = React.useState(false);
+  React.useEffect(() => {
+    if (currentStep > 1 && !alreadyLeftStep1) setAlreadyLeftStep1(true);
+  }, [currentStep, alreadyLeftStep1]);
+  const open = currentStep === 1 && !alreadyLeftStep1;
+  return (
+    <details style={{ marginBottom: 24 }} open={open}>
+      <summary style={{ fontWeight: 600, fontSize: 17, cursor: 'pointer' }}>
+        Pourquoi créer sa propre API REST avec AFR ?
+      </summary>
+      <div style={{ marginTop: 8 }}>
+        Appwrite expose déjà une <a href="https://appwrite.io/docs/apis/rest">API REST native pour accéder à ses collections</a>. Cependant, développer votre propre API REST présente de nombreux avantages :
+        <ul>
+          <li><b>Logique métier personnalisée</b> : ajoutez des traitements avant/après lecture/écriture (validation, enrichissement, calculs, etc.).</li>
+          <li><b>Validation avancée</b> : contrôlez finement les données entrantes/sortantes, gérez des cas métier complexes.</li>
+          <li><b>Sécurité renforcée</b> : appliquez vos propres règles d’authentification, d’autorisation, de filtrage, etc.</li>
+          <li><b>Intégration avec des outils tiers</b> : connectez facilement d’autres services (API externes, analytics, emails, etc.) dans vos endpoints.</li>
+          <li><b>API sur-mesure et réutilisable</b> : exposez uniquement les routes et les formats utiles à vos clients (front, mobile, partenaires…) ; masquez la structure interne Appwrite, ce qui découple votre API de Appwrite.</li>
+          <li><b>Interopérabilité</b> : adaptez les conventions de votre API (RESTful, GraphQL, RPC…) à vos besoins ou à ceux de vos utilisateurs.</li>
+          <li><b>Versionning et documentation</b> : maîtrisez le cycle de vie, la documentation et l’évolution de votre API indépendamment du backend Appwrite.</li>
+        </ul>
+        <div style={{ marginTop: 8 }}>
+          En résumé, construire une surcouche, par exemple ici de type API REST, vous permet de transformer Appwrite en un véritable backend programmable, adapté à vos besoins métier et à vos standards d’API.
         </div>
       </div>
-    </StepProvider>
-  </TriggerFunctionSyncProvider>
-</div>
+    </details>
+  );
+}
+
+<TriggerFunctionSyncProvider>
+  <StepProvider initialStep={1}>
+    <WhyAFRNote />
+    <Step number={1}>
+      {({ next }) => <>
+        <h2>1. Installer la librairie</h2>
+        <Install next={next} />
+        <StepNextButton onClick={next} stepNumber={1}>Étape suivante</StepNextButton>
+      </>}
+    </Step>
+    <Step number={2}>
+      {({ next }) => <>
+        <Main next={next} stepNumber={2} />
+      </>}
+    </Step>
+    <Step number={3}>
+      {({ next }) => <>
+        <ListWidgets next={next} stepNumber={3} />
+      </>}
+    </Step>
+    <Step number={4}>
+      {({ next }) => <>
+        <CreateWidget next={next} stepNumber={4} />
+      </>}
+    </Step>
+    <Step number={5}>
+      {({ next }) => <>
+        <GetWidget next={next} stepNumber={5} />
+      </>}
+    </Step>
+    <Step number={6}>
+      {({ next }) => <>
+        <PatchWidget next={next} stepNumber={6} />
+      </>}
+    </Step>
+    <Step number={7}>
+      {({ next }) => <>
+        <DeleteWidget next={next} stepNumber={7} />
+      </>}
+    </Step>
+    <Step number={8}>
+      {({ next }) => <>
+        <BulkCreateWidgets next={next} stepNumber={8} />
+      </>}
+    </Step>
+    <Step number={9}>
+      {({ next }) => <>
+        <DeleteAllWidgets next={next} stepNumber={9} />
+      </>}
+    </Step>
+    <Step number={10}>
+      {({ next }) => <>
+        <h2>Aller plus loin</h2>
+        <p>
+          Vous avez maintenant une API REST fonctionnelle pour gérer des widgets. Pour aller plus loin, vous pouvez :
+          <ul>
+            <li>Ajouter des fonctionnalités avancées comme la pagination, le tri, la recherche… (souvent au moyen de _query parameters_)</li>
+            <li>Intégrer des middlewares pour la sécurité (authentification, autorisation, CORS, etc.),</li>
+            <li>Mettre en place des tests unitaires et d’intégration pour valider le comportement de votre API.</li>
+            <li>Consulter la <a href="https://appwrite.io/docs">documentation d’Appwrite</a> pour explorer d’autres fonctionnalités qui s’intégreraient bien à vos fonctions.</li>
+            <li>Contribuer à la librairie AFR en proposant des améliorations ou des corrections !</li>
+          </ul>
+        </p>
+      </>}
+    </Step>
+    <div style={{ width: 340, marginLeft: 32 }}>
+      <StepByStepToc />
+    </div>
+  </StepProvider>
+</TriggerFunctionSyncProvider>

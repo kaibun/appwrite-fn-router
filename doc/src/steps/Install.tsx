@@ -11,6 +11,5 @@ export default ({ next }: { next: () => void }) => (
       }
       language="bash"
     />
-    <StepNextButton onClick={next}>Étape suivante</StepNextButton>
   </>
 );

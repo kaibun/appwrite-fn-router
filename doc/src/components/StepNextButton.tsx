@@ -1,14 +1,22 @@
 import React from 'react';
+import { useStep } from './StepProvider';
 
 interface StepNextButtonProps {
   onClick: () => void;
   children?: React.ReactNode;
+  stepNumber?: number; // Optionnel, sinon currentStep
 }
 
 const StepNextButton: React.FC<StepNextButtonProps> = ({
   onClick,
   children,
+  stepNumber,
 }) => {
+  const { currentStep } = useStep();
+  // Si stepNumber est fourni, n’afficher le bouton que si currentStep === stepNumber
+  // Sinon, n’afficher que si currentStep === currentStep (toujours vrai)
+  const shouldShow = stepNumber ? currentStep === stepNumber : true;
+  if (!shouldShow) return null;
   return (
     <button
       type="button"

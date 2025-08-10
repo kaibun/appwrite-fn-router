@@ -9,10 +9,5 @@ export default async function main(context) {
         { id: '2', weight: 20, color: 'blue' },
       ]);
     });
-    router.post('/widgets', (req, res) => {
-      const widget = req.body;
-      // Simule la création
-      return res.json({ ...widget, id: 'new-id' }, 201);
-    });
   });
 }

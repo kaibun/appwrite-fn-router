@@ -231,37 +231,6 @@ router.get("/", (_req, res) => {
 router.post("/", async (req, res, _log, _error) => {
   try {
     const body = req.bodyJson;
-    if (Array.isArray(body)) {
-      const created = [];
-      const errors = [];
-      for (const item of body) {
-        if (typeof item.weight !== "number" || !item.color || !["red", "blue", "gold"].includes(String(item.color))) {
-          errors.push(
-            "weight and color (red|blue|gold) are required for all items"
-          );
-          continue;
-        }
-        const id2 = String(nextId++);
-        const newWidget2 = {
-          id: id2,
-          weight: item.weight,
-          color: item.color
-        };
-        widgets[id2] = newWidget2;
-        created.push(newWidget2);
-      }
-      if (created.length === 0) {
-        return res.json(
-          {
-            code: "VALIDATION_ERROR",
-            message: "No valid widgets to create",
-            errors
-          },
-          400
-        );
-      }
-      return res.json({ items: created, errors }, 201);
-    }
     if (typeof body.weight !== "number" || !body.color || !["red", "blue", "gold"].includes(String(body.color))) {
       return res.json(
         {
@@ -300,6 +269,55 @@ router.delete("/", (req, res) => {
     delete widgets[id];
   }
   return res.json({ deleted: count });
+});
+router.post("/bulk", (req, res, _log, _error) => {
+  const body = req.bodyJson;
+  try {
+    if (!Array.isArray(body)) {
+      throw new SyntaxError("Expected an array of widgets to create");
+    }
+    const created = [];
+    const errors = [];
+    for (const item of body) {
+      if (typeof item.weight !== "number" || !item.color || !["red", "blue", "gold"].includes(String(item.color))) {
+        errors.push(
+          "weight and color (red|blue|gold) are required for all items"
+        );
+        continue;
+      }
+      const id = String(nextId++);
+      const newWidget = {
+        id,
+        weight: item.weight,
+        color: item.color
+      };
+      widgets[id] = newWidget;
+      created.push(newWidget);
+    }
+    if (created.length === 0) {
+      return res.json(
+        {
+          code: "VALIDATION_ERROR",
+          message: "No valid widgets to create",
+          errors
+        },
+        400
+      );
+    }
+    return res.json({ items: created, errors }, 201);
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      return res.json(
+        {
+          code: "BAD_REQUEST",
+          message: "Invalid JSON in request body"
+        },
+        400
+      );
+    }
+    _error(String(e));
+    throw e;
+  }
 });
 router.get("/secret", (req, res, _log, _error) => {
   const authHeader = req.headers["Authorization"] || req.headers["authorization"];

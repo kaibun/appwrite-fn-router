@@ -1,3 +1,18 @@
+/* Magic comments custom pour les blocs de code (diffs) */
+.code-block-added-line {
+  background-color: #e6ffed !important;
+  border-left: 4px solid #2ecc40;
+}
+.code-block-modified-line {
+  background-color: #e6f0ff !important;
+  border-left: 4px solid #3578e5;
+}
+.code-block-removed-line {
+  background-color: #ffecec !important;
+  border-left: 4px solid #ff4136;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
 /**
  * Any CSS included here will be global. The classic template
  * bundles Infima by default. Infima is a CSS framework designed to
