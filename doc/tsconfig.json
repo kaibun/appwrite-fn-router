@@ -15,7 +15,8 @@
     "baseUrl": ".",
     "paths": {
       "@site/*": ["src/*"]
-    }
+    },
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
   "include": ["./**/*.ts", "./**/*.tsx", "../src/**/*.ts", "../types/**/*.ts"],
   "exclude": ["../cypress", "build", ".docusaurus", "../functions"]
