@@ -1,6 +1,4 @@
-import React from 'react';
-import CodeFromFile from '../components/CodeFromFile';
-import StepNextButton from '../components/StepNextButton';
+import CodeFromFile from '@src/components/CodeFromFile';
 
 export default ({ next }: { next: () => void }) => (
   <>

@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-// Ce contexte permet de synchroniser l’id du dernier widget créé (POST /widgets)
-// entre plusieurs exemples <TriggerFunction /> dans la documentation interactive.
-// Lorsqu’un widget est créé, son id est stocké ici et injecté automatiquement
-// dans les paramètres d’URL (ex : /widgets/:id) des autres exemples, pour
-// permettre de tester GET/PATCH/DELETE sur le même id sans copier-coller.
+// This context synchronizes the id of the last created widget (POST /widgets)
+// between multiple <TriggerFunction /> examples in the interactive documentation.
+// When a widget is created, its id is stored here and automatically injected
+// into the URL parameters (e.g.: /widgets/:id) of other examples, to
+// allow testing GET/PATCH/DELETE on the same id without copy-pasting.
 //
-// Utilisation :
+// Usage:
 // <TriggerFunctionSyncProvider>
 //   <TriggerFunction ... />
 //   <TriggerFunction ... />
 // </TriggerFunctionSyncProvider>
 //
-// Voir doc/docs/usage/step-by-step.mdx pour un exemple d’intégration.
+// See doc/docs/usage/step-by-step.mdx for an integration example.
 
 interface TriggerFunctionSyncState {
   lastWidgetId?: string;
@@ -20,6 +20,8 @@ interface TriggerFunctionSyncState {
   setLastWidgetBody: (body: any) => void;
   lastWidgetHeaders?: Record<string, string>;
   setLastWidgetHeaders: (headers: Record<string, string>) => void;
+  history: { req: any; res: any }[];
+  addHistory: (item: { req: any; res: any }) => void;
 }
 
 const TriggerFunctionSyncContext = createContext<
@@ -38,6 +40,10 @@ export function TriggerFunctionSyncProvider({
   const [lastWidgetHeaders, setLastWidgetHeaders] = useState<
     Record<string, string> | undefined
   >(undefined);
+  const [history, setHistory] = useState<{ req: any; res: any }[]>([]);
+  const addHistory = (item: { req: any; res: any }) => {
+    setHistory((h) => [item, ...h].slice(0, 5));
+  };
   return (
     <TriggerFunctionSyncContext.Provider
       value={{
@@ -47,6 +53,8 @@ export function TriggerFunctionSyncProvider({
         setLastWidgetBody,
         lastWidgetHeaders,
         setLastWidgetHeaders,
+        history,
+        addHistory,
       }}
     >
       {children}

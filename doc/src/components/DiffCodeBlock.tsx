@@ -1,5 +1,6 @@
 import React from 'react';
 import CodeBlock from '@theme/CodeBlock';
+import { addMagicCommentsToDiff } from './DiffCodeBlock/diffFoldUtils';
 
 export interface DiffCodeBlockProps {
   before?: string;
@@ -38,18 +39,14 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
         code += part.value
           .split('\n')
           .map((line: string, i: number, arr: string[]) =>
-            line.trim() === '' && i === arr.length - 1
-              ? ''
-              : `// added-next-line\n${line}`
+            line.trim() === '' && i === arr.length - 1 ? '' : `+${line}`
           )
           .join('\n');
       } else if (part.removed) {
         code += part.value
           .split('\n')
           .map((line: string, i: number, arr: string[]) =>
-            line.trim() === '' && i === arr.length - 1
-              ? ''
-              : `// removed-next-line\n${line}`
+            line.trim() === '' && i === arr.length - 1 ? '' : `-${line}`
           )
           .join('\n');
       } else {
@@ -57,9 +54,12 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
       }
     }
   }
+
+  const codeWithMagic = addMagicCommentsToDiff(code);
+
   return (
     <CodeBlock language={language} title={title}>
-      {code.trimEnd()}
+      {codeWithMagic.trimEnd()}
     </CodeBlock>
   );
 };

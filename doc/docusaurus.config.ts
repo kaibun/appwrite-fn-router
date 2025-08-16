@@ -1,5 +1,6 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
+import path from 'path';
 import type * as Preset from '@docusaurus/preset-classic';
 // import type { ScalarOptions } from '@scalar/docusaurus';
 // import ServeWithoutI18NContext from './plugins/serve-without-i18n';
@@ -189,6 +190,12 @@ const config: Config = {
           line: 'removed-next-line',
           block: { start: 'removed-start', end: 'removed-end' },
         },
+        // Ligne non modifiée
+        {
+          className: 'code-block-unchanged-line',
+          line: 'unchanged-next-line',
+          block: { start: 'unchanged-start', end: 'unchanged-end' },
+        },
       ],
     },
   } satisfies Preset.ThemeConfig,
@@ -199,6 +206,7 @@ const config: Config = {
   themes: ['@docusaurus/theme-mermaid'],
 
   plugins: [
+    require.resolve('./plugins/webpack-alias.js'),
     // serveWithoutI18n,
     [
       'docusaurus-plugin-typedoc',

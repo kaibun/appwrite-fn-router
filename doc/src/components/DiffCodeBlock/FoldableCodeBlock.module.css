@@ -1,0 +1,100 @@
+.block {
+  margin-bottom: 0;
+  border-radius: 0;
+  border-top: none;
+  font-size: 1rem;
+  padding: 0 !important;
+}
+
+.foldedBlock {
+  border: 1px dotted #e0e6f0;
+  border-top: none;
+  border-left: none;
+  /* background: #edf1f6; */
+}
+
+/**
+ * See custom.css for additional styles circumventing Prism’s dynamically
+ * generated styles.
+ */
+
+.firstBlock {
+  border-top: 1px solid #eee;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.lastBlock {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.block pre {
+  border-radius: 0 !important;
+}
+
+.firstBlock pre {
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.lastBlock pre {
+  border-bottom-left-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  margin-bottom: 16px;
+}
+
+.block code {
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+.firstBlock code {
+  padding-top: 16px !important;
+}
+.lastBlock code {
+  padding-bottom: 16px !important;
+}
+
+button {
+  margin: 0 !important;
+}
+
+.foldButton {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  background: #e0e6f0;
+  font-size: 13px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.addedBlock {
+  /** Simply to trigger CSS module’s class generation. */
+  padding: inherit;
+}
+
+.removedBlock {
+  /** Simply to trigger CSS module’s class generation. */
+  padding: inherit;
+}
+
+/**
+ * Dark mode.
+ */
+[data-theme='dark'] .foldedBlock {
+  border: 1px dotted #313848;
+  border-top: none;
+  border-left: none;
+}
+
+[data-theme='dark'] .foldButton {
+  background: #313848;
+  color: #e0e6f0;
+}

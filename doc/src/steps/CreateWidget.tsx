@@ -1,44 +1,41 @@
-import React from 'react';
-import CodeFromFile from '../components/CodeFromFile';
-import DiffCodeBlock from '../components/DiffCodeBlock';
-import TriggerFunction from '../components/TriggerFunction';
-import { TRIGGER_API_BASE_URL } from '../components/trigger-function-config';
+// import CodeFromFile from '@site/components/CodeFromFile';
+import DiffCodeBlockFoldable from '@src/components/DiffCodeBlock/DiffCodeBlockFoldable';
+import TriggerFunction from '@src/components/TriggerFunction';
+import { TRIGGER_API_BASE_URL } from '@src/components/TriggerFunction/config';
 
-export default ({ next }: { next: () => void }) => (
-  <>
-    <h2>4. Ajouter une route POST pour créer un widget</h2>
-    <p>
-      Cette étape permet d’ajouter un endpoint pour créer un widget à partir
-      d’un objet <code>weight</code> et <code>color</code>. Le code ci-dessous
-      effectue une validation simple et retourne le widget créé.
-    </p>
-    {/* @ts-ignore */}
-    {/* <CodeFromFile
-      file={
-        require('!!raw-loader!@site/src/code-examples/create-widget.example.ts.txt')
-          .default
-      }
-      language="typescript"
-    /> */}
-    <DiffCodeBlock
-      before={
-        require('!!raw-loader!@site/src/code-examples/list-widgets.example.ts.txt')
-          .default
-      }
-      after={
-        require('!!raw-loader!@site/src/code-examples/create-widget.example.ts.txt')
-          .default
-      }
-      language="typescript"
-      title="Ajout du POST /widgets"
-    />
-    {/* <StepNextButton onClick={next} stepNumber={4}>Étape suivante</StepNextButton> */}
-    <TriggerFunction
-      method="POST"
-      url={`${TRIGGER_API_BASE_URL}/widgets`}
-      body={{ weight: 42, color: 'red' }}
-      label="Créer un widget"
-      onStepDone={next}
-    />
-  </>
-);
+import { useI18n } from '@src/components/I18nProvider';
+export default ({
+  next,
+  stepNumber,
+}: {
+  next: () => void;
+  stepNumber: number;
+}) => {
+  const t = useI18n();
+  return (
+    <>
+      <h2>{t.step4Title}</h2>
+      <p>{t.createWidgetDescription}</p>
+      <DiffCodeBlockFoldable
+        before={
+          require('!!raw-loader!@site/src/code-examples/list-widgets.example.ts.txt')
+            .default
+        }
+        after={
+          require('!!raw-loader!@site/src/code-examples/create-widget.example.ts.txt')
+            .default
+        }
+        language="typescript"
+        // title={t.createWidgetDiffTitle}
+      />
+      <TriggerFunction
+        method="POST"
+        url={`${TRIGGER_API_BASE_URL}/widgets`}
+        body={{ weight: 42, color: 'red' }}
+        label={t.createWidgetLabel}
+        step={4}
+        onStepDone={next}
+      />
+    </>
+  );
+};
