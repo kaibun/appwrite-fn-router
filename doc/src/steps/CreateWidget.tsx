@@ -1,8 +1,8 @@
 import React from 'react';
 import CodeFromFile from '../components/CodeFromFile';
 import DiffCodeBlock from '../components/DiffCodeBlock';
-import TriggerFunction from '../components/TriggerFunction';
-import { TRIGGER_API_BASE_URL } from '../components/trigger-function-config';
+import TriggerFunction from '@site/src/components/TriggerFunction';
+import { TRIGGER_API_BASE_URL } from '../components/TriggerFunction/config';
 
 export default ({ next }: { next: () => void }) => (
   <>

@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { useTriggerFunctionSync } from './TriggerFunctionSyncContext';
+import { useTriggerFunctionSync } from './TriggerFunction/SyncContext';
 import { useDocusaurusLocale } from './useDocusaurusLocale';
 import { useDocusaurusColorMode } from './useDocusaurusColorMode';
 import { getOrCreateWidgetUserId } from './useWidgetUserId';
+import TriggerFunctionForm from './TriggerFunction/Form';
 import { CurlCopyButton } from './CurlCopyButton';
+import { extractParams, isCorsSimpleHeader } from './TriggerFunction/Utils';
+import TriggerFunctionResult from './TriggerFunction/Result';
+import TriggerFunctionHistory from './TriggerFunction/History';
+import TriggerFunctionDebug from './TriggerFunction/Debug';
 
 // Système i18n simple (fr/en)
 const messages = {
@@ -119,14 +124,6 @@ const defaultHeaders: Record<string, string> = {
   'Content-Type': 'application/json',
 };
 
-function extractParams(url: string): string[] {
-  // Extrait les :param dans /widgets/:id mais ignore les ports (ex :3000)
-  // On considère qu'un port est :<nombre> juste après 'localhost' ou un domaine
-  // On ne veut pas matcher :3000 dans http://localhost:3000/widgets/:id
-  const matches = url.match(/:([a-zA-Z_][a-zA-Z0-9_]*)/g); // n'accepte pas :<nombre> seul
-  return matches ? matches.map((m) => m.slice(1)) : [];
-}
-
 const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   method,
   url,
@@ -135,7 +132,6 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   label = 'Trigger Function',
   urlParams,
   step = 1,
-  // plus de stepType
   onStepDone,
   showHttpError = true,
   showUrlDebug = true,
@@ -184,7 +180,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   const colorMode = useDocusaurusColorMode();
 
   // Gestion des paramètres dynamiques de l’URL
-  const paramNames = urlParams || extractParams(url);
+  const paramNames: string[] = urlParams || extractParams(url);
 
   // Détection de synchronisation pour body et headers
   const isBodySynced = !initialBody && !!sync?.lastWidgetBody;
@@ -218,22 +214,6 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
         : []
   );
 
-  // Détection de headers custom non "CORS-safelisted"
-  const isCorsSimpleHeader = (key: string, value: string) => {
-    // https://fetch.spec.whatwg.org/#cors-safelisted-request-header
-    const k = key.trim().toLowerCase();
-    if (k === 'accept' || k === 'accept-language' || k === 'content-language')
-      return true;
-    if (k === 'content-type') {
-      const v = value.trim().toLowerCase();
-      return (
-        v === 'application/x-www-form-urlencoded' ||
-        v === 'multipart/form-data' ||
-        v === 'text/plain'
-      );
-    }
-    return false;
-  };
   const hasNonSimpleCustomHeader = customHeaders.some(
     (h) => h.key && !isCorsSimpleHeader(h.key, h.value)
   );
@@ -246,7 +226,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
 
   // Si un id synchronisé existe, pré-remplit le param id
   const [params, setParams] = useState<Param[]>(
-    paramNames.map((name) => {
+    paramNames.map((name: string) => {
       if (name === 'id' && sync?.lastWidgetId) {
         return { name, value: sync.lastWidgetId };
       }
@@ -272,7 +252,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   const rawUrlProp = url;
 
   // Remplace les :param dans l’URL par leur valeur
-  const computedUrl = paramNames.reduce((acc, name) => {
+  const computedUrl = paramNames.reduce((acc: string, name: string) => {
     if (showUrlDebug) {
       // eslint-disable-next-line no-console
       console.log('[TriggerFunction] url prop :', rawUrlProp);
@@ -303,7 +283,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
 
   // Vérifie que tous les paramètres dynamiques sont remplis
   const missingParam = paramNames.find(
-    (name) => !params.find((p) => p.name === name)?.value
+    (name: string) => !params.find((p) => p.name === name)?.value
   );
 
   const sendRequest = async () => {
@@ -542,39 +522,15 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
       }}
     >
       {/* ZONE DEBUG/URL */}
-      <div
-        style={{
-          padding: '18px 24px 0 24px',
-          borderBottom: `1px solid ${palette.border}`,
-          background: 'none',
-        }}
-      >
-        {showDebugInfo && (
-          <div
-            style={{ fontSize: 13, color: palette.subtext, marginBottom: 4 }}
-          >
-            <span>
-              Prop <code>url</code> : <code>{String(rawUrlProp)}</code>
-            </span>
-            <br />
-            <span>
-              URL utilisée : <code>{computedUrl}</code>
-            </span>
-            {urlWarning && (
-              <>
-                <br />
-                <span
-                  style={{ color: palette.errorText, fontWeight: 500 }}
-                  role="alert"
-                >
-                  ⚠️ {urlWarning}
-                </span>
-              </>
-            )}
-          </div>
-        )}
-        <strong>{method}</strong> {computedUrl}
-      </div>
+      <TriggerFunctionDebug
+        showDebugInfo={showDebugInfo}
+        showUrlDebug={showUrlDebug}
+        rawUrlProp={rawUrlProp}
+        computedUrl={computedUrl}
+        urlWarning={urlWarning}
+        palette={palette}
+        method={method}
+      />
 
       {/* ZONE PRÉPARATION REQUÊTE */}
       <div
@@ -597,7 +553,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
               {t.params}
             </legend>
             <div style={{ display: 'flex', gap: 16 }}>
-              {paramNames.map((name, idx) => {
+              {paramNames.map((name: string, idx: number) => {
                 const inputId = `param-${name}-${idx}`;
                 const isIdSynced =
                   name === 'id' &&
@@ -1223,6 +1179,16 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           </details>
         )}
       </div>
+
+      <TriggerFunctionResult
+        response={response}
+        httpError={httpError}
+        responseTime={responseTime}
+        responseHeaders={responseHeaders}
+        palette={palette}
+        t={t}
+      />
+      <TriggerFunctionHistory history={history} palette={palette} t={t} />
     </div>
   );
 };

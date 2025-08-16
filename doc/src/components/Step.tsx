@@ -10,8 +10,6 @@ const Step: React.FC<StepProps> = ({ number, children }) => {
   const { currentStep, nextStep } = useStep();
   const { stepByStep } = useStepMode();
   const isActive = currentStep === number;
-  // En mode pas à pas : afficher toutes les étapes débloquées (<= currentStep)
-  if (currentStep < number) return null;
   // Scroll automatique vers l’étape activée (par next ou clic TOC)
   React.useEffect(() => {
     if (isActive) {
@@ -30,6 +28,8 @@ const Step: React.FC<StepProps> = ({ number, children }) => {
       }
     }
   }, [isActive, number]);
+  // En mode pas à pas : afficher toutes les étapes débloquées (<= currentStep)
+  if (currentStep < number) return null;
   return (
     <div id={`step-anchor-${number}`} style={{ scrollMarginTop: 80 }}>
       {children({ next: nextStep, isActive })}

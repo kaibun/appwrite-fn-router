@@ -2,7 +2,7 @@ import React from 'react';
 // import CodeFromFile from '../components/CodeFromFile';
 import DiffCodeBlock from '../components/DiffCodeBlock';
 import TriggerFunction from '../components/TriggerFunction';
-import { TRIGGER_API_BASE_URL } from '../components/trigger-function-config';
+import { TRIGGER_API_BASE_URL } from '../components/TriggerFunction/config';
 
 export default ({
   stepNumber,
@@ -37,6 +37,7 @@ export default ({
       url={`${TRIGGER_API_BASE_URL}/widgets`}
       label="Lister les widgets"
       onStepDone={next}
+      // showDebugInfo={false}
     />
   </>
 );

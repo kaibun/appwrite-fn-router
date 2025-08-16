@@ -7,18 +7,17 @@ title: Create a REST API with AFR & Appwrite
 ---
 
 
-import TriggerFunction from '@site/src/components/TriggerFunction';
+import { TriggerFunctionSyncProvider } from '@site/src/components/TriggerFunction/SyncContext';
+import { StepProvider } from '@site/src/components/StepProvider';
+import { useStep } from '@site/src/components/StepProvider';
+import Step from '@site/src/components/Step';
 import StepByStepToc from '@site/src/components/StepByStepToc';
+import StepNextButton from '@site/src/components/StepNextButton';
 import CodeFromFile from '@site/src/components/CodeFromFile';
 import DiffCodeBlock from '@site/src/components/DiffCodeBlock';
+
 import Install from '@site/src/steps/Install';
 import Main from '@site/src/steps/Main';
-import { TRIGGER_API_BASE_URL } from '@site/src/components/trigger-function-config';
-import { TriggerFunctionSyncProvider } from '@site/src/components/TriggerFunctionSyncContext';
-import { StepProvider } from '@site/src/components/StepProvider';
-import Step from '@site/src/components/Step';
-import { useStep } from '@site/src/components/StepProvider';
-import StepNextButton from '@site/src/components/StepNextButton';
 import ListWidgets from '@site/src/steps/ListWidgets';
 import GetWidget from '@site/src/steps/GetWidget';
 import CreateWidget from '@site/src/steps/CreateWidget';
