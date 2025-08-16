@@ -1,9 +1,10 @@
-import React, {
+import {
   createContext,
   useContext,
   useState,
   ReactNode,
   useCallback,
+  useEffect,
 } from 'react';
 
 interface StepModeContextType {
@@ -25,6 +26,7 @@ interface StepContextType {
   currentStep: number;
   nextStep: () => void;
   goToStep: (n: number) => void;
+  maxStepReached: number;
 }
 
 const StepContext = createContext<StepContextType | undefined>(undefined);
@@ -46,13 +48,39 @@ export const StepProvider = ({
 }: StepProviderProps) => {
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [stepByStep, setStepByStep] = useState(true);
+  const [maxStepReached, setMaxStepReached] = useState(initialStep);
 
-  const nextStep = useCallback(() => setCurrentStep((s) => s + 1), []);
-  const goToStep = useCallback((n: number) => setCurrentStep(n), []);
+  const nextStep = useCallback(() => {
+    setCurrentStep((s) => {
+      setMaxStepReached((max) => Math.max(max, s + 1));
+      return s + 1;
+    });
+  }, []);
+  const goToStep = useCallback((n: number) => {
+    setCurrentStep(n);
+    setMaxStepReached((max) => Math.max(max, n));
+  }, []);
+
+  // Synchronise l’URL à chaque changement d’étape
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('step') !== String(currentStep)) {
+      params.set('step', String(currentStep));
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+    // Désactive le mode pas à pas à la dernière étape
+    if (currentStep === 10 && stepByStep) {
+      setStepByStep(false);
+    }
+  }, [currentStep, stepByStep]);
 
   return (
     <StepModeContext.Provider value={{ stepByStep, setStepByStep }}>
-      <StepContext.Provider value={{ currentStep, nextStep, goToStep }}>
+      <StepContext.Provider
+        value={{ currentStep, nextStep, goToStep, maxStepReached }}
+      >
         {children}
       </StepContext.Provider>
     </StepModeContext.Provider>

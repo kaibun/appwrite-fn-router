@@ -1,45 +1,42 @@
-import React from 'react';
-// import CodeFromFile from '../components/CodeFromFile';
-import DiffCodeBlock from '../components/DiffCodeBlock';
-import TriggerFunction from '../components/TriggerFunction';
-import { TRIGGER_API_BASE_URL } from '../components/trigger-function-config';
+// import CodeFromFile from '@src/components/CodeFromFile';
+import DiffCodeBlockFoldable from '@src/components/DiffCodeBlock/DiffCodeBlockFoldable';
+import TriggerFunction from '@src/components/TriggerFunction';
+import { TRIGGER_API_BASE_URL } from '@src/components/TriggerFunction/config';
 
-export default ({ next }: { next: () => void }) => (
-  <>
-    <h2>6. Ajouter une route PATCH pour mettre à jour un widget</h2>
-    <p>
-      Cette étape permet de mettre à jour un widget existant. Si l’ID n’existe
-      pas, une erreur 404 est retournée. Le code ci-dessous met à jour le poids
-      et la couleur du widget.
-    </p>
-    {/* @ts-ignore */}
-    {/* <CodeFromFile
-      file={
-        require('!!raw-loader!@site/src/code-examples/patch-widget.example.ts.txt')
-          .default
-      }
-      language="typescript"
-    /> */}
-    <DiffCodeBlock
-      before={
-        require('!!raw-loader!@site/src/code-examples/get-widget.example.ts.txt')
-          .default
-      }
-      after={
-        require('!!raw-loader!@site/src/code-examples/patch-widget.example.ts.txt')
-          .default
-      }
-      language="typescript"
-      title="Ajout du PATCH /widgets/:id"
-    />
-    {/* <StepNextButton onClick={next} stepNumber={6}>Étape suivante</StepNextButton> */}
-    <TriggerFunction
-      method="PATCH"
-      url={`${TRIGGER_API_BASE_URL}/widgets/:id`}
-      label="PATCHer le widget"
-      urlParams={['id']}
-      body={{ weight: 15, color: 'blue' }}
-      onStepDone={next}
-    />
-  </>
-);
+import { useI18n } from '@src/components/I18nProvider';
+export default ({
+  next,
+  stepNumber,
+}: {
+  next: () => void;
+  stepNumber: number;
+}) => {
+  const t = useI18n();
+  return (
+    <>
+      <h2>{t.step6Title}</h2>
+      <p>{t.patchWidgetDescription}</p>
+      <DiffCodeBlockFoldable
+        before={
+          require('!!raw-loader!@site/src/code-examples/get-widget.example.ts.txt')
+            .default
+        }
+        after={
+          require('!!raw-loader!@site/src/code-examples/patch-widget.example.ts.txt')
+            .default
+        }
+        language="typescript"
+        // title={t.patchWidgetDiffTitle}
+      />
+      <TriggerFunction
+        method="PATCH"
+        url={`${TRIGGER_API_BASE_URL}/widgets/:id`}
+        label={t.patchWidgetLabel}
+        urlParams={['id']}
+        body={{ weight: 15, color: 'blue' }}
+        step={6}
+        onStepDone={next}
+      />
+    </>
+  );
+};

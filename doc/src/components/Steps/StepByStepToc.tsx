@@ -1,25 +1,28 @@
 import React from 'react';
+import { usePalette } from '../PaletteProvider';
 import { useStep, useStepMode } from './StepProvider';
+import { useI18n } from '../I18nProvider';
+import { useDocusaurusColorMode } from '../useDocusaurusColorMode';
 
-// À personnaliser selon les titres réels du tutoriel
-const steps = [
-  '1. Installer la librairie',
-  '2. Créer le routeur principal',
-  '3. Ajouter une route GET pour lister les widgets',
-  '4. Ajouter une route POST pour créer un widget',
-  '5. Ajouter une route GET pour récupérer un widget par ID',
-  '6. Ajouter une route PATCH pour mettre à jour un widget',
-  '7. Ajouter une route DELETE pour supprimer un widget',
-  '8. Ajouter un endpoint POST /widgets pour la création groupée (bulk)',
-  '9. Ajouter un endpoint DELETE /widgets pour tout supprimer (purge)',
-  '10. Aller plus loin',
+const stepKeys = [
+  'step1Title',
+  'step2Title',
+  'step3Title',
+  'step4Title',
+  'step5Title',
+  'step6Title',
+  'step7Title',
+  'step8Title',
+  'step9Title',
+  'step10Title',
 ];
-
 const StepByStepToc: React.FC = () => {
-  const { currentStep, goToStep } = useStep();
+  const { currentStep, goToStep, maxStepReached } = useStep();
   const { stepByStep, setStepByStep } = useStepMode();
-
-  // Affichage du sommaire dynamique
+  const palette = usePalette();
+  const colorMode = useDocusaurusColorMode();
+  const t = useI18n();
+  // Dynamic step-by-step summary
   return (
     <aside
       style={{
@@ -27,16 +30,20 @@ const StepByStepToc: React.FC = () => {
         top: 100,
         right: 32,
         width: 320,
-        background: '#fff',
-        border: '1px solid #e0e6f0',
+        background: palette.inputBg,
+        border: `1px solid ${palette.border}`,
         borderRadius: 12,
-        boxShadow: '0 4px 16px 0 rgba(60, 80, 120, 0.07)',
+        boxShadow:
+          colorMode === 'dark'
+            ? '0 4px 16px 0 rgba(0,0,0,0.4)'
+            : '0 4px 16px 0 rgba(60, 80, 120, 0.07)',
         padding: '24px 24px 16px 24px',
         zIndex: 100,
         maxHeight: '80vh',
         overflowY: 'auto',
+        color: palette.text,
       }}
-      aria-label="Sommaire pas à pas"
+      aria-label={t.stepByStepSummary}
     >
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
         <input
@@ -50,13 +57,13 @@ const StepByStepToc: React.FC = () => {
           htmlFor="stepbystep-toggle"
           style={{ fontWeight: 600, fontSize: 16 }}
         >
-          Pas à pas
+          {t.stepByStepLabel}
         </label>
       </div>
       <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {steps.map((title, idx) => {
+        {stepKeys.map((key, idx) => {
           const stepNum = idx + 1;
-          const unlocked = stepByStep ? currentStep >= stepNum : true;
+          const unlocked = stepByStep ? maxStepReached >= stepNum : true;
           return (
             <li
               key={stepNum}
@@ -70,18 +77,14 @@ const StepByStepToc: React.FC = () => {
               onClick={() => {
                 if (!unlocked) return;
                 goToStep(stepNum);
-                // Scroll vers l’étape correspondante
                 setTimeout(() => {
                   const el = document.getElementById(`step-anchor-${stepNum}`);
                   if (el) {
-                    // scrollIntoView avec scroll-margin-top fonctionne sur la plupart des navigateurs modernes
                     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    // Fallback pour Safari/iOS ou si scroll-margin-top n'est pas pris en compte
-                    const headerHeight = 80; // Ajustez si besoin
+                    const headerHeight = 80;
                     const rect = el.getBoundingClientRect();
                     const absoluteY = window.scrollY + rect.top;
                     if (Math.abs(rect.top) < 5) {
-                      // Si déjà bien positionné, ne rien faire
                       return;
                     }
                     window.scrollTo({
@@ -100,8 +103,18 @@ const StepByStepToc: React.FC = () => {
                   width: 28,
                   height: 28,
                   borderRadius: '50%',
-                  background: currentStep >= stepNum ? '#3b82f6' : '#e0e6f0',
-                  color: currentStep >= stepNum ? '#fff' : '#888',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor:
+                    maxStepReached > stepNum ? palette.accent : palette.border,
+                  background:
+                    currentStep >= stepNum ? palette.accent : palette.border,
+                  color:
+                    currentStep >= stepNum
+                      ? palette.textContrast
+                      : maxStepReached > stepNum
+                        ? palette.accent
+                        : palette.subtext,
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -113,14 +126,13 @@ const StepByStepToc: React.FC = () => {
                 }}
                 aria-hidden="true"
               >
-                {currentStep > stepNum ? '✓' : stepNum}
+                {maxStepReached > stepNum ? '✓' : stepNum}
               </span>
               <span style={{ fontWeight: currentStep === stepNum ? 700 : 400 }}>
-                {title}
+                {t[key]}
               </span>
             </li>
           );
-          // Ajoute un anchor id sur chaque Step pour le scroll
         })}
       </ol>
     </aside>

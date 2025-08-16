@@ -14,7 +14,8 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@site/*": ["src/*"]
+      "@site/*": ["./*"],
+      "@src/*": ["src/*"]
     },
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
