@@ -27,7 +27,7 @@
     "function": "cross-env NODE_ENV=development appwrite run functions --function-id 6890bbb20003ff2a1bf1",
     "dev:run": "npm run function",
     "dev:watch": "cross-env NODE_ENV=development nodemon",
-    "dev": "npm run sync && npm-run-all --parallel dev:watch dev:run",
+    "dev": "docker ps >/dev/null 2>&1 || { echo '❌ Docker is not running.'; exit 1; }; npm run sync && npm-run-all --parallel dev:watch dev:run",
     "test": "npm-run-all --aggregate-output --continue-on-error --parallel test:unit test:e2e",
     "test:unit": "cross-env NODE_ENV=test vitest run --config vitest.config.ts",
     "test:e2e": "cross-env NODE_ENV=test cypress run"
