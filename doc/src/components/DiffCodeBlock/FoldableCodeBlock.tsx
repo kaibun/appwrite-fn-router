@@ -22,7 +22,6 @@ export default function FoldableCodeBlock({
   const [isFolded, setIsFolded] = useState(folded);
   const showFoldButton = type === 'unchanged' && folded;
   const codeWithMagic = addMagicCommentsToDiff(code);
-  //   console.log('FoldableCodeBlock type:', type, 'code:', code);
   const generatedClass = [
     styles.block,
     isFirst ? styles.firstBlock : '',
@@ -34,7 +33,6 @@ export default function FoldableCodeBlock({
   ]
     .filter(Boolean)
     .join(' ');
-  //   console.log('FoldableCodeBlock className:', generatedClass);
   return (
     <>
       {showFoldButton && isFolded && (

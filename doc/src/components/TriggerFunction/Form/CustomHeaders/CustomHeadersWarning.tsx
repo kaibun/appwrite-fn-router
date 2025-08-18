@@ -1,6 +1,6 @@
 import { useUIContext } from '@src/theme/UIContext';
 import { useTriggerFunctionContext } from '../../Context';
-import { isCorsSimpleHeader } from '../../Utils';
+import { isCorsSimpleHeader } from '../../utils';
 
 const CustomHeadersWarning: React.FC = () => {
   const { palette, t } = useUIContext();
