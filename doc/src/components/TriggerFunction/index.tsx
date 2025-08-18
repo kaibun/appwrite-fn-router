@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
-import StepNextButton from '@src/components/Steps/StepNextButton';
 
+import StepNextButton from '@src/components/Steps/StepNextButton';
 import { useUIContext } from '@src/theme/UIContext';
 import type { Param, MockApiResponse, TriggerFunctionProps } from './Types';
-import { extractParams, isCorsSimpleHeader } from './Utils';
+import { extractParams, isCorsSimpleHeader } from './utils';
 import TriggerFunctionForm from './Form';
 import { TriggerFunctionContext } from './Context';
 import TriggerFunctionResult from './Result';
@@ -13,6 +13,7 @@ import { useTriggerFunctionSync } from './SyncContext';
 import { getOrCreateWidgetUserId } from '../useWidgetUserId';
 import PreRequestError from './PreRequestError';
 import { scrollToWithHeaderOffset } from './scrollToWithHeaderOffset';
+import ResponseFacade from './utils/ResponseFacade';
 
 // Main component
 
@@ -39,16 +40,6 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   let sync: ReturnType<typeof useTriggerFunctionSync> | undefined = undefined;
   try {
     sync = useTriggerFunctionSync();
-    // Debug: log the sync context value at each render
-    // console.log('[TriggerFunction] sync context', sync);
-    if (sync) {
-      // console.log('[TriggerFunction] sync.lastWidgetId', sync.lastWidgetId);
-      // console.log('[TriggerFunction] sync.lastWidgetBody', sync.lastWidgetBody);
-      // console.log(
-      //   '[TriggerFunction] sync.lastWidgetHeaders',
-      //   sync.lastWidgetHeaders
-      // );
-    }
   } catch {}
 
   // Persistent user ID (localStorage)
@@ -111,7 +102,10 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   }, [sync?.lastWidgetId]);
 
   const [useAuth, setUseAuth] = useState(false);
-  const [responseObj, setResponseObj] = useState<Response | null>(null);
+  // Stocke la façade autour du Response original
+  const [responseFacade, setResponseFacade] = useState<ResponseFacade | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [bodyJsonError, setBodyJsonError] = useState<string | null>(null);
   const [preRequestError, setPreRequestError] = useState<string | null>(null);
@@ -154,13 +148,13 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
       setPreRequestError(
         `Erreur : le paramètre « ${missingParam} » est requis dans l’URL.`
       );
-      setResponseObj(null);
+      // (nettoyé) : suppression de l'ancien state responseObj
       setLoading(false);
       return;
     }
     setPreRequestError(null);
     setLoading(true);
-    setResponseObj(null);
+    // (nettoyé) : suppression de l'ancien state responseObj
     setBodyJsonError(null);
     const start = performance.now();
     let parsedBody: any = body;
@@ -204,10 +198,10 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
               );
               sync.setLastWidgetHeaders(customObj);
             }
-          } catch {}
+          } catch (e) {}
         }
       } catch (err: any) {
-        setResponseObj(null);
+        // (nettoyé) : suppression de l'ancien state responseObj
       } finally {
         setLoading(false);
       }
@@ -223,12 +217,15 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
             ? JSON.stringify(parsedBody)
             : undefined,
       });
-      setResponseObj(res);
-      // Ajout dans l’historique global
+      const facade = new ResponseFacade(res);
+      setResponseFacade(facade);
+      // Always read the body on a clone from the facade
+      // Never on the original Response, to avoid stream errors
+      const resText = await facade.getResponse().text();
       sync?.addHistory &&
         sync.addHistory({
           req: { method, url: computedUrl, body: parsedBody },
-          res: await res.clone().text(),
+          res: resText,
         });
       // Auto-scroll to the Result component of the current step only on success
       if (res.status < 400) {
@@ -245,8 +242,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
       const isWidgetPost = method === 'POST' && /\/widgets(\b|\/|$)/.test(url);
       if (isWidgetPost && sync) {
         try {
-          const widgetText = await res.clone().text();
-          const data = JSON.parse(widgetText);
+          const data = JSON.parse(resText);
           if (data && typeof data.id === 'string') {
             sync.setLastWidgetId(data.id);
             sync.setLastWidgetBody(parsedBody);
@@ -256,14 +252,13 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
             );
             sync.setLastWidgetHeaders(customObj);
           }
-        } catch {}
+        } catch (e) {}
       }
       // Call automatic progression as in deprecated.tsx
       if (res.status < 400 && onStepDone) {
-        onStepDone(await res.clone().text());
+        onStepDone(resText);
       }
     } catch (err: any) {
-      setResponseObj(null);
     } finally {
       setLoading(false);
     }
@@ -353,9 +348,9 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           headersOpen={showDebugInfo ? true : headersOpenDefault}
           bodyOpen={showDebugInfo ? true : bodyOpenDefault}
         />
-        {responseObj && (
+        {responseFacade && (
           <div id={`trigger-function-result-step-${step}`}>
-            <TriggerFunctionResult response={responseObj!} />
+            <TriggerFunctionResult response={responseFacade.getResponse()} />
           </div>
         )}
         {preRequestError && (
