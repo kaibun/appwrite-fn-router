@@ -11,16 +11,10 @@ import { StepProvider } from '@src/components/Steps/StepProvider';
 import { getStepFromUrl } from '@src/utils/getStepFromUrl';
 import StepByStepContent from '@src/steps';
 import WhyAFRNote from '@src/components/WhyAFRNote';
-import { PaletteProvider } from '@src/components/PaletteProvider';
-import { I18nProvider } from '@src/components/I18nProvider';
 
-<I18nProvider>
-  <PaletteProvider>
-    <TriggerFunctionSyncProvider>
-      <StepProvider initialStep={getStepFromUrl(1)}>
-        <WhyAFRNote />
-        <StepByStepContent />
-      </StepProvider>
-    </TriggerFunctionSyncProvider>
-  </PaletteProvider>
-</I18nProvider>
+<TriggerFunctionSyncProvider>
+  <StepProvider initialStep={getStepFromUrl(1)}>
+    <WhyAFRNote />
+    <StepByStepContent />
+  </StepProvider>
+</TriggerFunctionSyncProvider>

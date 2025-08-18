@@ -1,6 +1,6 @@
-// Main orchestrator component
+import { useEffect, useState, useMemo } from 'react';
 
-import React, { useState, useMemo } from 'react';
+import { useUIContext } from '@src/theme/UIContext';
 import type { Param, MockApiResponse, TriggerFunctionProps } from './Types';
 import { extractParams, isCorsSimpleHeader } from './Utils';
 import TriggerFunctionForm from './Form';
@@ -8,10 +8,7 @@ import { TriggerFunctionContext } from './Context';
 import TriggerFunctionResult from './Result';
 import TriggerFunctionHistory from './History';
 import TriggerFunctionDebug from './Debug';
-import { messages } from './I18n';
 import { useTriggerFunctionSync } from './SyncContext';
-import { useDocusaurusLocale } from '../useDocusaurusLocale';
-import { useDocusaurusColorMode } from '../useDocusaurusColorMode';
 import { getOrCreateWidgetUserId } from '../useWidgetUserId';
 import PreRequestError from './PreRequestError';
 import { scrollToWithHeaderOffset } from './scrollToWithHeaderOffset';
@@ -35,46 +32,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   bodyOpenDefault = ['POST', 'PATCH'].includes(method),
   headersOpenDefault = true,
 }) => {
-  // UI language (Docusaurus or fallback)
-  const lang = useDocusaurusLocale?.() || 'en';
-  const t = (messages as any)[lang] || messages.fr;
-
-  // Color mode (light/dark)
-  const colorMode = useDocusaurusColorMode?.();
-  const palette =
-    colorMode === 'dark'
-      ? {
-          // dark theme
-          accent: '#BCD0F0FF',
-          accent2: '#93C4CDFF',
-          border: '#26324a',
-          debugBg: '#2CB797FF',
-          errorText: '#ffb3b3',
-          errorBg: '#2a1a1a',
-          inputBg: '#232b3a',
-          inputText: '#eaf2ff',
-          inputBorder: '#3b82f6',
-          resultBg: '#6F1D70FF',
-          sectionBg: '#E1D9D9FF',
-          subtext: '#b3bedc',
-          text: '#ffffff',
-        }
-      : {
-          // light theme
-          accent: '#3b82f6',
-          accent2: '#6366f1',
-          border: '#e5e7eb',
-          debugBg: '#FFCD4FFF',
-          errorText: '#ef4444',
-          errorBg: '#fee2e2',
-          inputBg: '#f3f4f6',
-          inputText: '#111827',
-          inputBorder: '#d1d5db',
-          resultBg: '#FFDC84FF',
-          sectionBg: '#1A68EFFF',
-          subtext: '#6b7280',
-          text: '#000000',
-        };
+  const { palette, t } = useUIContext();
 
   // Contextual synchronization
   let sync: ReturnType<typeof useTriggerFunctionSync> | undefined = undefined;
@@ -141,7 +99,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   );
 
   // Synchronisation dynamique de l’id si le contexte change
-  React.useEffect(() => {
+  useEffect(() => {
     if (sync?.lastWidgetId) {
       setParams((ps) =>
         ps.map((p) =>
@@ -413,11 +371,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           <PreRequestError error={preRequestError} color={palette.errorText} />
         )}
         {!!(sync?.history && sync.history.length) && (
-          <TriggerFunctionHistory
-            history={sync.history}
-            palette={palette}
-            t={t}
-          />
+          <TriggerFunctionHistory history={sync.history} />
         )}
       </div>
     </TriggerFunctionContext.Provider>

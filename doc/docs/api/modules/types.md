@@ -14,7 +14,7 @@ custom_edit_url: null
 
 #### Defined in
 
-[types/core.d.ts:15](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L15)
+[types/core.d.ts:15](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L15)
 
 ___
 
@@ -37,7 +37,7 @@ to pass additional data to your callbacks, which may be more semantic.
 
 #### Defined in
 
-[types/core.d.ts:34](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L34)
+[types/core.d.ts:34](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L34)
 
 ___
 
@@ -53,7 +53,7 @@ https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
 
 #### Defined in
 
-[types/core.d.ts:136](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L136)
+[types/core.d.ts:136](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L136)
 
 ___
 
@@ -72,7 +72,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:119](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L119)
+[types/core.d.ts:119](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L119)
 
 ___
 
@@ -101,7 +101,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:72](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L72)
+[types/core.d.ts:72](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L72)
 
 ___
 
@@ -122,7 +122,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:90](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L90)
+[types/core.d.ts:90](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L90)
 
 ___
 
@@ -147,7 +147,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:48](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L48)
+[types/core.d.ts:48](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L48)
 
 ___
 
@@ -157,7 +157,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:89](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L89)
+[types/core.d.ts:89](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L89)
 
 ___
 
@@ -181,7 +181,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:43](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L43)
+[types/core.d.ts:43](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L43)
 
 ___
 
@@ -205,7 +205,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:7](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L7)
+[types/core.d.ts:7](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L7)
 
 ___
 
@@ -229,7 +229,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:8](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L8)
+[types/core.d.ts:8](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L8)
 
 ___
 
@@ -239,7 +239,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:70](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L70)
+[types/core.d.ts:70](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L70)
 
 ___
 
@@ -249,7 +249,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:45](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L45)
+[types/core.d.ts:45](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L45)
 
 ___
 
@@ -269,7 +269,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L10)
+[types/core.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L10)
 
 ___
 
@@ -279,7 +279,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:46](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L46)
+[types/core.d.ts:46](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L46)
 
 ___
 
@@ -302,7 +302,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:55](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L55)
+[types/core.d.ts:55](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L55)
 
 ___
 
@@ -312,7 +312,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:126](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L126)
+[types/core.d.ts:126](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L126)
 
 ___
 
@@ -330,7 +330,7 @@ ___
 
 #### Defined in
 
-[types/widget.d.ts:3](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/widget.d.ts#L3)
+[types/widget.d.ts:3](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/widget.d.ts#L3)
 
 ___
 
@@ -354,7 +354,7 @@ ___
 
 #### Defined in
 
-[types/core.d.ts:138](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/core.d.ts#L138)
+[types/core.d.ts:138](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/core.d.ts#L138)
 
 ## Functions
 
@@ -374,7 +374,7 @@ obj is Widget
 
 #### Defined in
 
-[types/widget.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/widget.d.ts#L10)
+[types/widget.d.ts:10](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/widget.d.ts#L10)
 
 ___
 
@@ -394,4 +394,4 @@ obj is Widget[]
 
 #### Defined in
 
-[types/widget.d.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/73f58b4/types/widget.d.ts#L20)
+[types/widget.d.ts:20](https://github.com/kaibun/appwrite-fn-router/blob/55a5e2d/types/widget.d.ts#L20)

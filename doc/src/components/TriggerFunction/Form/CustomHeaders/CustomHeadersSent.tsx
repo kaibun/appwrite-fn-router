@@ -1,5 +1,3 @@
-import React from 'react';
-
 const CustomHeadersSent = ({ effectiveHeaders, t, palette }: any) => (
   <div style={{ flex: 1 }}>
     <pre

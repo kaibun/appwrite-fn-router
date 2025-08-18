@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { usePalette } from '../PaletteProvider';
+import { useEffect, useState } from 'react';
+
+import { useUIContext } from '@src/theme/UIContext';
 import CodeBlock from '@theme/CodeBlock';
-import { useI18n } from '../I18nProvider';
 
 interface TriggerFunctionResultProps {
   response: Response;
@@ -10,8 +10,7 @@ interface TriggerFunctionResultProps {
 const TriggerFunctionResult: React.FC<TriggerFunctionResultProps> = ({
   response,
 }) => {
-  const palette = usePalette();
-  const t = useI18n();
+  const { palette, t } = useUIContext();
   const [body, setBody] = useState<string>('');
   const [headers, setHeaders] = useState<Record<string, string>>({});
 

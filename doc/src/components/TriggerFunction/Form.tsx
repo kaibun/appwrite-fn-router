@@ -1,11 +1,10 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 
+import { useUIContext } from '@src/theme/UIContext';
 import type { Param } from './Types';
 import Body from './Form/Body';
 import CustomHeaders from './Form/CustomHeaders';
 import EditableURL from './Form/EditableURL';
-import { usePalette } from '@src/components/PaletteProvider';
-import { useI18n } from '../I18nProvider';
 import { scrollToWithHeaderOffset } from './scrollToWithHeaderOffset';
 import { useTriggerFunctionContext } from './Context';
 
@@ -44,9 +43,9 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
   headersOpen = true,
   httpError,
 }) => {
-  const palette = usePalette();
-  const ctx = useTriggerFunctionContext();
-  const { method, computedUrl, effectiveHeaders, label } = ctx;
+  const { palette, t } = useUIContext();
+  const { method, computedUrl, effectiveHeaders, label } =
+    useTriggerFunctionContext();
   const editableUrlRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,15 +70,15 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
         }}
       >
         <EditableURL
-          urlTemplate={ctx.computedUrl}
+          urlTemplate={computedUrl}
           params={params}
           setParams={setParams}
-          method={ctx.method}
+          method={method}
         />
         <CurlCopyButton
-          method={ctx.method}
-          url={ctx.computedUrl}
-          headers={ctx.effectiveHeaders}
+          method={method}
+          url={computedUrl}
+          headers={effectiveHeaders}
           body={body}
           palette={palette}
         />
@@ -98,7 +97,7 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
           body={body}
           setBody={setBody}
           bodyJsonError={bodyJsonError}
-          method={ctx.method}
+          method={method}
         />
         <CustomHeaders headersOpen={headersOpen} />
         {/* <Params paramNames={paramNames} params={params} setParams={setParams} /> */}
@@ -123,9 +122,9 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
             outline: 'none',
           }}
           aria-busy={loading}
-          aria-label={ctx.label || ctx.t.trigger}
+          aria-label={label || t.trigger}
         >
-          {loading ? ctx.t.send : ctx.label || ctx.t.trigger}
+          {loading ? t.send : label || t.trigger}
         </button>
       </div>
     </>

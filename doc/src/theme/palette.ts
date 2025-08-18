@@ -15,6 +15,7 @@ export type Palette = {
   subtext: string;
   text: string;
   textContrast: string;
+  mode: 'light' | 'dark';
 };
 
 export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
@@ -37,6 +38,7 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
       subtext: '#b3bedc',
       text: '#ffffff',
       textContrast: '#000000',
+      mode: 'dark',
     };
   }
   return {
@@ -57,5 +59,6 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
     subtext: '#6b7280',
     text: '#000000',
     textContrast: '#ffffff',
+    mode: 'light',
   };
 }

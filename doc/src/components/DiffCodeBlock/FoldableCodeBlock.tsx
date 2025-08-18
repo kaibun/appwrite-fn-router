@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import CodeBlock from '@theme/CodeBlock';
+
+import { useUIContext } from '@src/theme/UIContext';
 import { DiffBlock, addMagicCommentsToDiff } from './diffFoldUtils';
 import styles from './FoldableCodeBlock.module.css';
-import { useI18n } from '../I18nProvider';
 
 interface FoldableCodeBlockProps {
   language?: string;
@@ -15,11 +16,12 @@ export default function FoldableCodeBlock({
   isFirst = false,
   isLast = false,
 }: FoldableCodeBlockProps & { isFirst?: boolean; isLast?: boolean }) {
+  const { t } = useUIContext();
+
   const { type, code, startLine, endLine, folded } = block;
   const [isFolded, setIsFolded] = useState(folded);
   const showFoldButton = type === 'unchanged' && folded;
   const codeWithMagic = addMagicCommentsToDiff(code);
-  const t = useI18n();
   //   console.log('FoldableCodeBlock type:', type, 'code:', code);
   const generatedClass = [
     styles.block,

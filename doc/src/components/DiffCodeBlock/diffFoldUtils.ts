@@ -1,5 +1,7 @@
-// Splits a diff into foldable/non-foldable blocks
-// Long unchanged blocks are folded by default
+/**
+ * Splits a diff into foldable/non-foldable blocks. Long unchanged blocks are
+ * folded by default.
+ */
 export interface DiffBlock {
   code: string;
   startLine: number;
@@ -9,8 +11,8 @@ export interface DiffBlock {
 }
 
 /**
- * Extracts the start context block (unchanged lines at the beginning of the file).
- * Returns the lines to display and the next index to process.
+ * Extracts the start context block (unchanged lines at the beginning of the
+ * file). Returns the lines to display and the next index to process.
  */
 function extractStartContext(
   diffLines: string[],
@@ -28,8 +30,8 @@ function extractStartContext(
 }
 
 /**
- * Extracts context lines before a changed block, from the previous folded unchanged block.
- * Returns a new unfolded block if context is available.
+ * Extracts context lines before a changed block, from the previous folded
+ * unchanged block. Returns a new unfolded block if context is available.
  */
 function extractBeforeContext(
   blocks: DiffBlock[],
@@ -58,8 +60,8 @@ function extractBeforeContext(
 }
 
 /**
- * Extracts context lines after a changed block, from the next folded unchanged block.
- * Returns both the unfolded context block and the shortened folded block.
+ * Extracts context lines after a changed block, from the next folded unchanged
+ * block. Returns both the unfolded context block and the shortened folded block.
  */
 function extractAfterContext(
   diffLines: string[],
@@ -273,7 +275,8 @@ export function splitDiffIntoBlocks(
 }
 
 /**
- * Magic comments are not so magical, they simply are driving CodeBlock styles. * Check docusaurus.config.ts for the custom magic comments used here.
+ * Magic comments are not so magical, they simply are driving CodeBlock styles.
+ * Check docusaurus.config.ts for the custom magic comments used here.
  *
  * @see https://docusaurus.io/docs/markdown-features/code-blocks#custom-magic-comments
  */

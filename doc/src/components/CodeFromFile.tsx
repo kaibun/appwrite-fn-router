@@ -1,8 +1,17 @@
-import React from 'react';
 import CodeBlock from '@theme/CodeBlock';
 
-// Ce composant importe le code source d'un fichier et l'affiche dans un CodeBlock
-// Utilisation : <CodeFromFile file={require('!!raw-loader!../code-examples/bulk-create-example.ts').default} language="typescript" />
+/**
+ * Displays the source code of a file inside a CodeBlock component.
+ *
+ * Usage:
+ *
+ * ```jsx
+ * <CodeFromFile
+ *   file={require('!!raw-loader!../code-examples/bulk-create-example.ts').default}
+ *   language="typescript"
+ * />
+ * ```
+ */
 
 interface CodeFromFileProps {
   file: string;

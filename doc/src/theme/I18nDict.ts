@@ -8,7 +8,8 @@ export const messages = {
     customHeaderWarning:
       '⚠️ Les headers personnalisés nécessitent d’être explicitement autorisés côté serveur pour fonctionner en CORS (Cross-Origin Resource Sharing) pour les requêtes complexes (du type POST, PATCH, etc.)',
     seeDoc: 'Consultez la documentation',
-    mdnCors: 'MDN sur CORS',
+    mdnCors: 'MDN à propos de CORS et des requêtes simples',
+    fetchSpec: 'Spécification Fetch à propos des headers simples',
     body: 'Body',
     bodyEditable: ' (JSON modifiable)',
     params: 'Paramètres :',
@@ -110,10 +111,10 @@ export const messages = {
       'Contrôlez le cycle de vie, la documentation et l’évolution de votre API indépendamment du backend Appwrite.',
     whyAFRSummary:
       'En résumé, créer une couche API REST vous permet de transformer Appwrite en un backend véritablement programmable, adapté à vos besoins métier et aux standards d’API.',
+    preRequestErrorLabel: 'Erreur de requête',
     stepByStepNext: 'Étape suivante',
     debugPropUrl: 'Prop',
     debugUsedUrl: 'URL utilisée',
-    preRequestErrorLabel: 'Erreur de requête',
     urlWarningRelative:
       "L’URL utilisée est relative ('/…'). Vérifiez que TRIGGER_API_BASE_URL est bien défini.",
     urlWarningLocalhostNoPort:
@@ -124,7 +125,6 @@ export const messages = {
   en: {
     debugPropUrl: 'Prop',
     debugUsedUrl: 'Used URL',
-    preRequestErrorLabel: 'Request error',
     stepByStepNext: 'Next step',
     addAuth: 'Add header ',
     authValue: 'Authorization: Bearer foobar',
@@ -138,7 +138,8 @@ export const messages = {
     customHeaderWarning:
       '⚠️ Custom headers must be explicitly allowed by the server to work with CORS (Cross-Origin Resource Sharing) for complex requests (like POST, PATCH, etc.)',
     seeDoc: 'See documentation',
-    mdnCors: 'MDN about CORS',
+    mdnCors: 'MDN about CORS and simple requests',
+    fetchSpec: 'Fetch Specification about simple headers',
     body: 'Body',
     bodyEditable: ' (editable JSON)',
     params: 'Parameters',
@@ -236,6 +237,7 @@ export const messages = {
       'Control the lifecycle, documentation, and evolution of your API independently from the Appwrite backend.',
     whyAFRSummary:
       'In summary, building a REST API layer lets you turn Appwrite into a truly programmable backend, tailored to your business needs and API standards.',
+    preRequestErrorLabel: 'Request error',
     urlWarningRelative:
       "The URL used is relative ('/…'). Make sure TRIGGER_API_BASE_URL is set.",
     urlWarningLocalhostNoPort:

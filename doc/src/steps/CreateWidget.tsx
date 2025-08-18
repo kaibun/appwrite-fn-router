@@ -1,9 +1,8 @@
-// import CodeFromFile from '@site/components/CodeFromFile';
-import DiffCodeBlockFoldable from '@src/components/DiffCodeBlock/DiffCodeBlockFoldable';
+import { useUIContext } from '@src/theme/UIContext';
+import FoldableDiffCodeBlock from '@site/src/components/DiffCodeBlock/FoldableDiffCodeBlock';
 import TriggerFunction from '@src/components/TriggerFunction';
 import { TRIGGER_API_BASE_URL } from '@src/components/TriggerFunction/config';
 
-import { useI18n } from '@src/components/I18nProvider';
 export default ({
   next,
   stepNumber,
@@ -11,12 +10,13 @@ export default ({
   next: () => void;
   stepNumber: number;
 }) => {
-  const t = useI18n();
+  const { t } = useUIContext();
+
   return (
     <>
       <h2>{t.step4Title}</h2>
       <p>{t.createWidgetDescription}</p>
-      <DiffCodeBlockFoldable
+      <FoldableDiffCodeBlock
         before={
           require('!!raw-loader!@site/src/code-examples/list-widgets.example.ts.txt')
             .default

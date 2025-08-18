@@ -1,8 +1,7 @@
-// import CodeFromFile from '@src/components/CodeFromFile';
-import DiffCodeBlockFoldable from '@src/components/DiffCodeBlock/DiffCodeBlockFoldable';
+import { useUIContext } from '@src/theme/UIContext';
+import DiffCodeBlockFoldable from '@site/src/components/DiffCodeBlock/FoldableDiffCodeBlock';
 import StepNextButton from '@src/components/Steps/StepNextButton';
 
-import { useI18n } from '@src/components/I18nProvider';
 export default ({
   stepNumber,
   next,
@@ -10,7 +9,8 @@ export default ({
   stepNumber: number;
   next: () => void;
 }) => {
-  const t = useI18n();
+  const { t } = useUIContext();
+
   return (
     <>
       <h2>{t.step2Title}</h2>

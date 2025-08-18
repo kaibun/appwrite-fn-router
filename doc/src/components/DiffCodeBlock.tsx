@@ -1,23 +1,24 @@
-import React from 'react';
 import CodeBlock from '@theme/CodeBlock';
+
 import { addMagicCommentsToDiff } from './DiffCodeBlock/diffFoldUtils';
 
 export interface DiffCodeBlockProps {
   before?: string;
   after?: string;
-  diff?: string; // Optionnel : patch/diff brut
+  diff?: string; // Optional: raw patch/diff string
   language?: string;
   title?: string;
   disableDiff?: boolean;
 }
 
-// Utilise jsdiff pour calculer le diff (ajout, suppression, modif)
+// Uses jsdiff to compute the diff (added, removed, changed)
 import { diffLines } from 'diff';
 
 /**
- * Affiche un bloc de code avec surlignage diff automatique (ajout, modif, suppression)
- * - Si before/after fournis, calcule le diff
- * - Si diff fourni, affiche tel quel
+ * Displays a code block with automatic diff highlighting (add, change, remove).
+ *
+ * - If before/after are provided, computes the diff.
+ * - If diff is provided, displays it as-is.
  */
 const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
   before,
@@ -36,6 +37,7 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
     const diffResult = diffLines(before, after);
     for (const part of diffResult) {
       if (part.added) {
+        // Add lines with '+' prefix
         code += part.value
           .split('\n')
           .map((line: string, i: number, arr: string[]) =>
@@ -43,6 +45,7 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
           )
           .join('\n');
       } else if (part.removed) {
+        // Remove lines with '-' prefix
         code += part.value
           .split('\n')
           .map((line: string, i: number, arr: string[]) =>
@@ -50,6 +53,7 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
           )
           .join('\n');
       } else {
+        // Unchanged lines
         code += part.value;
       }
     }

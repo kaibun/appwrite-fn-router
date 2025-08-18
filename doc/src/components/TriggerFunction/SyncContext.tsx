@@ -1,17 +1,27 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-// This context synchronizes the id of the last created widget (POST /widgets)
-// between multiple <TriggerFunction /> examples in the interactive documentation.
-// When a widget is created, its id is stored here and automatically injected
-// into the URL parameters (e.g.: /widgets/:id) of other examples, to
-// allow testing GET/PATCH/DELETE on the same id without copy-pasting.
-//
-// Usage:
-// <TriggerFunctionSyncProvider>
-//   <TriggerFunction ... />
-//   <TriggerFunction ... />
-// </TriggerFunctionSyncProvider>
-//
-// See doc/docs/usage/step-by-step.mdx for an integration example.
+import { createContext, useContext, useState, ReactNode } from 'react';
+
+/**
+ * @packageDocumentation
+ *
+ * This context synchronizes the id of the last created widget (POST /widgets)
+ * between multiple `<TriggerFunction />` examples in the interactive
+ * documentation.
+ *
+ * When a widget is created, its id is stored here and automatically injected
+ * into the URL parameters (e.g.: /widgets/:id) of other examples, to
+ * allow testing GET/PATCH/DELETE on the same id without copy-pasting.
+ *
+ * Usage:
+ *
+ * ```jsx
+ * <TriggerFunctionSyncProvider>
+ *   <TriggerFunction ... />
+ *   <TriggerFunction ... />
+ * </TriggerFunctionSyncProvider>
+ * ```
+ *
+ * See doc/docs/usage/step-by-step.mdx for an integration example.
+ */
 
 interface TriggerFunctionSyncState {
   lastWidgetId?: string;

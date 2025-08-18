@@ -1,6 +1,4 @@
-import React from 'react';
-import { usePalette } from '@src/components/PaletteProvider';
-import { useI18n } from '@src/components/I18nProvider';
+import { useUIContext } from '@src/theme/UIContext';
 
 interface TriggerFunctionDebugProps {
   showDebugInfo: boolean;
@@ -22,8 +20,8 @@ const TriggerFunctionDebug: React.FC<TriggerFunctionDebugProps> = ({
   if (!showDebugInfo) {
     return null;
   }
-  const palette = usePalette();
-  const t = useI18n();
+  const { palette, t } = useUIContext();
+
   return (
     <div
       style={{
@@ -35,11 +33,12 @@ const TriggerFunctionDebug: React.FC<TriggerFunctionDebugProps> = ({
     >
       <div style={{ fontSize: 13, color: palette.subtext, marginBottom: 4 }}>
         <span>
-          Prop <code>url</code> : <code>{String(rawUrlProp)}</code>
+          {t('debugPropUrl')} <code>url</code> :{' '}
+          <code>{String(rawUrlProp)}</code>
         </span>
         <br />
         <span>
-          URL utilisée : <code>{computedUrl}</code>
+          {t('debugUsedUrl')}: <code>{computedUrl}</code>
         </span>
         {urlWarning && (
           <>

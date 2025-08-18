@@ -1,5 +1,7 @@
-// Génère ou récupère un identifiant utilisateur persistant pour la démo widgets
-// Utilise localStorage (clé: 'afr-widget-user-id')
+/**
+ * Generates or retrieves a persistent user ID for the widgets demo.
+ * Uses localStorage (key: 'afr-widget-user-id').
+ */
 export function getOrCreateWidgetUserId(): string {
   if (typeof window === 'undefined') return '';
   let id = localStorage.getItem('afr-widget-user-id');

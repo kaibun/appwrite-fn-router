@@ -1,5 +1,5 @@
+import { useState, useEffect } from 'react';
 import BrowserOnly from '@docusaurus/BrowserOnly';
-import React, { useState, useEffect } from 'react';
 import Layout from '@theme/Layout';
 import { ApiReferenceReact } from '@scalar/api-reference-react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
@@ -132,8 +132,9 @@ function DelayedScalar() {
     proxyUrl: 'https://proxy.scalar.com',
     url:
       process.env.NODE_ENV === 'production'
-        ? 'https://raw.githubusercontent.com/kaibun/appwrite-fn-router/refs/heads/docusaurus-scalar/openapi/tsp-output/schema/openapi.0.1.0.yaml'
-        : `/${i18n.currentLocale}/openapi.yaml`,
+        ? 'https://raw.githubusercontent.com/kaibun/appwrite-fn-router/refs/heads/docusaurus-scalar/openapi/tsp-output/schema/openapi.yaml'
+        : // Use static/openapi.yaml in development (accessed via the current locale)
+          `/${i18n.currentLocale}/openapi.yaml`,
   };
 
   return (

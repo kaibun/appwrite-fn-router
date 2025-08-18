@@ -1,10 +1,10 @@
-import React from 'react';
 import { useStep } from './StepProvider';
+import { useUIContext } from '../../theme/UIContext';
 
 interface StepNextButtonProps {
   onClick: () => void;
   children?: React.ReactNode;
-  stepNumber?: number; // Optionnel, sinon currentStep
+  stepNumber?: number; // Optional, otherwise uses currentStep
 }
 
 const StepNextButton: React.FC<StepNextButtonProps> = ({
@@ -13,8 +13,9 @@ const StepNextButton: React.FC<StepNextButtonProps> = ({
   stepNumber,
 }) => {
   const { currentStep } = useStep();
-  // Si stepNumber est fourni, n’afficher le bouton que si currentStep === stepNumber
-  // Sinon, n’afficher que si currentStep === currentStep (toujours vrai)
+  const { t } = useUIContext();
+  // If stepNumber is provided, show the button iif currentStep === stepNumber
+  // Otherwise, show if currentStep === currentStep (always true)
   const shouldShow = stepNumber ? currentStep === stepNumber : true;
   if (!shouldShow) return null;
   return (
@@ -37,7 +38,7 @@ const StepNextButton: React.FC<StepNextButtonProps> = ({
         outline: 'none',
       }}
     >
-      {children || 'Étape suivante'}
+      {children || t.stepByStepNext}
     </button>
   );
 };

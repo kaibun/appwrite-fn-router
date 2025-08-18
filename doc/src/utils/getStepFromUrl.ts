@@ -1,4 +1,3 @@
-// Utilitaire pour récupérer le numéro d'étape depuis l'URL
 export function getStepFromUrl(defaultStep: number = 1): number {
   if (typeof window === 'undefined') return defaultStep;
   const params = new URLSearchParams(window.location.search);

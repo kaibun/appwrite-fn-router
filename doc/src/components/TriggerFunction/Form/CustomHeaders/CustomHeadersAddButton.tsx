@@ -1,7 +1,7 @@
-import React from 'react';
+import { useState } from 'react';
 
 const CustomHeadersAddButton = ({ setCustomHeaders, t, palette }: any) => {
-  const [hover, setHover] = React.useState(false);
+  const [hover, setHover] = useState(false);
   return (
     <button
       type="button"
