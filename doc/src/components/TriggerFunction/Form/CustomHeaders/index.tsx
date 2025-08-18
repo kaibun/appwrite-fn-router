@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { usePalette } from '../../../PaletteProvider';
+import { useTriggerFunctionContext } from '../../Context';
 import CustomHeadersList from './CustomHeadersList';
 import CustomHeadersAddButton from './CustomHeadersAddButton';
 import CustomHeadersWarning from './CustomHeadersWarning';
@@ -8,30 +9,20 @@ import CustomHeadersSent from './CustomHeadersSent';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 export interface CustomHeadersProps {
-  customHeaders: { key: string; value: string }[];
-  setCustomHeaders: React.Dispatch<
-    React.SetStateAction<{ key: string; value: string }[]>
-  >;
-  hasNonSimpleCustomHeader?: boolean;
-  effectiveHeaders: Record<string, string>;
   headersOpen: boolean;
-  useAuth: boolean;
-  setUseAuth: React.Dispatch<React.SetStateAction<boolean>>;
-  t: Record<string, string>;
 }
 
-const CustomHeaders: React.FC<CustomHeadersProps> = (props) => {
+const CustomHeaders: React.FC<CustomHeadersProps> = ({ headersOpen }) => {
   const palette = usePalette();
+  const ctx = useTriggerFunctionContext();
   const {
     customHeaders,
     setCustomHeaders,
-    hasNonSimpleCustomHeader,
     effectiveHeaders,
-    headersOpen,
     useAuth,
     setUseAuth,
     t,
-  } = props;
+  } = ctx;
   return (
     <details
       open={headersOpen}

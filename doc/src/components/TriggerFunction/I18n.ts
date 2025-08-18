@@ -6,7 +6,7 @@ export const messages = {
     noCustomHeader: 'Aucun header custom',
     addHeader: '+ Ajouter un header',
     customHeaderWarning:
-      '⚠️ Les headers custom nécessitent d’être explicitement autorisés côté serveur pour fonctionner en CORS (Cross-Origin Resource Sharing).',
+      '⚠️ Les headers personnalisés nécessitent d’être explicitement autorisés côté serveur pour fonctionner en CORS (Cross-Origin Resource Sharing) pour les requêtes complexes (du type POST, PATCH, etc.)',
     seeDoc: 'Consultez la documentation',
     mdnCors: 'MDN sur CORS',
     body: 'Body',
@@ -128,7 +128,7 @@ export const messages = {
     noCustomHeader: 'No custom header',
     addHeader: '+ Add header',
     customHeaderWarning:
-      '⚠️ Custom headers must be explicitly allowed by the server to work with CORS (Cross-Origin Resource Sharing).',
+      '⚠️ Custom headers must be explicitly allowed by the server to work with CORS (Cross-Origin Resource Sharing) for complex requests (like POST, PATCH, etc.)',
     seeDoc: 'See documentation',
     mdnCors: 'MDN about CORS',
     body: 'Body',
