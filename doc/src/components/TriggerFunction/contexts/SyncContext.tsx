@@ -24,8 +24,14 @@ import { createContext, useContext, useState, ReactNode } from 'react';
  */
 
 interface TriggerFunctionSyncState {
-  lastWidgetId?: string;
-  setLastWidgetId: (id: string) => void;
+  /**
+   * Synchronized URL parameters (e.g. id, userId, etc.)
+   */
+  urlParameters: Record<string, string>;
+  /**
+   * Update a single URL parameter value
+   */
+  setUrlParameter: (name: string, value: string) => void;
   lastWidgetBody?: any;
   setLastWidgetBody: (body: any) => void;
   lastWidgetHeaders?: Record<string, string>;
@@ -43,9 +49,13 @@ export function TriggerFunctionSyncProvider({
 }: {
   children: ReactNode;
 }) {
-  const [lastWidgetId, setLastWidgetId] = useState<string | undefined>(
-    undefined
+  // Synchronized URL parameters (id, userId, ...)
+  const [urlParameters, setUrlParameters] = useState<Record<string, string>>(
+    {}
   );
+  const setUrlParameter = (name: string, value: string) => {
+    setUrlParameters((prev) => ({ ...prev, [name]: value }));
+  };
   const [lastWidgetBody, setLastWidgetBody] = useState<any>(undefined);
   const [lastWidgetHeaders, setLastWidgetHeaders] = useState<
     Record<string, string> | undefined
@@ -57,8 +67,8 @@ export function TriggerFunctionSyncProvider({
   return (
     <TriggerFunctionSyncContext.Provider
       value={{
-        lastWidgetId,
-        setLastWidgetId,
+        urlParameters,
+        setUrlParameter,
         lastWidgetBody,
         setLastWidgetBody,
         lastWidgetHeaders,

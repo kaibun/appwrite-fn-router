@@ -32,7 +32,6 @@ export default ({
         method="DELETE"
         url={`${TRIGGER_API_BASE_URL}/widgets/:id`}
         label={t.deleteWidgetLabel}
-        urlParams={['id']}
         step={7}
         onStepDone={next}
       />

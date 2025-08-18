@@ -1,27 +1,18 @@
 import { useRef, useEffect } from 'react';
 
+import { useBody } from '../contexts/BodyContext';
 import { useUIContext } from '@src/theme/UIContext';
-import type { Param } from './Types';
-import Body from './Form/Body';
+import { useTriggerFunctionContext } from '@site/src/components/TriggerFunction/contexts/TriggerFunctionContext';
 import StepNextButton from '@src/components/Steps/StepNextButton';
-import CustomHeaders from './Form/CustomHeaders';
-import EditableURL from './Form/EditableURL';
-import { scrollToWithHeaderOffset } from './scrollToWithHeaderOffset';
-import { useTriggerFunctionContext } from './Context';
+import { scrollToWithHeaderOffset } from '@site/src/components/TriggerFunction/utils/scrollToWithHeaderOffset';
+import CurlCopyButton from '@src/components/CurlCopyButton';
+import Body from './Body';
+import CustomHeaders from './CustomHeaders';
+import EditableURL from './EditableURL';
 
 interface TriggerFunctionFormProps {
-  paramNames: string[];
-  params: Param[];
-  setParams: React.Dispatch<React.SetStateAction<Param[]>>;
-  body: string;
-  setBody: React.Dispatch<React.SetStateAction<string>>;
-  bodyJsonError: string | null;
-  readOnlyBody?: boolean;
-  isBodySynced?: boolean;
-  isHeadersSynced?: boolean;
   onSend: () => void;
   loading: boolean;
-  CurlCopyButton: React.ComponentType<any>;
   label?: string;
   headersOpen?: boolean;
   bodyOpen?: boolean;
@@ -29,17 +20,8 @@ interface TriggerFunctionFormProps {
 }
 
 const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
-  paramNames,
-  params,
-  setParams,
-  body,
-  setBody,
-  bodyJsonError,
-  readOnlyBody,
-  isBodySynced,
   onSend,
   loading,
-  CurlCopyButton,
   bodyOpen = false,
   headersOpen = true,
   httpError,
@@ -48,6 +30,7 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
   const { method, computedUrl, effectiveHeaders, label } =
     useTriggerFunctionContext();
   const editableUrlRef = useRef<HTMLDivElement>(null);
+  const { body } = useBody();
 
   useEffect(() => {
     if (httpError && editableUrlRef.current) {
@@ -57,7 +40,6 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
 
   return (
     <>
-      {/* Request URL + cURL button */}
       <div
         ref={editableUrlRef}
         style={{
@@ -70,18 +52,12 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
           background: `linear-gradient(90deg, ${palette.accent} 0%, ${palette.accent2} 100%)`,
         }}
       >
-        <EditableURL
-          urlTemplate={computedUrl}
-          params={params}
-          setParams={setParams}
-          method={method}
-        />
+        <EditableURL />
         <CurlCopyButton
+          body={body}
+          headers={effectiveHeaders}
           method={method}
           url={computedUrl}
-          headers={effectiveHeaders}
-          body={body}
-          palette={palette}
         />
       </div>
       <div
@@ -91,18 +67,8 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
           padding: '12px 16px',
         }}
       >
-        <Body
-          bodyOpen={bodyOpen}
-          readOnlyBody={readOnlyBody}
-          isBodySynced={isBodySynced}
-          body={body}
-          setBody={setBody}
-          bodyJsonError={bodyJsonError}
-          method={method}
-        />
+        <Body bodyOpen={bodyOpen} />
         <CustomHeaders headersOpen={headersOpen} />
-        {/* <Params paramNames={paramNames} params={params} setParams={setParams} /> */}
-        {/* Send button */}
         <StepNextButton
           onClick={onSend}
           stepNumber={undefined}

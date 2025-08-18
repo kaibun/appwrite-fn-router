@@ -1,7 +1,11 @@
 import { useState } from 'react';
+import { useUIContext } from '@src/theme/UIContext';
+import { useTriggerFunctionContext } from '../../contexts/TriggerFunctionContext';
 
-const CustomHeadersAddButton = ({ setCustomHeaders, t, palette }: any) => {
+const CustomHeadersAddButton = () => {
   const [hover, setHover] = useState(false);
+  const { setCustomHeaders } = useTriggerFunctionContext();
+  const { palette, t } = useUIContext();
   return (
     <button
       type="button"

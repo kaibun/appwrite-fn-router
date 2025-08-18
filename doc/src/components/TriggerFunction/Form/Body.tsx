@@ -1,26 +1,15 @@
 import { useUIContext } from '@src/theme/UIContext';
+import { useRequestContext } from '../contexts/RequestContext';
 
 export interface BodyProps {
   bodyOpen: boolean;
-  body: string;
-  setBody: React.Dispatch<React.SetStateAction<string>>;
-  bodyJsonError: string | null;
-  readOnlyBody?: boolean;
-  isBodySynced?: boolean;
-  method: string; // Ajouté pour recevoir la méthode de la requête
 }
 
-const Body: React.FC<BodyProps> = ({
-  bodyOpen,
-  readOnlyBody,
-  isBodySynced,
-  body,
-  setBody,
-  bodyJsonError,
-  method,
-}) => {
-  if (method === 'GET') return null;
+const Body: React.FC<BodyProps> = ({ bodyOpen }) => {
   const { palette, t } = useUIContext();
+  const { method, body, setBody, bodyJsonError, readOnlyBody, isBodySynced } =
+    useRequestContext();
+  if (method === 'GET') return null;
 
   return (
     <>

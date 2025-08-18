@@ -32,7 +32,6 @@ export default ({
         method="GET"
         url={`${TRIGGER_API_BASE_URL}/widgets/:id`}
         label={t.getWidgetLabel}
-        urlParams={['id']}
         step={5}
         onStepDone={next}
       />

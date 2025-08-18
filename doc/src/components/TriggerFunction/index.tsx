@@ -1,21 +1,47 @@
 import { useEffect, useState, useMemo } from 'react';
 
-import StepNextButton from '@src/components/Steps/StepNextButton';
+import type { Param } from './Form/Params';
+import type { MockApiResponse } from './Types';
+
+import { ParamsContext } from './contexts/ParamsContext';
+import { BodyContext } from './contexts/BodyContext';
+import { HeadersContext } from './contexts/HeadersContext';
+import { RequestContext } from './contexts/RequestContext';
+
 import { useUIContext } from '@src/theme/UIContext';
-import type { Param, MockApiResponse, TriggerFunctionProps } from './Types';
 import { extractParams, isCorsSimpleHeader } from './utils';
 import TriggerFunctionForm from './Form';
-import { TriggerFunctionContext } from './Context';
+import { TriggerFunctionContext } from './contexts/TriggerFunctionContext';
 import TriggerFunctionResult from './Result';
 import TriggerFunctionHistory from './History';
 import TriggerFunctionDebug from './Debug';
-import { useTriggerFunctionSync } from './SyncContext';
-import { getOrCreateWidgetUserId } from '../useWidgetUserId';
+import { useTriggerFunctionSync } from './contexts/SyncContext';
+import { getOrCreateWidgetUserId } from './utils/useWidgetUserId';
 import PreRequestError from './PreRequestError';
-import { scrollToWithHeaderOffset } from './scrollToWithHeaderOffset';
+import { scrollToWithHeaderOffset } from './utils/scrollToWithHeaderOffset';
 import ResponseFacade from './utils/ResponseFacade';
 
-// Main component
+export interface TriggerFunctionProps {
+  method: string;
+  url: string;
+  body?: any;
+  headers?: Record<string, string>;
+  label?: string;
+  step?: number;
+  onStepDone?: (response: any) => void;
+  showHttpError?: boolean;
+  showUrlDebug?: boolean;
+  showDebugInfo?: boolean;
+  readOnlyBody?: boolean;
+  mockApi?: (params: {
+    method: string;
+    url: string;
+    body?: any;
+    headers: Record<string, string>;
+  }) => Promise<MockApiResponse> | MockApiResponse;
+  bodyOpenDefault?: boolean;
+  headersOpenDefault?: boolean;
+}
 
 const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   method,
@@ -23,7 +49,6 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   body: initialBody,
   headers = {},
   label = 'Trigger Function',
-  urlParams,
   step = 1,
   onStepDone,
   showHttpError = true,
@@ -48,9 +73,6 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
       ? getOrCreateWidgetUserId()
       : ''
   );
-
-  // Dynamic parameters
-  const paramNames: string[] = urlParams || extractParams(url);
 
   // Synchronization detection for body and headers
   const isBodySynced = !initialBody && !!sync?.lastWidgetBody;
@@ -81,25 +103,51 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           }))
         : []
   );
+
+  const paramNames: string[] = extractParams(url);
   const [params, setParams] = useState<Param[]>(
+    // Initialize each URL parameter with an empty value,
+    // except for those present in sync.urlParameters.
     paramNames.map((name: string) => {
-      if (name === 'id' && sync?.lastWidgetId) {
-        return { name, value: sync.lastWidgetId };
+      if (sync?.urlParameters && sync.urlParameters[name]) {
+        return { name, value: sync.urlParameters[name] };
       }
       return { name, value: '' };
     })
   );
 
+  // Let’s compute a URL with injected parameters, taking into account synced
+  // params.
+  const computedUrl = paramNames.reduce((acc: string, name: string) => {
+    const val = params.find((p) => p.name === name)?.value || '';
+    return acc.replace(`:${name}`, val);
+  }, url);
+
   // Synchronisation dynamique de l’id si le contexte change
   useEffect(() => {
-    if (sync?.lastWidgetId) {
+    // We synchronize local params from sync.urlParameters, but keep params as local state
+    // to allow user editing. Reading sync.urlParameters directly would overwrite user input
+    // on every context change. This pattern enables both global sync and local editing.
+    if (sync?.urlParameters) {
       setParams((ps) =>
         ps.map((p) =>
-          p.name === 'id' && sync ? { ...p, value: sync.lastWidgetId ?? '' } : p
+          sync.urlParameters[p.name]
+            ? { ...p, value: sync.urlParameters[p.name] }
+            : p
         )
       );
     }
-  }, [sync?.lastWidgetId]);
+  }, [sync?.urlParameters]);
+
+  useEffect(() => {
+    if (step === 5) {
+      // eslint-disable-next-line no-console
+      console.log('[TriggerFunction] step 5', {
+        urlParameters: sync?.urlParameters,
+        params,
+      });
+    }
+  }, [step, sync?.urlParameters, params]);
 
   const [useAuth, setUseAuth] = useState(false);
   // Stocke la façade autour du Response original
@@ -109,12 +157,6 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   const [loading, setLoading] = useState(false);
   const [bodyJsonError, setBodyJsonError] = useState<string | null>(null);
   const [preRequestError, setPreRequestError] = useState<string | null>(null);
-
-  // Addition: URL computed with injected parameters
-  const computedUrl = paramNames.reduce((acc: string, name: string) => {
-    const val = params.find((p) => p.name === name)?.value || '';
-    return acc.replace(`:${name}`, val);
-  }, url);
 
   // Effective headers
   const effectiveHeaders = useMemo(() => {
@@ -190,7 +232,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           try {
             const data = JSON.parse(mockRes.body);
             if (data && typeof data.id === 'string') {
-              sync.setLastWidgetId(data.id);
+              sync.setUrlParameter('id', data.id);
               sync.setLastWidgetBody(parsedBody);
               const custom = customHeaders.filter((h) => h.key);
               const customObj = Object.fromEntries(
@@ -244,7 +286,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
         try {
           const data = JSON.parse(resText);
           if (data && typeof data.id === 'string') {
-            sync.setLastWidgetId(data.id);
+            sync.setUrlParameter('id', data.id);
             sync.setLastWidgetBody(parsedBody);
             const custom = customHeaders.filter((h) => h.key);
             const customObj = Object.fromEntries(
@@ -278,89 +320,96 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
     urlWarning = t.urlWarningUndefined;
   }
 
-  // cURL button component (uses StepNextButton for consistent style)
-  const CurlCopyButton = (props: any) => (
-    <StepNextButton
-      onClick={() => {
-        const curl = `curl -X ${props.method} '${props.url}'`;
-        navigator.clipboard.writeText(curl);
-        alert('cURL copied!');
-      }}
-    >
-      Copy cURL
-    </StepNextButton>
-  );
-
-  // For GET, the body must be empty and not editable
-  const isGetMethod = method === 'GET';
-  const effectiveBody = isGetMethod ? '' : body;
-  const effectiveReadOnlyBody = isGetMethod ? true : readOnlyBody;
-
   return (
-    <TriggerFunctionContext.Provider
+    <RequestContext.Provider
       value={{
         method,
-        customHeaders,
-        useAuth,
-        setUseAuth,
-        effectiveHeaders,
+        urlTemplate: url,
         computedUrl,
-        label,
-        setCustomHeaders,
+        params,
+        setParams,
+        body,
+        setBody,
+        bodyJsonError,
+        readOnlyBody,
+        isBodySynced,
       }}
     >
-      <div
-        style={{
-          border: `1px solid ${palette.border}`,
-          borderRadius: 12,
-          background: palette.inputBg,
-          color: palette.inputText,
-          // maxWidth: 700,
-          margin: '0 auto',
-          // padding: '24px',
-          // boxShadow: '0 2px 12px #0001',
-          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
-          overflow: 'hidden',
-        }}
-      >
-        <TriggerFunctionDebug
-          showDebugInfo={showDebugInfo}
-          showUrlDebug={showUrlDebug}
-          rawUrlProp={rawUrlProp}
-          computedUrl={computedUrl}
-          urlWarning={urlWarning}
-          method={method}
-        />
-        <TriggerFunctionForm
-          paramNames={paramNames}
-          params={params}
-          setParams={setParams}
-          body={body}
-          setBody={setBody}
-          bodyJsonError={bodyJsonError}
-          readOnlyBody={readOnlyBody}
-          isBodySynced={isBodySynced}
-          isHeadersSynced={isHeadersSynced}
-          onSend={onSend}
-          loading={loading}
-          CurlCopyButton={CurlCopyButton}
-          label={label}
-          headersOpen={showDebugInfo ? true : headersOpenDefault}
-          bodyOpen={showDebugInfo ? true : bodyOpenDefault}
-        />
-        {responseFacade && (
-          <div id={`trigger-function-result-step-${step}`}>
-            <TriggerFunctionResult response={responseFacade.getResponse()} />
-          </div>
-        )}
-        {preRequestError && (
-          <PreRequestError error={preRequestError} color={palette.errorText} />
-        )}
-        {!!(sync?.history && sync.history.length) && (
-          <TriggerFunctionHistory history={sync.history} />
-        )}
-      </div>
-    </TriggerFunctionContext.Provider>
+      <ParamsContext.Provider value={{ params, setParams }}>
+        <BodyContext.Provider value={{ body, setBody, bodyJsonError }}>
+          <HeadersContext.Provider
+            value={{
+              headers: customHeaders,
+              setHeaders: setCustomHeaders,
+              hasNonSimpleCustomHeader,
+              effectiveHeaders,
+              useAuth,
+              setUseAuth,
+            }}
+          >
+            <TriggerFunctionContext.Provider
+              value={{
+                method,
+                customHeaders,
+                useAuth,
+                setUseAuth,
+                effectiveHeaders,
+                computedUrl,
+                label,
+                setCustomHeaders,
+              }}
+            >
+              <div
+                style={{
+                  border: `1px solid ${palette.border}`,
+                  borderRadius: 12,
+                  background: palette.inputBg,
+                  color: palette.inputText,
+                  // maxWidth: 700,
+                  margin: '0 auto',
+                  // padding: '24px',
+                  // boxShadow: '0 2px 12px #0001',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
+                  overflow: 'hidden',
+                }}
+              >
+                <TriggerFunctionDebug
+                  showDebugInfo={showDebugInfo}
+                  showUrlDebug={showUrlDebug}
+                  rawUrlProp={rawUrlProp}
+                  computedUrl={computedUrl}
+                  urlWarning={urlWarning}
+                  method={method}
+                />
+                <TriggerFunctionForm
+                  onSend={onSend}
+                  loading={loading}
+                  label={label}
+                  headersOpen={showDebugInfo ? true : headersOpenDefault}
+                  bodyOpen={showDebugInfo ? true : bodyOpenDefault}
+                />
+                {responseFacade && (
+                  <div id={`trigger-function-result-step-${step}`}>
+                    <TriggerFunctionResult
+                      response={responseFacade.getResponse()}
+                    />
+                  </div>
+                )}
+                {preRequestError && (
+                  <PreRequestError
+                    error={preRequestError}
+                    color={palette.errorText}
+                  />
+                )}
+                {!!(sync?.history && sync.history.length) && (
+                  <TriggerFunctionHistory history={sync.history} />
+                )}
+              </div>
+            </TriggerFunctionContext.Provider>
+          </HeadersContext.Provider>
+        </BodyContext.Provider>
+      </ParamsContext.Provider>
+    </RequestContext.Provider>
   );
 };
 

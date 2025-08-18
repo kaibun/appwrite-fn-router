@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
 import { useUIContext } from '@src/theme/UIContext';
+import { useRequestContext } from '../contexts/RequestContext';
 
 interface EditableParamProps {
   name: string;
-  value: string;
+  value?: string;
   placeholder?: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   isSynced?: boolean;
 }
 
@@ -16,7 +17,21 @@ export default function EditableParam({
   onChange,
   isSynced = false,
 }: EditableParamProps) {
+  // If value/onChange not provided, fallback to context
+  const ctx = useRequestContext();
+  const param = ctx.params.find((p) => p.name === name);
+  const _value = value ?? param?.value ?? '';
+  const _onChange =
+    onChange ??
+    ((val: string) => {
+      ctx.setParams(
+        ctx.params.map((p) => (p.name === name ? { ...p, value: val } : p))
+      );
+    });
   const { palette, t } = useUIContext();
+  // DEBUG: log à chaque rendu du composant
+  // eslint-disable-next-line no-console
+  console.log('[EditableParam] render', { name, value: _value, isSynced });
 
   useEffect(() => {
     const styleId = 'editable-param-placeholder-style';
@@ -46,21 +61,21 @@ export default function EditableParam({
     >
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={_value}
+        onChange={(e) => _onChange(e.target.value)}
         placeholder={placeholder || name}
         style={{
-          width: Math.max(60, value.length * 10 + 30),
+          width: Math.max(60, _value.length * 10 + 30),
           background:
-            isSynced && name === 'id' && value ? '#e0f7fa' : palette.inputBg,
+            isSynced && name === 'id' && _value ? '#e0f7fa' : palette.inputBg,
           color:
-            isSynced && name === 'id' && value ? '#00796b' : palette.inputText,
+            isSynced && name === 'id' && _value ? '#00796b' : palette.inputText,
           border:
-            isSynced && name === 'id' && value
+            isSynced && name === 'id' && _value
               ? '2px solid #00bcd4'
               : `1.5px solid ${palette.inputBorder}`,
           borderRadius: 6,
-          fontWeight: isSynced && name === 'id' && value ? 600 : 500,
+          fontWeight: isSynced && name === 'id' && _value ? 600 : 500,
           fontSize: 14,
           padding: '2px 8px',
           margin: '0 2px',
@@ -69,7 +84,7 @@ export default function EditableParam({
         }}
         aria-label={name}
       />
-      {isSynced && name === 'id' && value && (
+      {isSynced && name === 'id' && _value && (
         <span
           style={{
             position: 'absolute',
