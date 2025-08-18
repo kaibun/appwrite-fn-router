@@ -15,21 +15,6 @@ export default function EditableURL({
   const { method, urlTemplate, params, setParams } = useRequestContext();
   const { palette, t } = useUIContext();
   const sync = useTriggerFunctionSync?.();
-
-  // DEBUG: log params et isSynced pour chaque paramètre
-  useEffect(() => {
-    params.forEach((param) => {
-      // eslint-disable-next-line no-console
-      console.log('[EditableURL] param', {
-        name: param.name,
-        value: param.value,
-        isSynced:
-          !!sync?.urlParameters?.[param.name] &&
-          param.value === sync.urlParameters[param.name],
-      });
-    });
-  }, [params, sync?.urlParameters]);
-
   const urlParts = urlTemplate.split(/(:\w+)/g);
 
   return (
@@ -47,7 +32,6 @@ export default function EditableURL({
           const param = params.find((p) => p.name === name);
           // DEBUG: log param transmis à EditableParam
           // eslint-disable-next-line no-console
-          console.log('[EditableURL] map', { name, param });
           const isPort = name.toLowerCase() === 'port' || /^\d+$/.test(name);
           // Use sync.urlParameters for generic sync detection
           const isSynced =

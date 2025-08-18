@@ -6,6 +6,8 @@ export type Palette = {
   errorText: string;
   errorBg: string;
   inputBg: string;
+  inputBgEditable: string;
+  inputBgReadonly: string;
   inputText: string;
   inputBorder: string;
   resultBg: string;
@@ -29,6 +31,8 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
       errorText: '#ffb3b3',
       errorBg: '#2a1a1a',
       inputBg: '#232b3a',
+      inputBgEditable: '#2d3440', // gris foncé
+      inputBgReadonly: 'transparent',
       inputText: '#eaf2ff',
       inputBorder: '#3b82f6',
       resultBg: '#63BE51FF',
@@ -50,6 +54,8 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
     errorText: '#ef4444',
     errorBg: '#fee2e2',
     inputBg: '#f3f4f6',
+    inputBgEditable: '#f9fafb', // blanc cassé
+    inputBgReadonly: 'transparent',
     inputText: '#111827',
     inputBorder: '#d1d5db',
     resultBg: '#63BE51FF',

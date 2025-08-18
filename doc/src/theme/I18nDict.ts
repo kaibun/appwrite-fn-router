@@ -7,6 +7,7 @@ export const messages = {
     addHeader: '+ Ajouter un header',
     customHeaderWarning:
       '⚠️ Les headers personnalisés nécessitent d’être explicitement autorisés côté serveur pour fonctionner en CORS (Cross-Origin Resource Sharing) pour les requêtes complexes (du type POST, PATCH, etc.)',
+    noHeadersSent: 'Aucun header envoyé',
     seeDoc: 'Consultez la documentation',
     mdnCors: 'MDN à propos de CORS et des requêtes simples',
     fetchSpec: 'Spécification Fetch à propos des headers simples',
@@ -137,6 +138,7 @@ export const messages = {
     addHeader: '+ Add header',
     customHeaderWarning:
       '⚠️ Custom headers must be explicitly allowed by the server to work with CORS (Cross-Origin Resource Sharing) for complex requests (like POST, PATCH, etc.)',
+    noHeadersSent: 'No headers sent',
     seeDoc: 'See documentation',
     mdnCors: 'MDN about CORS and simple requests',
     fetchSpec: 'Fetch Specification about simple headers',

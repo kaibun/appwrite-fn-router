@@ -1,26 +1,40 @@
 import { useUIContext } from '@src/theme/UIContext';
 import { useTriggerFunctionContext } from '../../contexts/TriggerFunctionContext';
 
-const CustomHeadersSent = () => {
-  const { effectiveHeaders } = useTriggerFunctionContext();
+export default function CustomHeadersSent() {
+  const { customHeaders } = useTriggerFunctionContext();
   const { palette, t } = useUIContext();
+  const sentHeaders = customHeaders.filter(
+    (h: any) => h.enabled && h.key && h.value
+  );
   return (
-    <div style={{ flex: 1 }}>
-      <pre
-        style={{
-          background: palette.inputBg,
-          padding: 8,
-          borderRadius: 6,
-          fontSize: 13,
-          margin: 0,
-          overflowX: 'auto',
-          color: palette.inputText,
-        }}
-      >
-        {JSON.stringify(effectiveHeaders, null, 2)}
-      </pre>
+    <div
+      style={{
+        background: palette.inputBg,
+        borderRadius: 6,
+        border: `1.5px solid ${palette.inputBorder}`,
+        padding: '8px',
+        fontSize: 13,
+        color: palette.inputText,
+        minHeight: 60,
+        whiteSpace: 'pre-wrap',
+      }}
+    >
+      {sentHeaders.length === 0
+        ? t.noHeadersSent
+        : sentHeaders.map((h: any, idx: number) => (
+            <div
+              key={h.key + idx}
+              style={{
+                color:
+                  h.enabled && !h.corsEnabled
+                    ? palette.errorText
+                    : palette.inputText,
+              }}
+            >
+              {h.key}: {h.value}
+            </div>
+          ))}
     </div>
   );
-};
-
-export default CustomHeadersSent;
+}

@@ -34,7 +34,7 @@ const Body: React.FC<BodyProps> = ({ bodyOpen }) => {
         {readOnlyBody ? (
           <pre
             style={{
-              background: isBodySynced ? '#e0f7fa' : palette.inputBg,
+              background: isBodySynced ? '#e0f7fa' : palette.inputBgEditable,
               fontFamily: 'monospace',
               fontSize: 14,
               borderRadius: 6,

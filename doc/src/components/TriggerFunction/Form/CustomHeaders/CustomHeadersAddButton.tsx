@@ -10,7 +10,17 @@ const CustomHeadersAddButton = () => {
     <button
       type="button"
       onClick={() =>
-        setCustomHeaders((chs: any) => [...chs, { key: '', value: '' }])
+        setCustomHeaders((chs: any) => [
+          ...chs,
+          {
+            key: '',
+            value: '',
+            enabled: true,
+            corsEnabled: false,
+            dynamic: true,
+            tainted: false,
+          },
+        ])
       }
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
