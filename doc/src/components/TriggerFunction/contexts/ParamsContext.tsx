@@ -9,5 +9,8 @@ export const ParamsContext = createContext<{
 }>({ params: [], setParams: () => {} });
 
 export function useParams() {
-  return useContext(ParamsContext);
+  const ctx = useContext(ParamsContext);
+  if (!ctx)
+    throw new Error('useParams must be used within ParamsContext.Provider');
+  return ctx;
 }

@@ -75,17 +75,8 @@ const CustomHeaders: React.FC<CustomHeadersProps> = ({ headersOpen }) => {
           >
             {t.buildHeaders}
           </label>
-          <CustomHeadersList
-            customHeaders={customHeaders}
-            setCustomHeaders={setCustomHeaders}
-            t={t}
-            palette={palette}
-          />
-          <CustomHeadersAddButton
-            setCustomHeaders={setCustomHeaders}
-            t={t}
-            palette={palette}
-          />
+          <CustomHeadersList />
+          <CustomHeadersAddButton />
         </Panel>
         <PanelResizeHandle
           style={{ width: 6, background: palette.border, cursor: 'col-resize' }}
@@ -106,9 +97,8 @@ const CustomHeaders: React.FC<CustomHeadersProps> = ({ headersOpen }) => {
             {t.sentHeaders}
           </label>
           <CustomHeadersSent
-            effectiveHeaders={effectiveHeaders}
-            t={t}
-            palette={palette}
+          // ...existing code...
+          // ...existing code...
           />
         </Panel>
       </PanelGroup>
