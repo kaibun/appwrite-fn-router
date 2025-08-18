@@ -19,6 +19,7 @@
     "functions/*"
   ],
   "scripts": {
+    "check-hygiene": "node scripts/check-project-hygiene.cjs",
     "build": "tsup",
     "doc:build": "cd doc && npm run build",
     "doc:start": "cd doc && npm run start -- --port 3001",
