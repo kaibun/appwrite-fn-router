@@ -5,6 +5,7 @@ import CustomHeadersList from './CustomHeadersList';
 import CustomHeadersAddButton from './CustomHeadersAddButton';
 import CustomHeadersWarning from './CustomHeadersWarning';
 import CustomHeadersSent from './CustomHeadersSent';
+import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 
 export interface CustomHeadersProps {
   customHeaders: { key: string; value: string }[];
@@ -68,25 +69,37 @@ const CustomHeaders: React.FC<CustomHeadersProps> = (props) => {
           <code>{t.authValue}</code>
         </label>
       </div>
-      <div style={{ marginBottom: 18 }}>
-        <CustomHeadersList
-          customHeaders={customHeaders}
-          setCustomHeaders={setCustomHeaders}
-          t={t}
-          palette={palette}
+      <PanelGroup
+        direction="horizontal"
+        style={{ width: '100%', minHeight: 120, marginBottom: 18 }}
+      >
+        <Panel minSize={20} defaultSize={50} style={{ paddingRight: 12 }}>
+          <CustomHeadersList
+            customHeaders={customHeaders}
+            setCustomHeaders={setCustomHeaders}
+            t={t}
+            palette={palette}
+          />
+          <CustomHeadersAddButton
+            setCustomHeaders={setCustomHeaders}
+            t={t}
+            palette={palette}
+          />
+        </Panel>
+        <PanelResizeHandle
+          style={{ width: 6, background: palette.border, cursor: 'col-resize' }}
         />
-        <CustomHeadersAddButton
-          setCustomHeaders={setCustomHeaders}
-          t={t}
-          palette={palette}
-        />
+        <Panel minSize={20} defaultSize={50} style={{ paddingLeft: 12 }}>
+          <CustomHeadersSent
+            effectiveHeaders={effectiveHeaders}
+            t={t}
+            palette={palette}
+          />
+        </Panel>
+      </PanelGroup>
+      <div style={{ marginTop: 4 }}>
         <CustomHeadersWarning
           hasNonSimpleCustomHeader={hasNonSimpleCustomHeader}
-          t={t}
-          palette={palette}
-        />
-        <CustomHeadersSent
-          effectiveHeaders={effectiveHeaders}
           t={t}
           palette={palette}
         />

@@ -9,9 +9,7 @@ const CustomHeadersWarning = ({ hasNonSimpleCustomHeader, t, palette }: any) =>
         marginTop: 8,
       }}
     >
-      {t.customHeaderWarning}
-      <br />
-      {t.seeDoc}&nbsp;
+      {t.customHeaderWarning} {t.seeDoc}&nbsp;
       <a
         href="https://developer.mozilla.org/fr/docs/Web/HTTP/CORS#acc%C3%A9der_ressources_avec_credentiels"
         target="_blank"
