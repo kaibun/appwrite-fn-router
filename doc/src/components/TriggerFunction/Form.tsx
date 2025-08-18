@@ -46,7 +46,7 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
 }) => {
   const palette = usePalette();
   const ctx = useTriggerFunctionContext();
-  const { method, t, computedUrl, effectiveHeaders, label } = ctx;
+  const { method, computedUrl, effectiveHeaders, label } = ctx;
   const editableUrlRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

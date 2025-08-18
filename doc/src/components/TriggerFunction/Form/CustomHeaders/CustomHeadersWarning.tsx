@@ -4,7 +4,7 @@ import { usePalette } from '../../../PaletteProvider';
 import { isCorsSimpleHeader } from '../../Utils';
 
 const CustomHeadersWarning: React.FC = () => {
-  const { method, customHeaders, t } = useTriggerFunctionContext();
+  const { method, customHeaders } = useTriggerFunctionContext();
   const palette = usePalette();
   // Only check for non CORS-safelisted headers for methods that allow a body
   const methodsWithBody = ['POST', 'PATCH', 'PUT', 'DELETE'];
