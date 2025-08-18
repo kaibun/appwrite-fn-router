@@ -62,10 +62,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   const { palette, t } = useUIContext();
 
   // Contextual synchronization
-  let sync: ReturnType<typeof useTriggerFunctionSync> | undefined = undefined;
-  try {
-    sync = useTriggerFunctionSync();
-  } catch {}
+  const sync = useTriggerFunctionSync();
 
   // Persistent user ID (localStorage)
   const [widgetUserId] = useState(() =>
@@ -75,17 +72,16 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   );
 
   // Synchronization detection for body and headers
-  const isBodySynced = !initialBody && !!sync?.lastWidgetBody;
+  const isBodySynced = !initialBody && !!sync.lastWidgetBody;
   const isHeadersSynced =
-    (!headers || Object.keys(headers).length === 0) &&
-    !!sync?.lastWidgetHeaders;
+    (!headers || Object.keys(headers).length === 0) && !!sync.lastWidgetHeaders;
 
   // Main states
   const [body, setBody] = useState(
     initialBody
       ? JSON.stringify(initialBody, null, 2)
       : isBodySynced
-        ? JSON.stringify(sync?.lastWidgetBody, null, 2)
+        ? JSON.stringify(sync.lastWidgetBody, null, 2)
         : ''
   );
   const [customHeaders, setCustomHeaders] = useState<
@@ -97,7 +93,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           value: String(value),
         }))
       : isHeadersSynced
-        ? Object.entries(sync?.lastWidgetHeaders ?? {}).map(([key, value]) => ({
+        ? Object.entries(sync.lastWidgetHeaders ?? {}).map(([key, value]) => ({
             key,
             value: String(value),
           }))
@@ -109,7 +105,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
     // Initialize each URL parameter with an empty value,
     // except for those present in sync.urlParameters.
     paramNames.map((name: string) => {
-      if (sync?.urlParameters && sync.urlParameters[name]) {
+      if (sync.urlParameters && sync.urlParameters[name]) {
         return { name, value: sync.urlParameters[name] };
       }
       return { name, value: '' };
@@ -128,26 +124,24 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
     // We synchronize local params from sync.urlParameters, but keep params as local state
     // to allow user editing. Reading sync.urlParameters directly would overwrite user input
     // on every context change. This pattern enables both global sync and local editing.
-    if (sync?.urlParameters) {
-      setParams((ps) =>
-        ps.map((p) =>
-          sync.urlParameters[p.name]
-            ? { ...p, value: sync.urlParameters[p.name] }
-            : p
-        )
-      );
-    }
-  }, [sync?.urlParameters]);
+    setParams((ps) =>
+      ps.map((p) =>
+        sync.urlParameters[p.name]
+          ? { ...p, value: sync.urlParameters[p.name] }
+          : p
+      )
+    );
+  }, [sync.urlParameters]);
 
   useEffect(() => {
     if (step === 5) {
       // eslint-disable-next-line no-console
       console.log('[TriggerFunction] step 5', {
-        urlParameters: sync?.urlParameters,
+        urlParameters: sync.urlParameters,
         params,
       });
     }
-  }, [step, sync?.urlParameters, params]);
+  }, [step, sync.urlParameters, params]);
 
   const [useAuth, setUseAuth] = useState(false);
   // Stocke la façade autour du Response original
@@ -220,15 +214,14 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
         });
         // setResponseObj is called below with the Response-like object
         // Add to global history
-        sync?.addHistory &&
-          sync.addHistory({
-            req: { method, url: computedUrl, body: parsedBody },
-            res: mockRes.body,
-          });
+        sync.addHistory({
+          req: { method, url: computedUrl, body: parsedBody },
+          res: mockRes.body,
+        });
         // Synchronize context after widget creation
         const isWidgetPost =
           method === 'POST' && /\/widgets(\b|\/|$)/.test(url);
-        if (isWidgetPost && sync) {
+        if (isWidgetPost) {
           try {
             const data = JSON.parse(mockRes.body);
             if (data && typeof data.id === 'string') {

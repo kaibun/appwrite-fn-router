@@ -21,5 +21,8 @@ export const HeadersContext = createContext<{
 });
 
 export function useHeaders() {
-  return useContext(HeadersContext);
+  const ctx = useContext(HeadersContext);
+  if (!ctx)
+    throw new Error('useHeaders must be used within HeadersContext.Provider');
+  return ctx;
 }

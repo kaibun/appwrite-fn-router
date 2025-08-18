@@ -9,5 +9,7 @@ export const BodyContext = createContext<{
 }>({ body: '', setBody: () => {}, bodyJsonError: null });
 
 export function useBody() {
-  return useContext(BodyContext);
+  const ctx = useContext(BodyContext);
+  if (!ctx) throw new Error('useBody must be used within BodyContext.Provider');
+  return ctx;
 }

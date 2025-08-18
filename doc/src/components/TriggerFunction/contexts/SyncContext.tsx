@@ -84,9 +84,10 @@ export function TriggerFunctionSyncProvider({
 
 export function useTriggerFunctionSync() {
   const ctx = useContext(TriggerFunctionSyncContext);
-  if (!ctx)
+  if (!ctx) {
     throw new Error(
       'useTriggerFunctionSync must be used within TriggerFunctionSyncProvider'
     );
+  }
   return ctx;
 }
