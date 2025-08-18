@@ -1,7 +1,7 @@
-import React, { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
-import { useStep, useStepMode } from './StepProvider';
-import { scrollToWithHeaderOffset } from '../TriggerFunction/scrollToWithHeaderOffset';
+import { useStep } from './StepProvider';
+import { scrollToWithHeaderOffset } from '@src/components/TriggerFunction/scrollToWithHeaderOffset';
 
 interface StepProps {
   number: number;
@@ -12,8 +12,8 @@ const Step: React.FC<StepProps> = ({ number, children }) => {
   const { currentStep, nextStep, maxStepReached } = useStep();
   // const { stepByStep } = useStepMode();
   const isActive = currentStep === number;
-  // Scroll automatique vers l’étape activée (par next ou clic TOC)
-  React.useEffect(() => {
+  // Automatically scroll to the activated step (via next or TOC click)
+  useEffect(() => {
     if (isActive) {
       const el = document.getElementById(`step-anchor-${number}`);
       if (el) {
@@ -28,7 +28,7 @@ const Step: React.FC<StepProps> = ({ number, children }) => {
     <div
       id={`step-anchor-${number}`}
       style={{
-        paddingTop: '2em', //scrollMarginTop: 80
+        paddingTop: '2em', // scrollMarginTop: 80
       }}
     >
       {children({ next: nextStep, isActive })}

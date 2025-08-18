@@ -13,6 +13,12 @@
   /* background: #edf1f6; */
 }
 
+[data-theme='dark'] .foldedBlock {
+  border: 1px dotted #313848;
+  border-top: none;
+  border-left: none;
+}
+
 /**
  * See custom.css for additional styles circumventing Prism’s dynamically
  * generated styles.
@@ -75,6 +81,11 @@ button {
   cursor: pointer;
 }
 
+[data-theme='dark'] .foldButton {
+  background: #313848;
+  color: #e0e6f0;
+}
+
 .addedBlock {
   /** Simply to trigger CSS module’s class generation. */
   padding: inherit;
@@ -83,18 +94,4 @@ button {
 .removedBlock {
   /** Simply to trigger CSS module’s class generation. */
   padding: inherit;
-}
-
-/**
- * Dark mode.
- */
-[data-theme='dark'] .foldedBlock {
-  border: 1px dotted #313848;
-  border-top: none;
-  border-left: none;
-}
-
-[data-theme='dark'] .foldButton {
-  background: #313848;
-  color: #e0e6f0;
 }

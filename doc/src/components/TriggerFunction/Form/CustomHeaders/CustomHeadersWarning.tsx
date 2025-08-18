@@ -1,17 +1,18 @@
-import React from 'react';
+import { useUIContext } from '@src/theme/UIContext';
 import { useTriggerFunctionContext } from '../../Context';
-import { usePalette } from '../../../PaletteProvider';
 import { isCorsSimpleHeader } from '../../Utils';
 
 const CustomHeadersWarning: React.FC = () => {
+  const { palette, t } = useUIContext();
   const { method, customHeaders } = useTriggerFunctionContext();
-  const palette = usePalette();
+
   // Only check for non CORS-safelisted headers for methods that allow a body
   const methodsWithBody = ['POST', 'PATCH', 'PUT', 'DELETE'];
   const hasNonSimpleCustomHeader =
     methodsWithBody.includes(method) &&
     customHeaders.some((h) => h.key && !isCorsSimpleHeader(h.key, h.value));
   if (!hasNonSimpleCustomHeader) return null;
+
   return (
     <div
       style={{
@@ -22,14 +23,22 @@ const CustomHeadersWarning: React.FC = () => {
     >
       {t.customHeaderWarning} {t.seeDoc}&nbsp;
       <a
-        href="https://developer.mozilla.org/fr/docs/Web/HTTP/CORS#acc%C3%A9der_ressources_avec_credentiels"
+        href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#simple_requests"
         target="_blank"
         rel="noopener noreferrer"
         style={{ color: palette.accent2 }}
       >
         {t.mdnCors}
       </a>
-      .
+      {' - '}
+      <a
+        href="https://fetch.spec.whatwg.org/#simple-header"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: palette.accent2 }}
+      >
+        {t.fetchSpec}
+      </a>
     </div>
   );
 };

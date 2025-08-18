@@ -1,8 +1,5 @@
-import React from 'react';
-import { usePalette } from '../PaletteProvider';
+import { useUIContext } from '@src/theme/UIContext';
 import { useStep, useStepMode } from './StepProvider';
-import { useI18n } from '../I18nProvider';
-import { useDocusaurusColorMode } from '../useDocusaurusColorMode';
 
 const stepKeys = [
   'step1Title',
@@ -17,12 +14,11 @@ const stepKeys = [
   'step10Title',
 ];
 const StepByStepToc: React.FC = () => {
+  const { palette, t } = useUIContext();
   const { currentStep, goToStep, maxStepReached } = useStep();
   const { stepByStep, setStepByStep } = useStepMode();
-  const palette = usePalette();
-  const colorMode = useDocusaurusColorMode();
-  const t = useI18n();
-  // Dynamic step-by-step summary
+  const colorMode = palette.mode;
+
   return (
     <aside
       style={{
@@ -129,7 +125,7 @@ const StepByStepToc: React.FC = () => {
                 {maxStepReached > stepNum ? '✓' : stepNum}
               </span>
               <span style={{ fontWeight: currentStep === stepNum ? 700 : 400 }}>
-                {t[key]}
+                {t(key as keyof typeof t)}
               </span>
             </li>
           );

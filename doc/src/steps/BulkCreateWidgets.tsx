@@ -1,7 +1,7 @@
+import { useUIContext } from '@src/theme/UIContext';
 import TriggerFunction from '@src/components/TriggerFunction';
 import { TRIGGER_API_BASE_URL } from '@src/components/TriggerFunction/config';
-import { useI18n } from '@src/components/I18nProvider';
-import DiffCodeBlockFoldable from '../components/DiffCodeBlock/DiffCodeBlockFoldable';
+import DiffCodeBlockFoldable from '@src/components/DiffCodeBlock/FoldableDiffCodeBlock';
 
 export default ({
   next,
@@ -10,7 +10,8 @@ export default ({
   next: () => void;
   stepNumber: number;
 }) => {
-  const t = useI18n();
+  const { t } = useUIContext();
+
   return (
     <>
       <h2>{t.step8Title}</h2>

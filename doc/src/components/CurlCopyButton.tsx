@@ -1,6 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
 
-// Bouton pour générer et copier la requête cURL équivalente
 type CurlCopyButtonProps = {
   method: string;
   url: string;
@@ -11,9 +10,9 @@ type CurlCopyButtonProps = {
 
 export function CurlCopyButton(props: CurlCopyButtonProps) {
   const { method, url, headers, body, palette } = props;
-  const [copied, setCopied] = React.useState(false);
-  const [showTooltip, setShowTooltip] = React.useState(false);
-  // Génère la commande cURL
+  const [copied, setCopied] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  // Generates the cURL command based on method, headers, and body.
   let curl = `curl -X ${method.toUpperCase()} `;
   Object.entries(headers).forEach(([k, v]) => {
     curl += `-H ${JSON.stringify(k + ': ' + v)} `;
@@ -22,7 +21,7 @@ export function CurlCopyButton(props: CurlCopyButtonProps) {
     curl += `--data-raw ${JSON.stringify(body)} `;
   }
   curl += JSON.stringify(url);
-  // Copie dans le presse-papier
+  // Copies the generated cURL command to the clipboard.
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(curl);
@@ -30,7 +29,7 @@ export function CurlCopyButton(props: CurlCopyButtonProps) {
       setTimeout(() => setCopied(false), 1200);
     } catch {}
   };
-  // Gestion accessibilité : focus clavier
+  // Accessibility: show/hide tooltip on keyboard focus/blur.
   const show = () => setShowTooltip(true);
   const hide = () => setShowTooltip(false);
   return (

@@ -1,6 +1,4 @@
-import React from 'react';
-import { usePalette } from '../../PaletteProvider';
-import { useI18n } from '../../I18nProvider';
+import { useUIContext } from '@src/theme/UIContext';
 
 export interface BodyProps {
   bodyOpen: boolean;
@@ -22,9 +20,7 @@ const Body: React.FC<BodyProps> = ({
   method,
 }) => {
   if (method === 'GET') return null;
-
-  const palette = usePalette();
-  const t = useI18n();
+  const { palette, t } = useUIContext();
 
   return (
     <>

@@ -1,0 +1,774 @@
+openapi: 3.1.0
+info:
+  title: The Widgets API
+  x-termsOfService: https://appwrite-fn-router.appwrite.io/terms
+  x-version: 1.0.0
+  x-description: A service for managing widgets.
+  x-license:
+    name: MIT
+    url: https://opensource.org/license/mit/
+  x-contact:
+    name: Maintainer
+    email: support+afr@kaibun.net
+  description: |-
+    Welcome to the Widgets API for testing Appwrite Function Router!
+
+    **This is a live API that is [implemented as an Appwrite Function](https://github.com/kaibun/appwrite-fn-router/tree/main/functions/Test) that uses the very Appwrite Function Router library**.
+
+    This API is designed to demonstrate and test the capabilities of the library.
+    It showcases how to use AFR and its router to manage a fake resource "widgets": creating, reading, updating, and deleting them in a RESTful manner, as well as some non-standard operations, such as "analyzing widgets", and "accessing a secret widget" (which requires authentication with a Bearer token).
+
+    Here’s what the actual code looks like (non-exhaustive):
+
+    ```typescript
+    import { inspect } from 'node:util';
+    import type { AppwriteContext, CatchHandler } from '@kaibun/appwrite-fn-router';
+    import { handleRequest } from '@kaibun/appwrite-fn-router';
+    // The /widgets routes are defined in a separate file,
+    // and you’ll get to see each exported route handler in
+    // the examples associated to the different routes below.
+    import widgetsRouter from './routes/widgets.ts';
+
+    // The API routes
+    function routes(router: ReturnType<typeof createRouter>) {
+      router.all('/widgets*', widgetsRouter.fetch);
+      router.all('*', (req, res) => res.json({ message: "?!" }, 404));
+    }
+
+    // Global request routing/processing error catcher
+    const catchHandler: CatchHandler = (err, req, res, log, error) => {
+      error(err ? inspect(err) : 'Unknown error');
+      errorService.send(err, req);
+      throw err; // re-throwing triggers library’s default error handling
+    };
+
+    // Appwrite Function entrypoint
+    export default async function main(context: AppwriteContext) {
+      return await handleRequest(context, routes, {
+        ittyOptions: {
+          catch: catchHandler,
+        },
+      });
+    }
+    ```
+
+    <scalar-button title="test" href="http://google.com"></scalar-button>
+
+    <scalar-callout type="info" title="Note importante">
+    Ce point est crucial pour l’utilisation de l’API.
+    </scalar-callout>
+  version: 0.1.0
+tags:
+  - name: Widgets
+  - name: Secret Widget
+paths:
+  /widgets:
+    get:
+      operationId: Widgets_listWidgets
+      description: |-
+        Retrieve the list of widgets.
+
+        ```typescript
+        // GET /widgets => List widgets
+        router.get('/', (_req, res, _log, _error) => {
+          const response = res.json({
+            items: [
+              { id: 'widget1', weight: 10, color: 'red' },
+              { id: 'widget2', weight: 20, color: 'blue' },
+            ],
+          });
+          return response;
+        });
+        ```
+      parameters:
+        - $ref: '#/components/parameters/CommonParameters.locale'
+        - $ref: '#/components/parameters/CommonParameters.clientVersion'
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetList'
+              example:
+                items:
+                  - id: widget1
+                    weight: 10
+                    color: red
+                  - id: widget2
+                    weight: 20
+                    color: blue
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+    post:
+      operationId: Widgets_createWidget
+      description: |-
+        Create a widget.
+
+        ```typescript
+        // POST /widgets => Create a widget
+        router.post('/', async (req, res, _log, _error) => {
+          try {
+            const body = req.bodyJson as Partial<Widget>;
+            if (typeof body.weight !== 'number' || !body.color) {
+              return res.json(
+                {
+                  code: 'VALIDATION_ERROR',
+                  message: 'Missing required fields',
+                  errors: ['weight and color are required'],
+                },
+                400
+              );
+            }
+            const newWidget: Widget = {
+              id: `widget-${Date.now()}`,
+              weight: body.weight,
+              color: body.color,
+            };
+            return res.json(newWidget, 201);
+          } catch (e) {
+            if (e instanceof SyntaxError) {
+              return res.json(
+                {
+                  code: 'BAD_REQUEST',
+                  message: 'Invalid JSON in request body',
+                },
+                400
+              );
+            }
+            _error(String(e));
+            // Let the error be handled by the framework
+            throw e;
+          }
+        });
+        ```
+      parameters: []
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+              example:
+                id: widget1
+                weight: 10
+                color: red
+        '202':
+          description: The request has been accepted for processing, but processing has not yet completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WidgetCreate'
+            example:
+              id: widget1
+              weight: 10
+              color: red
+        description: The widget to create.
+  /widgets/secret:
+    get:
+      operationId: Widgets_secretOperation
+      description: |-
+        Accessing the daily secret widget is a premium feature!
+
+        Pass in an Authorization header with a "Bearer token" value.
+
+        ```typescript
+        // GET /widgets/secret => Accessing the daily secret widget (requires Bearer token)
+        router.get('/secret', (req, res, _log, _error) => {
+          const authHeader =
+            req.headers['Authorization'] || req.headers['authorization'];
+          if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.json({ code: 'UNAUTHORIZED', message: 'Unauthorized' }, 401);
+          }
+          return res.json({ id: 'widget-secret', weight: 200, color: 'gold' });
+        });
+        ```
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+              example:
+                id: widget-secret
+                weight: 200
+                color: gold
+        '401':
+          description: Unauthorized error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+        - Secret Widget
+      security:
+        - BearerAuth: []
+  /widgets/{id}:
+    get:
+      operationId: Widgets_getWidget
+      description: |-
+        Retrieve a specific widget.
+
+        ```typescript
+        // GET /widgets/{id} => Retrieve a specific widget
+        router.get('/:id', (req, res, _log, _error) => {
+          const { id } = req.params;
+          if (id === 'not-found') {
+            return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
+          }
+          return res.json({ id, weight: 10, color: 'red' });
+        });
+        ```
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the widget to retrieve.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+              example:
+                id: widget1
+                weight: 10
+                color: red
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+    patch:
+      operationId: Widgets_updateWidget
+      description: |-
+        Update a widget.
+
+        ```typescript
+        // PATCH /widgets/{id} => Update a widget
+        router.patch('/:id', async (req, res, _log, _error) => {
+          try {
+            const { id } = req.params;
+            if (id === 'not-found') {
+              return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
+            }
+            const body = req.bodyJson as Partial<Widget>;
+            const updatedWidget: Widget = {
+              id,
+              weight: body.weight ?? 10,
+              color: body.color ?? 'red',
+            };
+            return res.json(updatedWidget);
+          } catch (e) {
+            if (e instanceof SyntaxError) {
+              return res.json(
+                {
+                  code: 'BAD_REQUEST',
+                  message: 'Invalid JSON in request body',
+                },
+                400
+              );
+            }
+            _error(String(e));
+            // Let the error be handled by the framework
+            throw e;
+          }
+        });
+        ```
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the widget to update.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Widget'
+              example:
+                id: widget1
+                weight: 15
+                color: blue
+        '400':
+          description: The server could not understand the request due to invalid syntax.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/WidgetMergePatchUpdate'
+        description: The widget data to update.
+    delete:
+      operationId: Widgets_deleteWidget
+      description: |-
+        Delete a widget.
+
+        ```typescript
+        // DELETE /widgets/{id} => Delete a widget
+        router.delete('/:id', (req, res, _log, _error) => {
+          const { id } = req.params;
+          if (id === 'not-found') {
+            return res.json({ code: 'NOT_FOUND', message: 'Widget not found' }, 404);
+          }
+          return res.send('', 204);
+        });
+        ```
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the widget to delete.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: Access is unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '404':
+          description: The server cannot find the requested resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundError'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+    post:
+      operationId: Widgets_analyze
+      description: |-
+        Analyze a widget.
+
+        ```typescript
+        // POST /widgets/{id} => Analyze a widget
+        router.post('/:id', (req, res, _log, _error) => {
+          const { id } = req.params;
+          return res.json({
+            statusCode: 200,
+            id,
+            analysis: 'This widget is amazing!',
+          });
+        });
+        ```
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the widget to analyze.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeResult'
+              example: {}
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - INTERNAL_SERVER_ERROR
+                  message:
+                    type: string
+                    enum:
+                      - Internal server error
+                required:
+                  - code
+                  - message
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Widgets
+components:
+  parameters:
+    CommonParameters.clientVersion:
+      name: client-version
+      in: header
+      required: false
+      description: The client version for the request.
+      schema:
+        type: string
+    CommonParameters.locale:
+      name: locale
+      in: query
+      required: false
+      description: The locale for the request.
+      schema:
+        type: string
+      explode: false
+  schemas:
+    AnalyzeResult:
+      type: object
+      required:
+        - statusCode
+        - id
+        - analysis
+      properties:
+        statusCode:
+          type: integer
+          format: int32
+        id:
+          type: string
+        analysis:
+          type: string
+      description: The result of a widget analysis.
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+      description: Generic error response
+      examples:
+        - code: 500
+          message: Internal server error
+        - code: 404
+          message: Widget not found
+    NotFoundError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - NOT_FOUND
+        message:
+          type: string
+      description: Not found error
+    UnauthorizedError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - UNAUTHORIZED
+        message:
+          type: string
+          enum:
+            - Unauthorized
+      description: Unauthorized error
+    ValidationError:
+      type: object
+      required:
+        - code
+        - message
+        - errors
+      properties:
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+      description: Validation error
+    Versions:
+      type: string
+      enum:
+        - 0.1.0
+    Widget:
+      type: object
+      required:
+        - id
+        - weight
+        - color
+      properties:
+        id:
+          type: string
+        weight:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 20000
+        color:
+          type: string
+          enum:
+            - red
+            - blue
+            - gold
+      description: A widget model for testing purposes
+    WidgetCreate:
+      type: object
+      required:
+        - weight
+        - color
+      properties:
+        weight:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 20000
+        color:
+          type: string
+          enum:
+            - red
+            - blue
+            - gold
+      description: A widget model for testing purposes
+    WidgetList:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Widget'
+      description: A widget list model for testing purposes
+    WidgetMergePatchUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+        weight:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 20000
+        color:
+          type: string
+          enum:
+            - red
+            - blue
+            - gold
+      description: ''
+    WidgetSuccessResponse:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          type: string
+          description: The body type of the operation request or response.
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: Bearer
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+    variables: {}

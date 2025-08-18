@@ -1,8 +1,9 @@
 import React from 'react';
+
 import FoldableCodeBlock from './FoldableCodeBlock';
 import { splitDiffIntoBlocks } from './diffFoldUtils';
 
-interface DiffCodeBlockFoldableProps {
+interface FoldableDiffCodeBlockProps {
   before: string;
   after: string;
   language?: string;
@@ -64,7 +65,7 @@ function lcsDiff(before: string, after: string): string[] {
   return diffLines;
 }
 
-const DiffCodeBlockFoldable: React.FC<DiffCodeBlockFoldableProps> = ({
+const FoldableDiffCodeBlock: React.FC<FoldableDiffCodeBlockProps> = ({
   before,
   after,
   language = 'typescript',
@@ -99,4 +100,4 @@ const DiffCodeBlockFoldable: React.FC<DiffCodeBlockFoldableProps> = ({
   );
 };
 
-export default DiffCodeBlockFoldable;
+export default FoldableDiffCodeBlock;

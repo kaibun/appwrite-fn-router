@@ -1,7 +1,4 @@
-import React from 'react';
-import { usePalette } from '@src/components/PaletteProvider';
-import { useI18n } from '@src/components/I18nProvider';
-
+import { useUIContext } from '@src/theme/UIContext';
 import type { Param } from '../Types';
 
 export interface ParamsProps {
@@ -11,8 +8,8 @@ export interface ParamsProps {
 }
 
 const Params: React.FC<ParamsProps> = ({ paramNames, params, setParams }) => {
-  const palette = usePalette();
-  const t = useI18n();
+  const { palette, t } = useUIContext();
+
   return (
     <>
       {paramNames.length > 0 && (

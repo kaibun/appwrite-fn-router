@@ -1,9 +1,9 @@
-import React from 'react';
 import Admonition from '@theme/Admonition';
-import { useI18n } from './I18nProvider';
+
+import { useUIContext } from '@src/theme/UIContext';
 
 export default function WhyAFRNote() {
-  const t = useI18n();
+  const { t } = useUIContext();
   return (
     <Admonition type="note" title={t.whyAFRTitle}>
       <p>{t.whyAFRIntro}</p>

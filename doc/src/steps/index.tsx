@@ -1,9 +1,10 @@
 import { JSX } from 'react';
+
+import { useUIContext } from '@src/theme/UIContext';
 import { useStep } from '@src/components/Steps/StepProvider';
 import Step from '@src/components/Steps/Step';
 import StepNextButton from '@src/components/Steps/StepNextButton';
 import StepByStepToc from '@src/components/Steps/StepByStepToc';
-import { useI18n } from '@src/components/I18nProvider';
 
 import Install from './Install';
 import Main from './Main';
@@ -24,7 +25,7 @@ export const steps: Steps = [
   {
     number: 1,
     content: ({ next }: { next: () => void }) => {
-      const t = useI18n();
+      const { t } = useUIContext();
       return (
         <>
           <h2>{t.step1Title}</h2>
@@ -68,7 +69,7 @@ export const steps: Steps = [
   {
     number: 10,
     content: ({ next }) => {
-      const t = useI18n();
+      const { t } = useUIContext();
       return (
         <>
           <h2>{t.goFurtherTitle}</h2>

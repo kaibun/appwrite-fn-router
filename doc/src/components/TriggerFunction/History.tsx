@@ -1,19 +1,14 @@
-import React from 'react';
-
-import { usePalette } from '@src/components/PaletteProvider';
-import { useI18n } from '@src/components/I18nProvider';
+import { useUIContext } from '@src/theme/UIContext';
 
 interface TriggerFunctionHistoryProps {
   history: { req: any; res: any }[];
-  palette: any;
-  t: Record<string, string>;
 }
 
 const TriggerFunctionHistory: React.FC<TriggerFunctionHistoryProps> = ({
   history,
 }) => {
-  const palette = usePalette();
-  const t = useI18n();
+  const { palette, t } = useUIContext();
+
   return (
     <details style={{ padding: '18px 24px', background: palette.border }}>
       <summary

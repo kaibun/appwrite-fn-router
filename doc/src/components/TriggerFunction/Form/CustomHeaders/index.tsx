@@ -1,6 +1,4 @@
-import React from 'react';
-
-import { usePalette } from '../../../PaletteProvider';
+import { useUIContext } from '@src/theme/UIContext';
 import { useTriggerFunctionContext } from '../../Context';
 import CustomHeadersList from './CustomHeadersList';
 import CustomHeadersAddButton from './CustomHeadersAddButton';
@@ -13,15 +11,14 @@ export interface CustomHeadersProps {
 }
 
 const CustomHeaders: React.FC<CustomHeadersProps> = ({ headersOpen }) => {
-  const palette = usePalette();
-  const ctx = useTriggerFunctionContext();
+  const { palette, t } = useUIContext();
   const {
     customHeaders,
     setCustomHeaders,
     effectiveHeaders,
     useAuth,
     setUseAuth,
-  } = ctx;
+  } = useTriggerFunctionContext();
   return (
     <details
       open={headersOpen}

@@ -1,5 +1,5 @@
-import React from 'react';
-import { usePalette } from '@src/components/PaletteProvider';
+import { useEffect } from 'react';
+import { useUIContext } from '@src/theme/UIContext';
 
 interface EditableParamProps {
   name: string;
@@ -16,8 +16,9 @@ export default function EditableParam({
   onChange,
   isSynced = false,
 }: EditableParamProps) {
-  const palette = usePalette();
-  React.useEffect(() => {
+  const { palette, t } = useUIContext();
+
+  useEffect(() => {
     const styleId = 'editable-param-placeholder-style';
     if (document.getElementById(styleId)) return;
     const style = document.createElement('style');
@@ -34,6 +35,7 @@ export default function EditableParam({
     `;
     document.head.appendChild(style);
   }, [palette.subtext, palette.inputText]);
+
   return (
     <span
       style={{

@@ -1,7 +1,6 @@
-import React from 'react';
+import { useUIContext } from '@src/theme/UIContext';
+import { useTriggerFunctionSync } from '@src/components/TriggerFunction/SyncContext';
 import EditableParam from './EditableParam';
-import { usePalette } from '@src/components/PaletteProvider';
-import { useTriggerFunctionSync } from '../SyncContext';
 
 import type { Param } from '../Types';
 
@@ -21,10 +20,11 @@ export default function EditableURL({
   method,
   editablePort = false,
 }: EditableURLProps) {
-  const palette = usePalette();
+  const { palette, t } = useUIContext();
   const sync = useTriggerFunctionSync?.();
   // Découpe l’URL en segments, remplace chaque :param par un input
   const urlParts = urlTemplate.split(/(:\w+)/g);
+
   return (
     <span
       style={{
