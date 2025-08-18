@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import type { Param, MockApiResponse, TriggerFunctionProps } from './Types';
 import { extractParams, isCorsSimpleHeader } from './Utils';
 import TriggerFunctionForm from './Form';
+import { TriggerFunctionContext } from './Context';
 import TriggerFunctionResult from './Result';
 import TriggerFunctionHistory from './History';
 import TriggerFunctionDebug from './Debug';
@@ -32,7 +33,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   readOnlyBody = false,
   mockApi,
   bodyOpenDefault = ['POST', 'PATCH'].includes(method),
-  headersOpenDefault = false,
+  headersOpenDefault = true,
 }) => {
   // UI language (Docusaurus or fallback)
   const lang = useDocusaurusLocale?.() || 'en';
@@ -174,12 +175,14 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
     return headersObj;
   }, [customHeaders, useAuth, body, widgetUserId]);
 
-  // Check for non CORS-safelisted headers
+  // Only check for non CORS-safelisted headers for methods that allow a body
   const hasNonSimpleCustomHeader = useMemo(() => {
+    const methodsWithBody = ['POST', 'PATCH', 'PUT', 'DELETE'];
+    if (!methodsWithBody.includes(method)) return false;
     return customHeaders.some(
       (h) => h.key && !isCorsSimpleHeader(h.key, h.value)
     );
-  }, [customHeaders]);
+  }, [customHeaders, method]);
 
   // Handling missing parameters
   const missingParam = paramNames.find(
@@ -350,71 +353,71 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   const effectiveReadOnlyBody = isGetMethod ? true : readOnlyBody;
 
   return (
-    <div
-      style={{
-        border: `1px solid ${palette.border}`,
-        borderRadius: 12,
-        background: palette.inputBg,
-        color: palette.inputText,
-        // maxWidth: 700,
-        margin: '0 auto',
-        // padding: '24px',
-        // boxShadow: '0 2px 12px #0001',
-        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
-        overflow: 'hidden',
-      }}
-    >
-      <TriggerFunctionDebug
-        showDebugInfo={showDebugInfo}
-        showUrlDebug={showUrlDebug}
-        rawUrlProp={rawUrlProp}
-        computedUrl={computedUrl}
-        urlWarning={urlWarning}
-        method={method}
-      />
-      <TriggerFunctionForm
-        paramNames={paramNames}
-        params={params}
-        setParams={setParams}
-        body={body}
-        setBody={setBody}
-        bodyJsonError={bodyJsonError}
-        readOnlyBody={readOnlyBody}
-        isBodySynced={isBodySynced}
-        isHeadersSynced={isHeadersSynced}
-        customHeaders={customHeaders}
-        setCustomHeaders={setCustomHeaders}
-        useAuth={useAuth}
-        setUseAuth={setUseAuth}
-        onSend={onSend}
-        loading={loading}
-        hasNonSimpleCustomHeader={hasNonSimpleCustomHeader}
-        effectiveHeaders={effectiveHeaders}
-        computedUrl={computedUrl}
-        url={url}
-        method={method}
-        CurlCopyButton={CurlCopyButton}
-        label={label}
-        headersOpen={showDebugInfo ? true : headersOpenDefault}
-        bodyOpen={showDebugInfo ? true : bodyOpenDefault}
-        // httpError supprimé, n'existe plus
-      />
-      {responseObj && (
-        <div id={`trigger-function-result-step-${step}`}>
-          <TriggerFunctionResult response={responseObj!} />
-        </div>
-      )}
-      {preRequestError && (
-        <PreRequestError error={preRequestError} color={palette.errorText} />
-      )}
-      {!!(sync?.history && sync.history.length) && (
-        <TriggerFunctionHistory
-          history={sync.history}
-          palette={palette}
-          t={t}
+    <TriggerFunctionContext.Provider value={{ method, customHeaders, t }}>
+      <div
+        style={{
+          border: `1px solid ${palette.border}`,
+          borderRadius: 12,
+          background: palette.inputBg,
+          color: palette.inputText,
+          // maxWidth: 700,
+          margin: '0 auto',
+          // padding: '24px',
+          // boxShadow: '0 2px 12px #0001',
+          boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
+          overflow: 'hidden',
+        }}
+      >
+        <TriggerFunctionDebug
+          showDebugInfo={showDebugInfo}
+          showUrlDebug={showUrlDebug}
+          rawUrlProp={rawUrlProp}
+          computedUrl={computedUrl}
+          urlWarning={urlWarning}
+          method={method}
         />
-      )}
-    </div>
+        <TriggerFunctionForm
+          paramNames={paramNames}
+          params={params}
+          setParams={setParams}
+          body={body}
+          setBody={setBody}
+          bodyJsonError={bodyJsonError}
+          readOnlyBody={readOnlyBody}
+          isBodySynced={isBodySynced}
+          isHeadersSynced={isHeadersSynced}
+          customHeaders={customHeaders}
+          setCustomHeaders={setCustomHeaders}
+          useAuth={useAuth}
+          setUseAuth={setUseAuth}
+          onSend={onSend}
+          loading={loading}
+          effectiveHeaders={effectiveHeaders}
+          computedUrl={computedUrl}
+          url={url}
+          method={method}
+          CurlCopyButton={CurlCopyButton}
+          label={label}
+          headersOpen={showDebugInfo ? true : headersOpenDefault}
+          bodyOpen={showDebugInfo ? true : bodyOpenDefault}
+        />
+        {responseObj && (
+          <div id={`trigger-function-result-step-${step}`}>
+            <TriggerFunctionResult response={responseObj!} />
+          </div>
+        )}
+        {preRequestError && (
+          <PreRequestError error={preRequestError} color={palette.errorText} />
+        )}
+        {!!(sync?.history && sync.history.length) && (
+          <TriggerFunctionHistory
+            history={sync.history}
+            palette={palette}
+            t={t}
+          />
+        )}
+      </div>
+    </TriggerFunctionContext.Provider>
   );
 };
 
