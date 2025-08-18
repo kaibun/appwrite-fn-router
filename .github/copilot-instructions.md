@@ -1,5 +1,21 @@
 # Copilot Project Instructions
 
+## Project- and subproject-aware Dependency Installation
+
+This repository is a mono-repo with several sub-projects. Only some are managed as npm workspaces (notably `/functions/test`).
+
+When installing dependencies, always check which sub-project is relevant:
+
+- For documentation (Docusaurus, React UI, code samples, etc.), install in `./doc` (not a workspace, just a separate npm project).
+- For the main library, install at the root.
+- For OpenAPI, install in `./openapi` (not a workspace, just a separate npm project).
+- For Appwrite test functions, install in `./functions` (this is a workspace).
+
+The agent must always determine the correct sub-project by the location of the file being edited or the context of the task:
+
+- Never install documentation/UI dependencies at the root unless the code is in the main library.
+- Always prefer local installation for frontend, docs, or code samples, according to the sub-project structure.
+
 ## Project structure
 
 This is kind of a mono-repo with multiple connected projects. It essentially is a npm library providing end-users with an Appwrite Functions router, written in Node.js, as a thin wrapper around the Itty Router library.
