@@ -1,5 +1,5 @@
 import { useUIContext } from '@src/theme/UIContext';
-import { useTriggerFunctionContext } from '../../Context';
+import { useTriggerFunctionContext } from '../../contexts/TriggerFunctionContext';
 import CustomHeadersList from './CustomHeadersList';
 import CustomHeadersAddButton from './CustomHeadersAddButton';
 import CustomHeadersWarning from './CustomHeadersWarning';

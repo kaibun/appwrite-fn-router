@@ -32,7 +32,6 @@ export default ({
         method="PATCH"
         url={`${TRIGGER_API_BASE_URL}/widgets/:id`}
         label={t.patchWidgetLabel}
-        urlParams={['id']}
         body={{ weight: 15, color: 'blue' }}
         step={6}
         onStepDone={next}

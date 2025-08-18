@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 
 import { useStep } from './StepProvider';
-import { scrollToWithHeaderOffset } from '@src/components/TriggerFunction/scrollToWithHeaderOffset';
+import { scrollToWithHeaderOffset } from '@site/src/components/TriggerFunction/utils/scrollToWithHeaderOffset';
 
 interface StepProps {
   number: number;

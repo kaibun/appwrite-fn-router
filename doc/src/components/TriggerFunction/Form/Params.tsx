@@ -1,5 +1,9 @@
 import { useUIContext } from '@src/theme/UIContext';
-import type { Param } from '../Types';
+
+export interface Param {
+  name: string;
+  value: string;
+}
 
 export interface ParamsProps {
   paramNames: string[];

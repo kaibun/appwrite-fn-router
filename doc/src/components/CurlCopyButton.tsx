@@ -1,15 +1,17 @@
 import { useState } from 'react';
 
+import { useUIContext } from '@src/theme/UIContext';
+
 type CurlCopyButtonProps = {
+  body: string;
+  headers: Record<string, string>;
   method: string;
   url: string;
-  headers: Record<string, string>;
-  body: string;
-  palette: any;
 };
 
-export function CurlCopyButton(props: CurlCopyButtonProps) {
-  const { method, url, headers, body, palette } = props;
+export default function CurlCopyButton(props: CurlCopyButtonProps) {
+  const { palette } = useUIContext();
+  const { method, url, headers, body } = props;
   const [copied, setCopied] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   // Generates the cURL command based on method, headers, and body.

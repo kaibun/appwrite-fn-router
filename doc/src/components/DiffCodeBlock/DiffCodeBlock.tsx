@@ -1,6 +1,6 @@
 import CodeBlock from '@theme/CodeBlock';
 
-import { addMagicCommentsToDiff } from './DiffCodeBlock/diffFoldUtils';
+import { addMagicCommentsToDiff } from './diffFoldUtils';
 
 export interface DiffCodeBlockProps {
   before?: string;

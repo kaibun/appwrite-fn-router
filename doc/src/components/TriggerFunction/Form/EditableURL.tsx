@@ -1,28 +1,35 @@
-import { useUIContext } from '@src/theme/UIContext';
-import { useTriggerFunctionSync } from '@src/components/TriggerFunction/SyncContext';
-import EditableParam from './EditableParam';
+import { useEffect } from 'react';
 
-import type { Param } from '../Types';
+import { useUIContext } from '@src/theme/UIContext';
+import { useTriggerFunctionSync } from '@site/src/components/TriggerFunction/contexts/SyncContext';
+import EditableParam from './EditableParam';
+import { useRequestContext } from '../contexts/RequestContext';
 
 interface EditableURLProps {
-  urlTemplate: string;
-  params: Param[];
-  setParams: React.Dispatch<React.SetStateAction<Param[]>>;
-  method: string;
   editablePort?: boolean;
 }
 
-// Remplace les :param dans l’URL par des inputs
 export default function EditableURL({
-  urlTemplate,
-  params,
-  setParams,
-  method,
   editablePort = false,
 }: EditableURLProps) {
+  const { method, urlTemplate, params, setParams } = useRequestContext();
   const { palette, t } = useUIContext();
   const sync = useTriggerFunctionSync?.();
-  // Découpe l’URL en segments, remplace chaque :param par un input
+
+  // DEBUG: log params et isSynced pour chaque paramètre
+  useEffect(() => {
+    params.forEach((param) => {
+      // eslint-disable-next-line no-console
+      console.log('[EditableURL] param', {
+        name: param.name,
+        value: param.value,
+        isSynced:
+          !!sync?.urlParameters?.[param.name] &&
+          param.value === sync.urlParameters[param.name],
+      });
+    });
+  }, [params, sync?.urlParameters]);
+
   const urlParts = urlTemplate.split(/(:\w+)/g);
 
   return (
@@ -38,11 +45,14 @@ export default function EditableURL({
         if (part.startsWith(':')) {
           const name = part.slice(1);
           const param = params.find((p) => p.name === name);
+          // DEBUG: log param transmis à EditableParam
+          // eslint-disable-next-line no-console
+          console.log('[EditableURL] map', { name, param });
           const isPort = name.toLowerCase() === 'port' || /^\d+$/.test(name);
+          // Use sync.urlParameters for generic sync detection
           const isSynced =
-            name === 'id' &&
-            !!sync?.lastWidgetId &&
-            param?.value === sync.lastWidgetId;
+            !!sync?.urlParameters?.[name] &&
+            param?.value === sync.urlParameters[name];
           if (isPort && !editablePort) {
             return <span key={name}>{`:${param?.value || name}`}</span>;
           }
@@ -58,8 +68,8 @@ export default function EditableURL({
                   value={param?.value || ''}
                   placeholder={name}
                   onChange={(value) => {
-                    setParams((ps) =>
-                      ps.map((p) => (p.name === name ? { ...p, value } : p))
+                    setParams(
+                      params.map((p) => (p.name === name ? { ...p, value } : p))
                     );
                   }}
                   isSynced={isSynced}
@@ -74,8 +84,8 @@ export default function EditableURL({
               value={param?.value || ''}
               placeholder={name}
               onChange={(value) => {
-                setParams((ps) =>
-                  ps.map((p) => (p.name === name ? { ...p, value } : p))
+                setParams(
+                  params.map((p) => (p.name === name ? { ...p, value } : p))
                 );
               }}
               isSynced={isSynced}
