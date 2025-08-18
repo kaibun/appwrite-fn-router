@@ -3,6 +3,7 @@ import { useRef, useEffect } from 'react';
 import { useUIContext } from '@src/theme/UIContext';
 import type { Param } from './Types';
 import Body from './Form/Body';
+import StepNextButton from '@src/components/Steps/StepNextButton';
 import CustomHeaders from './Form/CustomHeaders';
 import EditableURL from './Form/EditableURL';
 import { scrollToWithHeaderOffset } from './scrollToWithHeaderOffset';
@@ -102,30 +103,15 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
         <CustomHeaders headersOpen={headersOpen} />
         {/* <Params paramNames={paramNames} params={params} setParams={setParams} /> */}
         {/* Send button */}
-        <button
+        <StepNextButton
           onClick={onSend}
+          stepNumber={undefined}
           disabled={loading}
-          style={{
-            marginBottom: 8,
-            marginTop: 8,
-            background: `linear-gradient(90deg, ${palette.accent} 0%, ${palette.accent2} 100%)`,
-            color: palette.inputBg,
-            border: 'none',
-            borderRadius: 8,
-            fontWeight: 700,
-            fontSize: 15,
-            padding: '10px 32px',
-            boxShadow: '0 2px 8px 0 rgba(59,130,246,0.10)',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.6 : 1,
-            transition: 'background 0.2s, opacity 0.2s',
-            outline: 'none',
-          }}
           aria-busy={loading}
           aria-label={label || t.trigger}
         >
           {loading ? t.send : label || t.trigger}
-        </button>
+        </StepNextButton>
       </div>
     </>
   );
