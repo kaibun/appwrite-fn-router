@@ -74,6 +74,20 @@ const CustomHeaders: React.FC<CustomHeadersProps> = (props) => {
         style={{ width: '100%', minHeight: 120, marginBottom: 18 }}
       >
         <Panel minSize={20} defaultSize={50} style={{ paddingRight: 12 }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: 13,
+              marginBottom: 2,
+              color: palette.textContrast,
+              fontWeight: 'bold',
+              background: palette.accent,
+              padding: '4px 8px',
+              borderRadius: 6,
+            }}
+          >
+            {t.buildHeaders}
+          </label>
           <CustomHeadersList
             customHeaders={customHeaders}
             setCustomHeaders={setCustomHeaders}
@@ -90,6 +104,20 @@ const CustomHeaders: React.FC<CustomHeadersProps> = (props) => {
           style={{ width: 6, background: palette.border, cursor: 'col-resize' }}
         />
         <Panel minSize={20} defaultSize={50} style={{ paddingLeft: 12 }}>
+          <label
+            style={{
+              display: 'block',
+              fontSize: 13,
+              marginBottom: 2,
+              color: palette.subtext,
+              fontWeight: 'bold',
+              background: palette.border,
+              padding: '4px 8px',
+              borderRadius: 6,
+            }}
+          >
+            {t.sentHeaders}
+          </label>
           <CustomHeadersSent
             effectiveHeaders={effectiveHeaders}
             t={t}
