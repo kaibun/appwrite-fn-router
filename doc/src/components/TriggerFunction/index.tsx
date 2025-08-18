@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import StepNextButton from '@src/components/Steps/StepNextButton';
 
 import { useUIContext } from '@src/theme/UIContext';
 import type { Param, MockApiResponse, TriggerFunctionProps } from './Types';
@@ -282,19 +283,9 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
     urlWarning = t.urlWarningUndefined;
   }
 
-  // cURL button component
+  // cURL button component (uses StepNextButton for consistent style)
   const CurlCopyButton = (props: any) => (
-    <button
-      style={{
-        background: palette.border,
-        color: palette.inputText,
-        border: 'none',
-        borderRadius: 6,
-        padding: '8px 10px',
-        fontSize: 13,
-        cursor: 'pointer',
-        margin: 0,
-      }}
+    <StepNextButton
       onClick={() => {
         const curl = `curl -X ${props.method} '${props.url}'`;
         navigator.clipboard.writeText(curl);
@@ -302,7 +293,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
       }}
     >
       Copy cURL
-    </button>
+    </StepNextButton>
   );
 
   // For GET, the body must be empty and not editable
