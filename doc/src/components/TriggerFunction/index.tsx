@@ -353,7 +353,20 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   const effectiveReadOnlyBody = isGetMethod ? true : readOnlyBody;
 
   return (
-    <TriggerFunctionContext.Provider value={{ method, customHeaders, t }}>
+    <TriggerFunctionContext.Provider
+      value={{
+        method,
+        customHeaders,
+        t,
+        useAuth,
+        setUseAuth,
+        effectiveHeaders,
+        palette,
+        computedUrl,
+        label,
+        setCustomHeaders,
+      }}
+    >
       <div
         style={{
           border: `1px solid ${palette.border}`,
@@ -386,16 +399,8 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
           readOnlyBody={readOnlyBody}
           isBodySynced={isBodySynced}
           isHeadersSynced={isHeadersSynced}
-          customHeaders={customHeaders}
-          setCustomHeaders={setCustomHeaders}
-          useAuth={useAuth}
-          setUseAuth={setUseAuth}
           onSend={onSend}
           loading={loading}
-          effectiveHeaders={effectiveHeaders}
-          computedUrl={computedUrl}
-          url={url}
-          method={method}
           CurlCopyButton={CurlCopyButton}
           label={label}
           headersOpen={showDebugInfo ? true : headersOpenDefault}

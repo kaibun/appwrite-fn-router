@@ -7,6 +7,7 @@ import EditableURL from './Form/EditableURL';
 import { usePalette } from '@src/components/PaletteProvider';
 import { useI18n } from '../I18nProvider';
 import { scrollToWithHeaderOffset } from './scrollToWithHeaderOffset';
+import { useTriggerFunctionContext } from './Context';
 
 interface TriggerFunctionFormProps {
   paramNames: string[];
@@ -18,19 +19,8 @@ interface TriggerFunctionFormProps {
   readOnlyBody?: boolean;
   isBodySynced?: boolean;
   isHeadersSynced?: boolean;
-  customHeaders: { key: string; value: string }[];
-  setCustomHeaders: React.Dispatch<
-    React.SetStateAction<{ key: string; value: string }[]>
-  >;
-  useAuth: boolean;
-  setUseAuth: React.Dispatch<React.SetStateAction<boolean>>;
   onSend: () => void;
   loading: boolean;
-  hasNonSimpleCustomHeader?: boolean;
-  effectiveHeaders: Record<string, string>;
-  computedUrl: string;
-  url: string;
-  method: string;
   CurlCopyButton: React.ComponentType<any>;
   label?: string;
   headersOpen?: boolean;
@@ -47,25 +37,16 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
   bodyJsonError,
   readOnlyBody,
   isBodySynced,
-  customHeaders,
-  setCustomHeaders,
-  useAuth,
-  setUseAuth,
   onSend,
   loading,
-  hasNonSimpleCustomHeader,
-  effectiveHeaders,
-  computedUrl,
-  url,
-  method,
   CurlCopyButton,
-  label,
   bodyOpen = false,
   headersOpen = true,
   httpError,
 }) => {
   const palette = usePalette();
-  const t = useI18n();
+  const ctx = useTriggerFunctionContext();
+  const { method, t, computedUrl, effectiveHeaders, label } = ctx;
   const editableUrlRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -90,15 +71,15 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
         }}
       >
         <EditableURL
-          urlTemplate={url}
+          urlTemplate={ctx.computedUrl}
           params={params}
           setParams={setParams}
-          method={method}
+          method={ctx.method}
         />
         <CurlCopyButton
-          method={method}
-          url={computedUrl}
-          headers={effectiveHeaders}
+          method={ctx.method}
+          url={ctx.computedUrl}
+          headers={ctx.effectiveHeaders}
           body={body}
           palette={palette}
         />
@@ -117,18 +98,9 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
           body={body}
           setBody={setBody}
           bodyJsonError={bodyJsonError}
-          method={method}
+          method={ctx.method}
         />
-        <CustomHeaders
-          customHeaders={customHeaders}
-          setCustomHeaders={setCustomHeaders}
-          hasNonSimpleCustomHeader={hasNonSimpleCustomHeader}
-          effectiveHeaders={effectiveHeaders}
-          headersOpen={headersOpen}
-          useAuth={useAuth}
-          setUseAuth={setUseAuth}
-          t={t}
-        />
+        <CustomHeaders headersOpen={headersOpen} />
         {/* <Params paramNames={paramNames} params={params} setParams={setParams} /> */}
         {/* Send button */}
         <button
@@ -151,9 +123,9 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
             outline: 'none',
           }}
           aria-busy={loading}
-          aria-label={label || t.trigger}
+          aria-label={ctx.label || ctx.t.trigger}
         >
-          {loading ? t.send : label || t.trigger}
+          {loading ? ctx.t.send : ctx.label || ctx.t.trigger}
         </button>
       </div>
     </>
