@@ -1,7 +1,18 @@
 import React from 'react';
+import { useTriggerFunctionContext } from '../../Context';
+import { usePalette } from '../../../PaletteProvider';
+import { isCorsSimpleHeader } from '../../Utils';
 
-const CustomHeadersWarning = ({ hasNonSimpleCustomHeader, t, palette }: any) =>
-  hasNonSimpleCustomHeader ? (
+const CustomHeadersWarning: React.FC = () => {
+  const { method, customHeaders, t } = useTriggerFunctionContext();
+  const palette = usePalette();
+  // Only check for non CORS-safelisted headers for methods that allow a body
+  const methodsWithBody = ['POST', 'PATCH', 'PUT', 'DELETE'];
+  const hasNonSimpleCustomHeader =
+    methodsWithBody.includes(method) &&
+    customHeaders.some((h) => h.key && !isCorsSimpleHeader(h.key, h.value));
+  if (!hasNonSimpleCustomHeader) return null;
+  return (
     <div
       style={{
         fontSize: 12,
@@ -20,6 +31,7 @@ const CustomHeadersWarning = ({ hasNonSimpleCustomHeader, t, palette }: any) =>
       </a>
       .
     </div>
-  ) : null;
+  );
+};
 
 export default CustomHeadersWarning;

@@ -126,11 +126,7 @@ const CustomHeaders: React.FC<CustomHeadersProps> = (props) => {
         </Panel>
       </PanelGroup>
       <div style={{ marginTop: 4 }}>
-        <CustomHeadersWarning
-          hasNonSimpleCustomHeader={hasNonSimpleCustomHeader}
-          t={t}
-          palette={palette}
-        />
+        <CustomHeadersWarning />
       </div>
     </details>
   );

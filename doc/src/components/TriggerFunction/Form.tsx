@@ -61,7 +61,7 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
   CurlCopyButton,
   label,
   bodyOpen = false,
-  headersOpen = false,
+  headersOpen = true,
   httpError,
 }) => {
   const palette = usePalette();
