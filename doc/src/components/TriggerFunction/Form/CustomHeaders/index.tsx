@@ -12,13 +12,14 @@ export interface CustomHeadersProps {
 
 const CustomHeaders: React.FC<CustomHeadersProps> = ({ headersOpen }) => {
   const { palette, t } = useUIContext();
-  const {
-    customHeaders,
-    setCustomHeaders,
-    effectiveHeaders,
-    useAuth,
-    setUseAuth,
-  } = useTriggerFunctionContext();
+  const { customHeaders, setCustomHeaders, effectiveHeaders } =
+    useTriggerFunctionContext();
+
+  // Helper: check if Authorization header is present
+  const hasAuthHeader = customHeaders.some(
+    (h) => h.key.toLowerCase() === 'authorization'
+  );
+
   return (
     <details
       open={headersOpen}
@@ -37,28 +38,14 @@ const CustomHeaders: React.FC<CustomHeadersProps> = ({ headersOpen }) => {
       >
         {t.customHeaders}
       </summary>
-      {/* Auth toggle */}
-      <div style={{ marginBottom: 12 }}>
-        <label
-          htmlFor="auth-toggle"
-          style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-        >
-          <input
-            id="auth-toggle"
-            type="checkbox"
-            checked={useAuth}
-            onChange={() => setUseAuth((v) => !v)}
-            style={{ marginRight: 4 }}
-            aria-checked={useAuth}
-            aria-label={t.addAuth + t.authValue}
-          />
-          {t.addAuth}
-          <code>{t.authValue}</code>
-        </label>
-      </div>
       <PanelGroup
         direction="horizontal"
-        style={{ width: '100%', minHeight: 120, marginBottom: 18 }}
+        style={{
+          width: '100%',
+          minHeight: 120,
+          paddingTop: 4,
+          marginBottom: 16,
+        }}
       >
         <Panel minSize={20} defaultSize={50} style={{ paddingRight: 12 }}>
           <label
@@ -96,10 +83,7 @@ const CustomHeaders: React.FC<CustomHeadersProps> = ({ headersOpen }) => {
           >
             {t.sentHeaders}
           </label>
-          <CustomHeadersSent
-          // ...existing code...
-          // ...existing code...
-          />
+          <CustomHeadersSent />
         </Panel>
       </PanelGroup>
       <div style={{ marginTop: 4 }}>

@@ -10,6 +10,7 @@ import { RequestContext } from './contexts/RequestContext';
 
 import { useUIContext } from '@src/theme/UIContext';
 import { extractParams, isCorsSimpleHeader } from './utils';
+import { predefinedHeaders } from './config';
 import TriggerFunctionForm from './Form';
 import { TriggerFunctionContext } from './contexts/TriggerFunctionContext';
 import TriggerFunctionResult from './Result';
@@ -84,21 +85,33 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
         ? JSON.stringify(sync.lastWidgetBody, null, 2)
         : ''
   );
-  const [customHeaders, setCustomHeaders] = useState<
-    { key: string; value: string }[]
-  >(
+  // Initial headers: from props, sync, or config
+  const initialHeaders =
     headers && Object.keys(headers).length > 0
       ? Object.entries(headers).map(([key, value]) => ({
           key,
           value: String(value),
+          enabled: true,
+          corsEnabled: false,
         }))
       : isHeadersSynced
         ? Object.entries(sync.lastWidgetHeaders ?? {}).map(([key, value]) => ({
             key,
             value: String(value),
+            enabled: true,
+            corsEnabled: false,
           }))
-        : []
-  );
+        : predefinedHeaders;
+  const [customHeaders, setCustomHeaders] =
+    useState<
+      {
+        key: string;
+        value: string;
+        enabled: boolean;
+        corsEnabled?: boolean;
+        dynamic?: boolean;
+      }[]
+    >(initialHeaders);
 
   const paramNames: string[] = extractParams(url);
   const [params, setParams] = useState<Param[]>(
@@ -156,20 +169,21 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   const effectiveHeaders = useMemo(() => {
     const headersObj: Record<string, string> = {};
     customHeaders.forEach((h) => {
-      if (h.key) headersObj[h.key] = h.value;
+      if (h.enabled && h.key && h.value) headersObj[h.key] = h.value;
     });
-    if (useAuth) headersObj['Authorization'] = 'Bearer <token>';
     if (body) headersObj['Content-Type'] = 'application/json';
     if (widgetUserId) headersObj['X-Widget-User-Id'] = widgetUserId;
     return headersObj;
-  }, [customHeaders, useAuth, body, widgetUserId]);
+  }, [customHeaders, body, widgetUserId]);
 
   // Only check for non CORS-safelisted headers for methods that allow a body
   const hasNonSimpleCustomHeader = useMemo(() => {
     const methodsWithBody = ['POST', 'PATCH', 'PUT', 'DELETE'];
     if (!methodsWithBody.includes(method)) return false;
+    // Ne prendre en compte que les headers effectivement envoyés
     return customHeaders.some(
-      (h) => h.key && !isCorsSimpleHeader(h.key, h.value)
+      (h) =>
+        h.enabled && h.key && h.value && !isCorsSimpleHeader(h.key, h.value)
     );
   }, [customHeaders, method]);
 
@@ -336,16 +350,12 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
               setHeaders: setCustomHeaders,
               hasNonSimpleCustomHeader,
               effectiveHeaders,
-              useAuth,
-              setUseAuth,
             }}
           >
             <TriggerFunctionContext.Provider
               value={{
                 method,
                 customHeaders,
-                useAuth,
-                setUseAuth,
                 effectiveHeaders,
                 computedUrl,
                 label,

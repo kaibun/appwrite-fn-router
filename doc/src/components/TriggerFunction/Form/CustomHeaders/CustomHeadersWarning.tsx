@@ -6,12 +6,19 @@ const CustomHeadersWarning: React.FC = () => {
   const { palette, t } = useUIContext();
   const { method, customHeaders } = useTriggerFunctionContext();
 
-  // Only check for non CORS-safelisted headers for methods that allow a body
+  // Show warning if at least one header is non-simple AND not marked corsEnabled
   const methodsWithBody = ['POST', 'PATCH', 'PUT', 'DELETE'];
-  const hasNonSimpleCustomHeader =
+  const hasNonSpecHeader =
     methodsWithBody.includes(method) &&
-    customHeaders.some((h) => h.key && !isCorsSimpleHeader(h.key, h.value));
-  if (!hasNonSimpleCustomHeader) return null;
+    customHeaders.some(
+      (h) =>
+        h.enabled &&
+        h.key &&
+        h.value &&
+        !isCorsSimpleHeader(h.key, h.value) &&
+        !h.corsEnabled
+    );
+  if (!hasNonSpecHeader) return null;
 
   return (
     <div
