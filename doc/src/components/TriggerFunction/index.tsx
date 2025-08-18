@@ -357,11 +357,9 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
       value={{
         method,
         customHeaders,
-        t,
         useAuth,
         setUseAuth,
         effectiveHeaders,
-        palette,
         computedUrl,
         label,
         setCustomHeaders,

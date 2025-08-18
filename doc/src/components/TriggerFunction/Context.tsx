@@ -3,11 +3,9 @@ import React, { createContext, useContext } from 'react';
 export interface TriggerFunctionContextType {
   method: string;
   customHeaders: { key: string; value: string }[];
-  t: Record<string, string>;
   useAuth: boolean;
   setUseAuth: React.Dispatch<React.SetStateAction<boolean>>;
   effectiveHeaders: Record<string, string>;
-  palette: Record<string, string>;
   computedUrl: string;
   label: string;
   setCustomHeaders: React.Dispatch<

@@ -21,7 +21,6 @@ const CustomHeaders: React.FC<CustomHeadersProps> = ({ headersOpen }) => {
     effectiveHeaders,
     useAuth,
     setUseAuth,
-    t,
   } = ctx;
   return (
     <details
