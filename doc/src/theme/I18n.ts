@@ -71,8 +71,13 @@ export function getT(locale: string): TFunction {
     const proxyT = new Proxy(rawT, {
       apply(target, thisArg, argArray) {
         const key = argArray[0];
-        const value = (target as any)[key];
-        if (typeof value === 'string') return value;
+        const params = argArray[1];
+        // Directly call the wrapped function to handle interpolation
+        const str = target(key, params);
+        if (str !== undefined) {
+          return str;
+        }
+        // Fallback for missing keys
         return `t.${String(key)}`;
       },
       get(target, prop) {
