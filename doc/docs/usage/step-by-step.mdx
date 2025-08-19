@@ -9,11 +9,11 @@ title: Create a REST API with AFR & Appwrite
 import { TriggerFunctionSyncProvider } from '@src/components/TriggerFunction/contexts/SyncContext';
 import { StepProvider } from '@src/components/Steps/StepProvider';
 import { getStepFromUrl } from '@src/utils/getStepFromUrl';
-import StepByStepContent from '@src/steps';
+import StepByStepContent, { steps } from '@src/steps';
 import WhyAFRNote from '@src/components/WhyAFRNote';
 
 <TriggerFunctionSyncProvider>
-  <StepProvider initialStep={getStepFromUrl(1)}>
+  <StepProvider initialStep={getStepFromUrl(1)} totalSteps={steps.length}>
     <WhyAFRNote />
     <StepByStepContent />
   </StepProvider>
