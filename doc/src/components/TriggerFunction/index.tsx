@@ -58,7 +58,7 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
   readOnlyBody = false,
   mockApi,
   bodyOpenDefault = ['POST', 'PATCH'].includes(method),
-  headersOpenDefault = true,
+  headersOpenDefault = false,
 }) => {
   const { palette, t } = useUIContext();
 
@@ -102,16 +102,15 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
             corsEnabled: false,
           }))
         : predefinedHeaders;
-  const [customHeaders, setCustomHeaders] =
-    useState<
-      {
-        key: string;
-        value: string;
-        enabled: boolean;
-        corsEnabled?: boolean;
-        dynamic?: boolean;
-      }[]
-    >(initialHeaders);
+  const [customHeaders, setCustomHeaders] = useState<
+    {
+      key: string;
+      value: string;
+      enabled: boolean;
+      corsEnabled?: boolean;
+      dynamic?: boolean;
+    }[]
+  >(initialHeaders);
 
   const paramNames: string[] = extractParams(url);
   const [params, setParams] = useState<Param[]>(

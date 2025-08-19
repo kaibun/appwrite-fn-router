@@ -45,20 +45,32 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
         style={{
           marginBottom: 8,
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'center', // vertical centering
           gap: 16,
           justifyContent: 'space-between',
           padding: '16px',
           background: `linear-gradient(90deg, ${palette.accent} 0%, ${palette.accent2} 100%)`,
+          overflow: 'visible',
         }}
       >
         <EditableURL />
-        <CurlCopyButton
-          body={body}
-          headers={effectiveHeaders}
-          method={method}
-          url={computedUrl}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <CurlCopyButton
+            body={body}
+            headers={effectiveHeaders}
+            method={method}
+            url={computedUrl}
+          />
+          <StepNextButton
+            onClick={onSend}
+            stepNumber={undefined}
+            disabled={loading}
+            aria-busy={loading}
+            aria-label={label || t.trigger}
+          >
+            {loading ? t.send : label || t.trigger}
+          </StepNextButton>
+        </div>
       </div>
       <div
         style={{
@@ -69,15 +81,6 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
       >
         <Body bodyOpen={bodyOpen} />
         <CustomHeaders headersOpen={headersOpen} />
-        <StepNextButton
-          onClick={onSend}
-          stepNumber={undefined}
-          disabled={loading}
-          aria-busy={loading}
-          aria-label={label || t.trigger}
-        >
-          {loading ? t.send : label || t.trigger}
-        </StepNextButton>
       </div>
     </>
   );

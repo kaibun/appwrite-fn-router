@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useUIContext } from '@src/theme/UIContext';
 
@@ -10,7 +11,12 @@ type CurlCopyButtonProps = {
 };
 
 export default function CurlCopyButton(props: CurlCopyButtonProps) {
-  const { palette } = useUIContext();
+  const buttonRef = useState<null | HTMLButtonElement>(null);
+  const [tooltipPos, setTooltipPos] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
+  const { palette, t } = useUIContext();
   const { method, url, headers, body } = props;
   const [copied, setCopied] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -34,9 +40,28 @@ export default function CurlCopyButton(props: CurlCopyButtonProps) {
   // Accessibility: show/hide tooltip on keyboard focus/blur.
   const show = () => setShowTooltip(true);
   const hide = () => setShowTooltip(false);
+
+  // When tooltip is shown, calculate its position
+  // (useEffect triggers only when showTooltip changes)
+  useEffect(() => {
+    if (showTooltip && buttonRef[0]) {
+      const rect = buttonRef[0].getBoundingClientRect();
+      setTooltipPos({
+        left: rect.left + rect.width / 2,
+        top: rect.bottom + 8,
+      });
+    }
+  }, [showTooltip]);
   return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
+    <span
+      style={{
+        position: 'relative',
+        display: 'inline-block',
+        overflow: 'visible',
+      }}
+    >
       <button
+        ref={(el) => buttonRef[1](el)}
         type="button"
         onClick={copy}
         onMouseEnter={show}
@@ -45,70 +70,77 @@ export default function CurlCopyButton(props: CurlCopyButtonProps) {
         onBlur={hide}
         style={{
           marginTop: 18,
-          background: palette.inputBg,
-          color: copied ? palette.accent2 : palette.accent,
-          border: `1px solid ${palette.inputBorder}`,
-          borderRadius: 6,
-          fontSize: 13,
-          padding: '6px 14px',
+          background: 'transparent',
+          color: palette.textContrast,
+          border: `1px dashed ${palette.inputBorder}`,
+          borderRadius: 8,
+          fontSize: 14,
+          padding: '14px 16px',
           cursor: 'pointer',
-          fontWeight: 600,
+          fontWeight: 700,
           boxShadow: '0 1px 4px #3b82f655',
           transition: 'color 0.2s',
         }}
-        aria-label="Copier la requête cURL équivalente"
-        title="Copier la requête cURL équivalente"
+        aria-label={t('curlCopyAria')}
+        title={t('curlCopyAria')}
       >
-        {copied ? '✅ cURL copié !' : 'Copier cURL'}
+        {copied ? t('curlCopied') : t('curlCopyButton')}
       </button>
-      {showTooltip && (
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: '110%',
-            transform: 'translateX(-50%)',
-            background: palette.inputBg,
-            color: palette.text,
-            border: `1px solid ${palette.inputBorder}`,
-            borderRadius: 8,
-            boxShadow: '0 2px 12px #0002',
-            padding: '10px 14px',
-            zIndex: 100,
-            minWidth: 320,
-            maxWidth: 680,
-            fontSize: 13,
-            whiteSpace: 'pre-line',
-            wordBreak: 'break-all',
-          }}
-          role="tooltip"
-          tabIndex={-1}
-        >
+      {showTooltip &&
+        tooltipPos &&
+        createPortal(
           <div
-            style={{ marginBottom: 6, fontWeight: 600, color: palette.accent }}
-          >
-            Aperçu de la commande cURL
-          </div>
-          <pre
             style={{
-              margin: 0,
-              background: 'none',
+              position: 'fixed',
+              left: tooltipPos.left,
+              top: tooltipPos.top,
+              transform: 'translateX(-50%)',
+              background: palette.inputBg,
               color: palette.text,
-              fontFamily: 'monospace',
+              border: `1px solid ${palette.inputBorder}`,
+              borderRadius: 8,
+              boxShadow: '0 2px 12px #0002',
+              padding: '10px 14px',
+              zIndex: 99999,
+              minWidth: 320,
+              maxWidth: 680,
               fontSize: 13,
-              padding: 0,
-              userSelect: 'all',
-              outline: 'none',
-              border: 'none',
-              whiteSpace: 'pre-wrap',
+              whiteSpace: 'pre-line',
+              wordBreak: 'break-all',
             }}
-            tabIndex={0}
-            aria-label="Commande cURL générée"
+            role="tooltip"
+            tabIndex={-1}
           >
-            {curl}
-          </pre>
-        </div>
-      )}
+            <div
+              style={{
+                marginBottom: 6,
+                fontWeight: 600,
+                color: palette.accent,
+              }}
+            >
+              {t('curlPreviewTitle')}
+            </div>
+            <pre
+              style={{
+                margin: 0,
+                background: 'none',
+                color: palette.text,
+                fontFamily: 'monospace',
+                fontSize: 13,
+                padding: 0,
+                userSelect: 'all',
+                outline: 'none',
+                border: 'none',
+                whiteSpace: 'pre-wrap',
+              }}
+              tabIndex={0}
+              aria-label={t('curlPreviewAria')}
+            >
+              {curl}
+            </pre>
+          </div>,
+          document.body
+        )}
     </span>
   );
 }

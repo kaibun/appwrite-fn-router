@@ -1,5 +1,10 @@
 export const messages = {
   fr: {
+    curlCopyAria: 'Copier la requête cURL équivalente',
+    curlCopyButton: 'Copier cURL',
+    curlCopied: 'cURL copié !',
+    curlPreviewTitle: 'Aperçu de la commande cURL',
+    curlPreviewAria: 'Commande cURL générée',
     bodySync: 'Body synchronisé avec la dernière création',
     addAuth: 'Ajouter le header ',
     authValue: 'Authorization: Bearer foobar',
@@ -125,6 +130,11 @@ export const messages = {
       "L’URL contient 'undefined' : vérifiez la config TRIGGER_API_BASE_URL.",
   },
   en: {
+    curlCopyAria: 'Copy equivalent cURL request',
+    curlCopyButton: 'Copy cURL',
+    curlCopied: 'cURL copied!',
+    curlPreviewTitle: 'cURL command preview',
+    curlPreviewAria: 'Generated cURL command',
     bodySync: 'Body synced with latest creation',
     debugPropUrl: 'Prop',
     debugUsedUrl: 'Used URL',
