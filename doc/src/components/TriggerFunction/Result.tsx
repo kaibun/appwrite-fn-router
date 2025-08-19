@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
 import { useUIContext } from '@src/theme/UIContext';
-import CodeBlock from '@theme/CodeBlock';
+// import CodeBlock from '@theme/CodeBlock';
+import DiffCodeBlock from '@site/src/components/DiffCodeBlock';
 
 interface TriggerFunctionResultProps {
   response: Response;
@@ -58,14 +59,24 @@ const TriggerFunctionResult: React.FC<TriggerFunctionResultProps> = ({
         HTTP {response.status} {response.statusText}
       </div>
       <div style={{ marginBottom: 8 }}>
-        <CodeBlock language="json" title={t.response}>
+        <DiffCodeBlock
+          disableDiff={true}
+          language="json"
+          title={t.response}
+          defaultCollapsed={response.status === 204}
+        >
           {body || ''}
-        </CodeBlock>
+        </DiffCodeBlock>
       </div>
       <div style={{ marginBottom: 8 }}>
-        <CodeBlock language="json" title={t.responseHeaders}>
+        <DiffCodeBlock
+          disableDiff={true}
+          language="json"
+          title={t.responseHeaders}
+          defaultCollapsed={true}
+        >
           {JSON.stringify(headers, null, 2)}
-        </CodeBlock>
+        </DiffCodeBlock>
       </div>
     </div>
   );
