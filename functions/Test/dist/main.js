@@ -280,8 +280,10 @@ var appwriteMock_default = {
 var router = createRouter({ base: "/widgets" });
 var client = new appwriteMock_default.Client().setEndpoint("https://mock-endpoint").setProject("mock-project").setKey("mock-key");
 var databases = new appwriteMock_default.Databases(client);
+var MOCK_DB_ID = "mock-db";
+var MOCK_COLLECTION_ID = "mock-collection";
 router.get("/", async (_req, res) => {
-  const result = await databases.listDocuments("mock-db", "mock-collection");
+  const result = await databases.listDocuments(MOCK_DB_ID, MOCK_COLLECTION_ID);
   return res.json({ items: result.documents });
 });
 router.post("/", async (req, res, _log, _error) => {
@@ -299,8 +301,8 @@ router.post("/", async (req, res, _log, _error) => {
     }
     const id = String(Date.now());
     const newWidget = await databases.createDocument(
-      "mock-db",
-      "mock-collection",
+      MOCK_DB_ID,
+      MOCK_COLLECTION_ID,
       id,
       { weight: body.weight, color: body.color }
     );
@@ -320,7 +322,7 @@ router.post("/", async (req, res, _log, _error) => {
   }
 });
 router.delete("/", async (_req, res) => {
-  await databases.deleteDocuments("mock-db", "mock-collection");
+  await databases.deleteDocuments(MOCK_DB_ID, MOCK_COLLECTION_ID);
   return res.json({ deleted: true });
 });
 router.post("/bulk", async (req, res, _log, _error) => {
@@ -340,8 +342,8 @@ router.post("/bulk", async (req, res, _log, _error) => {
       }
       const id = String(Date.now() + Math.random());
       const newWidget = await databases.createDocument(
-        "mock-db",
-        "mock-collection",
+        MOCK_DB_ID,
+        MOCK_COLLECTION_ID,
         id,
         { weight: item.weight, color: item.color }
       );
@@ -383,8 +385,8 @@ router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const widget = await databases.getDocument(
-      "mock-db",
-      "mock-collection",
+      MOCK_DB_ID,
+      MOCK_COLLECTION_ID,
       id
     );
     return res.json(widget);
@@ -397,8 +399,8 @@ router.patch("/:id", async (req, res, _log, _error) => {
     const { id } = req.params;
     const body = req.bodyJson;
     const updatedWidget = await databases.updateDocument(
-      "mock-db",
-      "mock-collection",
+      MOCK_DB_ID,
+      MOCK_COLLECTION_ID,
       id,
       body
     );
@@ -423,7 +425,7 @@ router.patch("/:id", async (req, res, _log, _error) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    await databases.deleteDocument("mock-db", "mock-collection", id);
+    await databases.deleteDocument(MOCK_DB_ID, MOCK_COLLECTION_ID, id);
     return res.send("", 204);
   } catch (e) {
     return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
