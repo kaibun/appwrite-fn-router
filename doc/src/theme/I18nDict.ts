@@ -65,7 +65,7 @@ export const messages = {
     goFurtherContribute:
       'Contribuez à la bibliothèque AFR en proposant des améliorations ou des corrections !',
     step1Title: 'Installer la bibliothèque',
-    step2Title: 'Créer le routeur principal',
+    step2Title: 'Utiliser le SDK Node.js Appwrite',
     step3Title: 'GET /widgets',
     step4Title: 'POST /widgets',
     step5Title: 'GET /widgets/:id',
@@ -198,7 +198,7 @@ export const messages = {
     goFurtherContribute:
       'Contribute to the AFR library by suggesting improvements or fixes!',
     step1Title: 'Install the library',
-    step2Title: 'Create the main router',
+    step2Title: 'Use the Node.js Appwrite SDK',
     step3Title: 'GET /widgets',
     step4Title: 'POST /widgets',
     step5Title: 'GET /widgets/:id',

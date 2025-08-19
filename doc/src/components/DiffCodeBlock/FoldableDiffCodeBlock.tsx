@@ -1,13 +1,16 @@
 import React from 'react';
 
+import type { DiffCodeBlockProps } from './index';
+import type { FoldableCodeBlockProps } from './FoldableCodeBlock';
+import DiffCodeBlock from './index';
 import FoldableCodeBlock from './FoldableCodeBlock';
 import { splitDiffIntoBlocks } from './diffFoldUtils';
 
-interface FoldableDiffCodeBlockProps {
+export interface FoldableDiffCodeBlockProps
+  extends Omit<DiffCodeBlockProps, 'children'>,
+    Omit<FoldableCodeBlockProps, 'children' | 'block'> {
   before: string;
   after: string;
-  language?: string;
-  title?: string;
   contextBefore?: number;
   contextAfter?: number;
   contextStart?: number;
@@ -65,17 +68,33 @@ function lcsDiff(before: string, after: string): string[] {
   return diffLines;
 }
 
-const FoldableDiffCodeBlock: React.FC<FoldableDiffCodeBlockProps> = ({
+const FoldableDiffCodeBlock: React.FC<
+  FoldableDiffCodeBlockProps & { disableDiff?: boolean }
+> = ({
   before,
   after,
   language = 'typescript',
-  title,
+  // title,
   contextBefore,
   contextAfter,
   contextStart,
   contextEnd,
   foldThreshold,
+  disableDiff = false,
+  ...props
 }) => {
+  if (disableDiff) {
+    return (
+      <div>
+        {/* {title && <h4 style={{ marginBottom: 8 }}>{title}</h4>} */}
+        {/* disableDiff is true, so eventually this will render raw (non-diff)
+            code, which is what we want. */}
+        <DiffCodeBlock {...props} language={language}>
+          {(after || '').trimEnd()}
+        </DiffCodeBlock>
+      </div>
+    );
+  }
   const diffLines = lcsDiff(before, after);
   const blocks = splitDiffIntoBlocks(diffLines, {
     contextBefore,
@@ -86,9 +105,10 @@ const FoldableDiffCodeBlock: React.FC<FoldableDiffCodeBlockProps> = ({
   });
   return (
     <div>
-      {title && <h4 style={{ marginBottom: 8 }}>{title}</h4>}
+      {/* {title && <h4 style={{ marginBottom: 8 }}>{title}</h4>} */}
       {blocks.map((block, idx) => (
         <FoldableCodeBlock
+          {...props}
           key={idx}
           language={language}
           block={block}

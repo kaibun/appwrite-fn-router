@@ -1,12 +1,13 @@
-import { handleRequest } from '@kaibun/appwrite-fn-router';
-
 const sdk = require('node-appwrite');
+const { handleRequest } = require('@kaibun/appwrite-fn-router');
+
+const { ID } = sdk;
 
 export default async function main(context) {
   const client = new sdk.Client()
-    .setEndpoint('https://<REGION>.cloud.appwrite.io/v1')
-    .setProject('<YOUR_PROJECT_ID>')
-    .setKey('<YOUR_API_KEY>');
+    .setEndpoint(process.env.APPWRITE_ENDPOINT)
+    .setProject(process.env.APPWRITE_PROJECT_ID)
+    .setKey(process.env.APPWRITE_API_KEY);
 
   const databases = new sdk.Databases(client);
 
@@ -14,8 +15,8 @@ export default async function main(context) {
     // GET /widgets
     router.get('/widgets', async (_req, res) => {
       const result = await databases.listDocuments(
-        '<DATABASE_ID>',
-        '<COLLECTION_ID>'
+        process.env.APPWRITE_DATABASE_ID,
+        process.env.APPWRITE_COLLECTION_ID
       );
       return res.json({ items: result.documents });
     });
@@ -24,9 +25,9 @@ export default async function main(context) {
     router.post('/widgets', async (req, res) => {
       const widget = req.body;
       const created = await databases.createDocument(
-        '<DATABASE_ID>',
-        '<COLLECTION_ID>',
-        'unique()',
+        process.env.APPWRITE_DATABASE_ID,
+        process.env.APPWRITE_COLLECTION_ID,
+        ID.unique(),
         widget
       );
       return res.json(created, 201);
@@ -37,8 +38,8 @@ export default async function main(context) {
       const { id } = req.params;
       try {
         const widget = await databases.getDocument(
-          '<DATABASE_ID>',
-          '<COLLECTION_ID>',
+          process.env.APPWRITE_DATABASE_ID,
+          process.env.APPWRITE_COLLECTION_ID,
           id
         );
         return res.json(widget);
@@ -56,8 +57,8 @@ export default async function main(context) {
         const { id } = req.params;
         const updates = req.bodyJson;
         const updated = await databases.updateDocument(
-          '<DATABASE_ID>',
-          '<COLLECTION_ID>',
+          process.env.APPWRITE_DATABASE_ID,
+          process.env.APPWRITE_COLLECTION_ID,
           id,
           updates
         );
@@ -83,7 +84,11 @@ export default async function main(context) {
     router.delete('/widgets/:id', async (req, res) => {
       const { id } = req.params;
       try {
-        await databases.deleteDocument('<DATABASE_ID>', '<COLLECTION_ID>', id);
+        await databases.deleteDocument(
+          process.env.APPWRITE_DATABASE_ID,
+          process.env.APPWRITE_COLLECTION_ID,
+          id
+        );
         return res.json({ deleted: true });
       } catch (e) {
         return res.json(

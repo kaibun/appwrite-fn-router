@@ -1,5 +1,6 @@
 import { useUIContext } from '@src/theme/UIContext';
-import DiffCodeBlockFoldable from '@site/src/components/DiffCodeBlock/FoldableDiffCodeBlock';
+import { useStepMode } from '../components/Steps/StepProvider';
+import FoldableDiffCodeBlock from '@site/src/components/DiffCodeBlock/FoldableDiffCodeBlock';
 import StepNextButton from '@src/components/Steps/StepNextButton';
 
 export default ({
@@ -10,23 +11,28 @@ export default ({
   next: () => void;
 }) => {
   const { t } = useUIContext();
+  const { stepByStep } = useStepMode();
 
   return (
     <>
       <h2>{t.step2Title}</h2>
       <p>{t.mainStepDescription}</p>
-      <DiffCodeBlockFoldable
+      <FoldableDiffCodeBlock
+        disableDiff={true}
         before={''}
         after={
           require('!!raw-loader!@site/src/code-examples/main.example.ts.txt')
             .default
         }
         language="typescript"
+        showLineNumbers={true}
         // title={t.mainStepFileTitle}
       />
-      <StepNextButton onClick={next} stepNumber={stepNumber}>
-        {t.nextStep}
-      </StepNextButton>
+      {stepByStep && (
+        <StepNextButton onClick={next} stepNumber={stepNumber}>
+          {t.nextStep}
+        </StepNextButton>
+      )}
     </>
   );
 };

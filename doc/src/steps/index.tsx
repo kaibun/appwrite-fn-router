@@ -30,9 +30,6 @@ export const steps: Steps = [
         <>
           <h2>{t.step1Title}</h2>
           <Install next={next} />
-          <StepNextButton onClick={next} stepNumber={1}>
-            {t.nextStep}
-          </StepNextButton>
         </>
       );
     },
