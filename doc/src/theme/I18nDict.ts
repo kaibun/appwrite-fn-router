@@ -1,5 +1,6 @@
 export const messages = {
   fr: {
+    bodySync: 'Body synchronisé avec la dernière création',
     addAuth: 'Ajouter le header ',
     authValue: 'Authorization: Bearer foobar',
     customHeaders: 'Headers custom :',
@@ -124,6 +125,7 @@ export const messages = {
       "L’URL contient 'undefined' : vérifiez la config TRIGGER_API_BASE_URL.",
   },
   en: {
+    bodySync: 'Body synced with latest creation',
     debugPropUrl: 'Prop',
     debugUsedUrl: 'Used URL',
     stepByStepNext: 'Next step',
