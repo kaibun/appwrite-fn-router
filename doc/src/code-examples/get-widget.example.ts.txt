@@ -1,28 +1,53 @@
 import { handleRequest } from '@kaibun/appwrite-fn-router';
 
+const sdk = require('node-appwrite');
+
 export default async function main(context) {
+  const client = new sdk.Client()
+    .setEndpoint('https://<REGION>.cloud.appwrite.io/v1')
+    .setProject('<YOUR_PROJECT_ID>')
+    .setKey('<YOUR_API_KEY>');
+
+  const databases = new sdk.Databases(client);
+
   return await handleRequest(context, (router) => {
-    router.get('/widgets', (req, res) => {
-      // Just a static response for now
-      return res.json([
-        { id: '1', weight: 10, color: 'red' },
-        { id: '2', weight: 20, color: 'blue' },
-      ]);
+    // GET /widgets
+    router.get('/widgets', async (_req, res) => {
+      const result = await databases.listDocuments(
+        '<DATABASE_ID>',
+        '<COLLECTION_ID>'
+      );
+      return res.json({ items: result.documents });
     });
-    router.post('/widgets', (req, res) => {
+
+    // POST /widgets
+    router.post('/widgets', async (req, res) => {
       const widget = req.body;
-      // Let’s simulate the creation of a new widget
-      return res.json({ ...widget, id: 'new-id' }, 201);
+      const created = await databases.createDocument(
+        '<DATABASE_ID>',
+        '<COLLECTION_ID>',
+        'unique()',
+        widget
+      );
+      return res.json(created, 201);
     });
-    router.get('/widgets/:id', (req, res) => {
+
+    // GET /widgets/:id
+    router.get('/widgets/:id', async (req, res) => {
       const { id } = req.params;
-      if (id === 'not-found') {
+      try {
+        const widget = await databases.getDocument(
+          '<DATABASE_ID>',
+          '<COLLECTION_ID>',
+          id
+        );
+        return res.json(widget);
+      } catch (e) {
         return res.json(
           { code: 'NOT_FOUND', message: 'Widget not found' },
           404
         );
       }
-      return res.json({ id, weight: 10, color: 'red' });
     });
   });
 }

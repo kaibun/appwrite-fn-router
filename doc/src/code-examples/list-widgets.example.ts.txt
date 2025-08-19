@@ -1,13 +1,23 @@
 import { handleRequest } from '@kaibun/appwrite-fn-router';
 
+const sdk = require('node-appwrite');
+
 export default async function main(context) {
+  const client = new sdk.Client()
+    .setEndpoint('https://<REGION>.cloud.appwrite.io/v1')
+    .setProject('<YOUR_PROJECT_ID>')
+    .setKey('<YOUR_API_KEY>');
+
+  const databases = new sdk.Databases(client);
+
   return await handleRequest(context, (router) => {
-    router.get('/widgets', (req, res) => {
-      // Just a static response for now
-      return res.json([
-        { id: '1', weight: 10, color: 'red' },
-        { id: '2', weight: 20, color: 'blue' },
-      ]);
+    // GET /widgets
+    router.get('/widgets', async (_req, res) => {
+      const result = await databases.listDocuments(
+        '<DATABASE_ID>',
+        '<COLLECTION_ID>'
+      );
+      return res.json({ items: result.documents });
     });
   });
 }
