@@ -29,9 +29,6 @@ export default function EditableParam({
       );
     });
   const { palette, t } = useUIContext();
-  // DEBUG: log à chaque rendu du composant
-  // eslint-disable-next-line no-console
-  console.log('[EditableParam] render', { name, value: _value, isSynced });
 
   useEffect(() => {
     const styleId = 'editable-param-placeholder-style';

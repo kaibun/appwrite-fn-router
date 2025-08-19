@@ -145,16 +145,6 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
     );
   }, [sync.urlParameters]);
 
-  useEffect(() => {
-    if (step === 5) {
-      // eslint-disable-next-line no-console
-      console.log('[TriggerFunction] step 5', {
-        urlParameters: sync.urlParameters,
-        params,
-      });
-    }
-  }, [step, sync.urlParameters, params]);
-
   const [useAuth, setUseAuth] = useState(false);
   // Stocke la façade autour du Response original
   const [responseFacade, setResponseFacade] = useState<ResponseFacade | null>(
