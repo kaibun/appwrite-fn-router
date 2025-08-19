@@ -5,13 +5,14 @@ import type { Widget } from '../../../../types/widget';
 export type { Widget };
 
 /**
- * Routes nested under /widgets/
+ * All routes under /widgets/
  */
 const router = createRouter({ base: '/widgets' });
 
-// --- DÉMO PERSISTANTE EN MÉMOIRE ---
-// Utilisation du mock Appwrite en ESM
+// --- IN-MEMORY DEMO ---
+// Using the Appwrite mock in ESM
 import sdk from '../mocks/appwriteMock';
+import { WidgetSchema } from '../validation/widgetSchema';
 
 const client = new sdk.Client()
   .setEndpoint('https://mock-endpoint')
@@ -19,40 +20,51 @@ const client = new sdk.Client()
   .setKey('mock-key');
 const databases = new sdk.Databases(client);
 
-// Config locale pour le mock
+// Local config for the mock
 const MOCK_DB_ID = 'mock-db';
 const MOCK_COLLECTION_ID = 'mock-collection';
 
-// GET /widgets => Liste tous les widgets
+// GET /widgets => List all widgets
 router.get('/', async (_req, res) => {
   const result = await databases.listDocuments(MOCK_DB_ID, MOCK_COLLECTION_ID);
   return res.json({ items: result.documents });
 });
 
-// POST /widgets => Crée un widget
+// POST /widgets => Create a widget
 router.post('/', async (req, res, _log, _error) => {
   try {
     const body = req.bodyJson;
-    if (
-      typeof body.weight !== 'number' ||
-      !body.color ||
-      !['red', 'blue', 'gold'].includes(String(body.color))
-    ) {
+    const id = String(Date.now());
+    // Compose a full widget for validation
+    const widgetCandidate = {
+      $id: id,
+      $collectionId: MOCK_COLLECTION_ID,
+      $databaseId: MOCK_DB_ID,
+      $createdAt: new Date().toISOString(),
+      $updatedAt: new Date().toISOString(),
+      $permissions: [],
+      $sequence: Date.now(),
+      weight: body.weight,
+      color: body.color,
+    };
+    const parseResult = WidgetSchema.safeParse(widgetCandidate);
+    if (!parseResult.success) {
       return res.json(
         {
           code: 'VALIDATION_ERROR',
-          message: 'Missing required fields',
-          errors: ['weight and color (red|blue|gold) are required'],
+          message: 'Invalid widget data',
+          errors: parseResult.error.issues.map(
+            (e: (typeof parseResult.error.issues)[0]) => e.message
+          ),
         },
         400
       );
     }
-    const id = String(Date.now());
     const newWidget = await databases.createDocument(
       MOCK_DB_ID,
       MOCK_COLLECTION_ID,
       id,
-      { weight: body.weight, color: body.color }
+      body
     );
     return res.json(newWidget, 201);
   } catch (e) {
@@ -70,13 +82,13 @@ router.post('/', async (req, res, _log, _error) => {
   }
 });
 
-// DELETE /widgets => Supprime tous les widgets
+// DELETE /widgets => Delete all widgets
 router.delete('/', async (_req, res) => {
   await databases.deleteDocuments(MOCK_DB_ID, MOCK_COLLECTION_ID);
   return res.json({ deleted: true });
 });
 
-// POST /widgets/bulk => Crée plusieurs widgets
+// POST /widgets/bulk => Create multiple widgets
 router.post('/bulk', async (req, res, _log, _error) => {
   const body = req.bodyJson;
   try {
@@ -86,22 +98,32 @@ router.post('/bulk', async (req, res, _log, _error) => {
     const created = [];
     const errors = [];
     for (const item of body) {
-      if (
-        typeof item.weight !== 'number' ||
-        !item.color ||
-        !['red', 'blue', 'gold'].includes(String(item.color))
-      ) {
+      const id = String(Date.now() + Math.random());
+      const widgetCandidate = {
+        $id: id,
+        $collectionId: MOCK_COLLECTION_ID,
+        $databaseId: MOCK_DB_ID,
+        $createdAt: new Date().toISOString(),
+        $updatedAt: new Date().toISOString(),
+        $permissions: [],
+        $sequence: Date.now(),
+        weight: item.weight,
+        color: item.color,
+      };
+      const parseResult = WidgetSchema.safeParse(widgetCandidate);
+      if (!parseResult.success) {
         errors.push(
-          'weight and color (red|blue|gold) are required for all items'
+          ...parseResult.error.issues.map(
+            (e: (typeof parseResult.error.issues)[0]) => e.message
+          )
         );
         continue;
       }
-      const id = String(Date.now() + Math.random());
       const newWidget = await databases.createDocument(
         MOCK_DB_ID,
         MOCK_COLLECTION_ID,
         id,
-        { weight: item.weight, color: item.color }
+        item
       );
       created.push(newWidget);
     }
@@ -131,7 +153,7 @@ router.post('/bulk', async (req, res, _log, _error) => {
   }
 });
 
-// GET /widgets/secret => Accessing the daily secret widget (requires Bearer token)
+// GET /widgets/secret => Access the daily secret widget (requires Bearer token)
 router.get('/secret', (req, res, _log, _error) => {
   const authHeader =
     req.headers['Authorization'] || req.headers['authorization'];
@@ -141,7 +163,7 @@ router.get('/secret', (req, res, _log, _error) => {
   return res.json({ id: 'widget-secret', weight: 200, color: 'gold' });
 });
 
-// GET /widgets/{id} => Lire un widget spécifique
+// GET /widgets/{id} => Get a specific widget
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   try {
@@ -156,11 +178,36 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// PATCH /widgets/{id} => Met à jour un widget
+// PATCH /widgets/{id} => Update a widget
 router.patch('/:id', async (req, res, _log, _error) => {
   try {
     const { id } = req.params;
     const body = req.bodyJson;
+    // Compose a full widget for validation
+    const widgetCandidate = {
+      $id: id,
+      $collectionId: MOCK_COLLECTION_ID,
+      $databaseId: MOCK_DB_ID,
+      $createdAt: new Date().toISOString(),
+      $updatedAt: new Date().toISOString(),
+      $permissions: [],
+      $sequence: Date.now(),
+      weight: body.weight,
+      color: body.color,
+    };
+    const parseResult = WidgetSchema.safeParse(widgetCandidate);
+    if (!parseResult.success) {
+      return res.json(
+        {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid widget data',
+          errors: parseResult.error.issues.map(
+            (e: (typeof parseResult.error.issues)[0]) => e.message
+          ),
+        },
+        400
+      );
+    }
     const updatedWidget = await databases.updateDocument(
       MOCK_DB_ID,
       MOCK_COLLECTION_ID,
@@ -186,7 +233,7 @@ router.patch('/:id', async (req, res, _log, _error) => {
   }
 });
 
-// DELETE /widgets/{id} => Supprime un widget
+// DELETE /widgets/{id} => Delete a widget
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {

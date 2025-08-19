@@ -276,6 +276,26 @@ var appwriteMock_default = {
   Databases: MockDatabases
 };
 
+// src/validation/widgetSchema.ts
+import { z } from "zod";
+var AppwriteDocumentSchema = z.object({
+  $id: z.string(),
+  $collectionId: z.string(),
+  $databaseId: z.string(),
+  $createdAt: z.string().refine((v) => !isNaN(Date.parse(v)), {
+    message: "Invalid ISO date"
+  }),
+  $updatedAt: z.string().refine((v) => !isNaN(Date.parse(v)), {
+    message: "Invalid ISO date"
+  }),
+  $permissions: z.array(z.string()),
+  $sequence: z.number()
+});
+var WidgetSchema = AppwriteDocumentSchema.extend({
+  weight: z.number(),
+  color: z.enum(["red", "blue", "gold"])
+});
+
 // src/routes/widgets.ts
 var router = createRouter({ base: "/widgets" });
 var client = new appwriteMock_default.Client().setEndpoint("https://mock-endpoint").setProject("mock-project").setKey("mock-key");
@@ -289,22 +309,36 @@ router.get("/", async (_req, res) => {
 router.post("/", async (req, res, _log, _error) => {
   try {
     const body = req.bodyJson;
-    if (typeof body.weight !== "number" || !body.color || !["red", "blue", "gold"].includes(String(body.color))) {
+    const id = String(Date.now());
+    const widgetCandidate = {
+      $id: id,
+      $collectionId: MOCK_COLLECTION_ID,
+      $databaseId: MOCK_DB_ID,
+      $createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      $updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      $permissions: [],
+      $sequence: Date.now(),
+      weight: body.weight,
+      color: body.color
+    };
+    const parseResult = WidgetSchema.safeParse(widgetCandidate);
+    if (!parseResult.success) {
       return res.json(
         {
           code: "VALIDATION_ERROR",
-          message: "Missing required fields",
-          errors: ["weight and color (red|blue|gold) are required"]
+          message: "Invalid widget data",
+          errors: parseResult.error.issues.map(
+            (e) => e.message
+          )
         },
         400
       );
     }
-    const id = String(Date.now());
     const newWidget = await databases.createDocument(
       MOCK_DB_ID,
       MOCK_COLLECTION_ID,
       id,
-      { weight: body.weight, color: body.color }
+      body
     );
     return res.json(newWidget, 201);
   } catch (e) {
@@ -334,18 +368,32 @@ router.post("/bulk", async (req, res, _log, _error) => {
     const created = [];
     const errors = [];
     for (const item of body) {
-      if (typeof item.weight !== "number" || !item.color || !["red", "blue", "gold"].includes(String(item.color))) {
+      const id = String(Date.now() + Math.random());
+      const widgetCandidate = {
+        $id: id,
+        $collectionId: MOCK_COLLECTION_ID,
+        $databaseId: MOCK_DB_ID,
+        $createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+        $updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+        $permissions: [],
+        $sequence: Date.now(),
+        weight: item.weight,
+        color: item.color
+      };
+      const parseResult = WidgetSchema.safeParse(widgetCandidate);
+      if (!parseResult.success) {
         errors.push(
-          "weight and color (red|blue|gold) are required for all items"
+          ...parseResult.error.issues.map(
+            (e) => e.message
+          )
         );
         continue;
       }
-      const id = String(Date.now() + Math.random());
       const newWidget = await databases.createDocument(
         MOCK_DB_ID,
         MOCK_COLLECTION_ID,
         id,
-        { weight: item.weight, color: item.color }
+        item
       );
       created.push(newWidget);
     }
@@ -398,6 +446,30 @@ router.patch("/:id", async (req, res, _log, _error) => {
   try {
     const { id } = req.params;
     const body = req.bodyJson;
+    const widgetCandidate = {
+      $id: id,
+      $collectionId: MOCK_COLLECTION_ID,
+      $databaseId: MOCK_DB_ID,
+      $createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      $updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      $permissions: [],
+      $sequence: Date.now(),
+      weight: body.weight,
+      color: body.color
+    };
+    const parseResult = WidgetSchema.safeParse(widgetCandidate);
+    if (!parseResult.success) {
+      return res.json(
+        {
+          code: "VALIDATION_ERROR",
+          message: "Invalid widget data",
+          errors: parseResult.error.issues.map(
+            (e) => e.message
+          )
+        },
+        400
+      );
+    }
     const updatedWidget = await databases.updateDocument(
       MOCK_DB_ID,
       MOCK_COLLECTION_ID,

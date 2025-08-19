@@ -11,9 +11,10 @@
     "start": "nodemon"
   },
   "dependencies": {
+    "@kaibun/appwrite-fn-router": "file:*",
     "itty-router": "^5.0.21",
     "node-appwrite": "^14.1.0",
-    "@kaibun/appwrite-fn-router": "file:*"
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
