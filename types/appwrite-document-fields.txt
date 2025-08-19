@@ -1,0 +1,27 @@
+Appwrite Document model fields (from https://appwrite.io/docs/references/cloud/models/document):
+
+- $id: string
+- $collectionId: string
+- $databaseId: string
+- $createdAt: string (ISO 8601)
+- $updatedAt: string (ISO 8601)
+- $permissions: string[]
+- $locale: string
+
++ custom fields (ex: weight, color, ...)
+
+Proposition for Widget type:
+
+export type Widget = {
+  $id: string;
+  $collectionId: string;
+  $databaseId: string;
+  $createdAt: string;
+  $updatedAt: string;
+  $permissions: string[];
+  $locale: string;
+  weight: number;
+  color: 'red' | 'blue' | 'gold';
+};
+
+// Type guards and validation to be updated accordingly.

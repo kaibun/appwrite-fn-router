@@ -5,11 +5,7 @@
  * @see https://appwrite.io/docs/references/cloud/server-nodejs/databases
  */
 
-export type Widget = {
-  $id: string;
-  name: string;
-  [key: string]: any;
-};
+import type { Widget } from '../../../../types/widget';
 
 // In-memory persistence.
 const widgets: Record<string, Widget> = {};
