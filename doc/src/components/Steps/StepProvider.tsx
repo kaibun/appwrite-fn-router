@@ -27,6 +27,7 @@ interface StepContextType {
   nextStep: () => void;
   goToStep: (n: number) => void;
   maxStepReached: number;
+  totalSteps: number;
 }
 
 const StepContext = createContext<StepContextType | undefined>(undefined);
@@ -40,15 +41,20 @@ export const useStep = () => {
 interface StepProviderProps {
   children: ReactNode;
   initialStep?: number;
+  totalSteps: number;
 }
 
 export const StepProvider = ({
   children,
   initialStep = 1,
+  totalSteps,
 }: StepProviderProps) => {
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [stepByStep, setStepByStep] = useState(true);
   const [maxStepReached, setMaxStepReached] = useState(initialStep);
+
+  // When stepByStep is disabled, force maxStepReached to totalSteps
+  const effectiveMaxStepReached = stepByStep ? maxStepReached : totalSteps;
 
   const nextStep = useCallback(() => {
     setCurrentStep((s) => {
@@ -79,7 +85,13 @@ export const StepProvider = ({
   return (
     <StepModeContext.Provider value={{ stepByStep, setStepByStep }}>
       <StepContext.Provider
-        value={{ currentStep, nextStep, goToStep, maxStepReached }}
+        value={{
+          currentStep,
+          nextStep,
+          goToStep,
+          maxStepReached: effectiveMaxStepReached,
+          totalSteps,
+        }}
       >
         {children}
       </StepContext.Provider>

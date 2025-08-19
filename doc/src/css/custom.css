@@ -136,3 +136,8 @@
 [class*='codeBlockContent'] button[title*='Toggle word wrap'] {
   display: none;
 }
+
+/* Hide default Docusaurus footer */
+.footer {
+  display: none !important;
+}
