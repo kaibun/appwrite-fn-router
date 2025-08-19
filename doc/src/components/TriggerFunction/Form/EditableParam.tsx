@@ -37,16 +37,18 @@ export default function EditableParam({
     style.id = styleId;
     style.innerHTML = `
       input::placeholder {
-        color: ${palette.subtext};
-        opacity: 1;
-      }
-      [data-theme='dark'] input::placeholder {
-        color: ${palette.inputText};
-        opacity: 1;
+        color: ${palette.subtext} !important;
+        opacity: 1 !important;
       }
     `;
     document.head.appendChild(style);
-  }, [palette.subtext, palette.inputText]);
+    return () => {
+      const styleElement = document.getElementById(styleId);
+      if (styleElement) {
+        styleElement.remove();
+      }
+    };
+  }, [palette.subtext]);
 
   return (
     <span
