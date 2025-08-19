@@ -1,3 +1,5 @@
+import { hexToRgba } from '@src/utils/hexToRgba';
+
 export type Palette = {
   mode: 'light' | 'dark';
   light: boolean;
@@ -36,7 +38,13 @@ export type Palette = {
   };
 };
 
-export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
+export type PaletteWithHelpers = Palette & {
+  toRGBA: typeof hexToRgba;
+};
+
+export function getPalette(
+  mode: 'light' | 'dark' = 'light'
+): PaletteWithHelpers {
   if (mode === 'dark') {
     return {
       mode: 'dark',
@@ -74,6 +82,7 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
         italic: 'italic',
         entity: 'help',
       },
+      toRGBA: hexToRgba,
     };
   }
   return {
@@ -112,5 +121,6 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
       italic: 'italic',
       entity: 'help',
     },
+    toRGBA: hexToRgba,
   };
 }

@@ -51,7 +51,7 @@ const StepByStepToc: React.FC = () => {
         top: 100,
         right: 32,
         width: 320,
-        background: palette.inputBg,
+        background: palette.toRGBA(palette.inputBg, 0.95),
         border: `1px solid ${palette.border}`,
         borderRadius: 12,
         boxShadow:
