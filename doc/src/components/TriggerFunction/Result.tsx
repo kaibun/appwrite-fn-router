@@ -17,7 +17,14 @@ const TriggerFunctionResult: React.FC<TriggerFunctionResultProps> = ({
   useEffect(() => {
     let isMounted = true;
     response.text().then((text) => {
-      if (isMounted) setBody(text);
+      if (isMounted) {
+        try {
+          const json = JSON.parse(text);
+          setBody(JSON.stringify(json, null, 2));
+        } catch (e) {
+          setBody(text);
+        }
+      }
     });
     const headersObj: Record<string, string> = {};
     response.headers.forEach((value, key) => {
