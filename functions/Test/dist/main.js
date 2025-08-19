@@ -221,12 +221,68 @@ async function handleRequest(context, withRouter, options = {}) {
   }
 }
 
+// src/mocks/appwriteMock.ts
+var widgets = {};
+var MockClient = class {
+  endpoint = "";
+  project = "";
+  key = "";
+  setEndpoint(endpoint) {
+    this.endpoint = endpoint;
+    return this;
+  }
+  setProject(project) {
+    this.project = project;
+    return this;
+  }
+  setKey(key) {
+    this.key = key;
+    return this;
+  }
+};
+var MockDatabases = class {
+  constructor(client2) {
+  }
+  async listDocuments(databaseId, collectionId) {
+    return { documents: Object.values(widgets) };
+  }
+  async createDocument(databaseId, collectionId, documentId, data) {
+    const widget = { $id: documentId, ...data };
+    widgets[documentId] = widget;
+    return widget;
+  }
+  async getDocument(databaseId, collectionId, documentId) {
+    const widget = widgets[documentId];
+    if (!widget) throw new Error("Document not found");
+    return widget;
+  }
+  async updateDocument(databaseId, collectionId, documentId, data) {
+    if (!widgets[documentId]) throw new Error("Document not found");
+    widgets[documentId] = { ...widgets[documentId], ...data };
+    return widgets[documentId];
+  }
+  async deleteDocument(databaseId, collectionId, documentId) {
+    if (!widgets[documentId]) throw new Error("Document not found");
+    delete widgets[documentId];
+    return { $id: documentId };
+  }
+  async deleteDocuments(databaseId, collectionId, queries) {
+    Object.keys(widgets).forEach((id) => delete widgets[id]);
+    return { deleted: true };
+  }
+};
+var appwriteMock_default = {
+  Client: MockClient,
+  Databases: MockDatabases
+};
+
 // src/routes/widgets.ts
 var router = createRouter({ base: "/widgets" });
-var widgets = {};
-var nextId = 1;
-router.get("/", (_req, res) => {
-  return res.json({ items: Object.values(widgets) });
+var client = new appwriteMock_default.Client().setEndpoint("https://mock-endpoint").setProject("mock-project").setKey("mock-key");
+var databases = new appwriteMock_default.Databases(client);
+router.get("/", async (_req, res) => {
+  const result = await databases.listDocuments("mock-db", "mock-collection");
+  return res.json({ items: result.documents });
 });
 router.post("/", async (req, res, _log, _error) => {
   try {
@@ -241,13 +297,13 @@ router.post("/", async (req, res, _log, _error) => {
         400
       );
     }
-    const id = String(nextId++);
-    const newWidget = {
+    const id = String(Date.now());
+    const newWidget = await databases.createDocument(
+      "mock-db",
+      "mock-collection",
       id,
-      weight: body.weight,
-      color: body.color
-    };
-    widgets[id] = newWidget;
+      { weight: body.weight, color: body.color }
+    );
     return res.json(newWidget, 201);
   } catch (e) {
     if (e instanceof SyntaxError) {
@@ -263,14 +319,11 @@ router.post("/", async (req, res, _log, _error) => {
     throw e;
   }
 });
-router.delete("/", (req, res) => {
-  const count = Object.keys(widgets).length;
-  for (const id of Object.keys(widgets)) {
-    delete widgets[id];
-  }
-  return res.json({ deleted: count });
+router.delete("/", async (_req, res) => {
+  await databases.deleteDocuments("mock-db", "mock-collection");
+  return res.json({ deleted: true });
 });
-router.post("/bulk", (req, res, _log, _error) => {
+router.post("/bulk", async (req, res, _log, _error) => {
   const body = req.bodyJson;
   try {
     if (!Array.isArray(body)) {
@@ -285,13 +338,13 @@ router.post("/bulk", (req, res, _log, _error) => {
         );
         continue;
       }
-      const id = String(nextId++);
-      const newWidget = {
+      const id = String(Date.now() + Math.random());
+      const newWidget = await databases.createDocument(
+        "mock-db",
+        "mock-collection",
         id,
-        weight: item.weight,
-        color: item.color
-      };
-      widgets[id] = newWidget;
+        { weight: item.weight, color: item.color }
+      );
       created.push(newWidget);
     }
     if (created.length === 0) {
@@ -326,30 +379,34 @@ router.get("/secret", (req, res, _log, _error) => {
   }
   return res.json({ id: "widget-secret", weight: 200, color: "gold" });
 });
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
-  const widget = widgets[id];
-  if (!widget) {
+  try {
+    const widget = await databases.getDocument(
+      "mock-db",
+      "mock-collection",
+      id
+    );
+    return res.json(widget);
+  } catch (e) {
     return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
   }
-  return res.json(widget);
 });
 router.patch("/:id", async (req, res, _log, _error) => {
   try {
     const { id } = req.params;
-    const widget = widgets[id];
-    if (!widget) {
-      return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
-    }
     const body = req.bodyJson;
-    const updatedWidget = {
+    const updatedWidget = await databases.updateDocument(
+      "mock-db",
+      "mock-collection",
       id,
-      weight: body.weight ?? widget.weight,
-      color: body.color ?? widget.color
-    };
-    widgets[id] = updatedWidget;
+      body
+    );
     return res.json(updatedWidget);
   } catch (e) {
+    if (e instanceof Error && e.message === "Document not found") {
+      return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
+    }
     if (e instanceof SyntaxError) {
       return res.json(
         {
@@ -363,13 +420,14 @@ router.patch("/:id", async (req, res, _log, _error) => {
     throw e;
   }
 });
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  if (!widgets[id]) {
+  try {
+    await databases.deleteDocument("mock-db", "mock-collection", id);
+    return res.send("", 204);
+  } catch (e) {
     return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
   }
-  delete widgets[id];
-  return res.send("", 204);
 });
 router.post("/:id", (req, res, _log, _error) => {
   const { id } = req.params;
