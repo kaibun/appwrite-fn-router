@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { useResponseContext } from '../contexts/ResponseContext';
 
 import { useBody } from '../contexts/BodyContext';
 import { useUIContext } from '@src/theme/UIContext';
@@ -16,7 +17,7 @@ interface TriggerFunctionFormProps {
   label?: string;
   headersOpen?: boolean;
   bodyOpen?: boolean;
-  httpError?: any;
+  // httpError is now provided by context
 }
 
 const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
@@ -24,13 +25,13 @@ const TriggerFunctionForm: React.FC<TriggerFunctionFormProps> = ({
   loading,
   bodyOpen = false,
   headersOpen = true,
-  httpError,
 }) => {
   const { palette, t } = useUIContext();
   const { method, computedUrl, effectiveHeaders, label } =
     useTriggerFunctionContext();
   const editableUrlRef = useRef<HTMLDivElement>(null);
   const { body } = useBody();
+  const { httpError } = useResponseContext();
 
   useEffect(() => {
     if (httpError && editableUrlRef.current) {

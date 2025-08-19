@@ -18,6 +18,7 @@ import TriggerFunctionHistory from './History';
 import TriggerFunctionDebug from './Debug';
 import { useTriggerFunctionSync } from './contexts/SyncContext';
 import { getOrCreateWidgetUserId } from './utils/useWidgetUserId';
+import { ResponseContext } from './contexts/ResponseContext';
 import PreRequestError from './PreRequestError';
 import { scrollToWithHeaderOffset } from './utils/scrollToWithHeaderOffset';
 import ResponseFacade from './utils/ResponseFacade';
@@ -316,6 +317,11 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
     urlWarning = t.urlWarningUndefined;
   }
 
+  // Détermine si la dernière réponse est une erreur HTTP
+  const httpError = !!(
+    responseFacade?.getResponse() && responseFacade.getResponse().status >= 400
+  );
+
   return (
     <RequestContext.Provider
       value={{
@@ -351,52 +357,56 @@ const TriggerFunction: React.FC<TriggerFunctionProps> = ({
                 setCustomHeaders,
               }}
             >
-              <div
-                style={{
-                  border: `1px solid ${palette.border}`,
-                  borderRadius: 12,
-                  background: palette.inputBg,
-                  color: palette.inputText,
-                  // maxWidth: 700,
-                  margin: '0 auto',
-                  // padding: '24px',
-                  // boxShadow: '0 2px 12px #0001',
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
-                  overflow: 'hidden',
+              <ResponseContext.Provider
+                value={{
+                  response: responseFacade?.getResponse() ?? null,
+                  httpError,
                 }}
               >
-                <TriggerFunctionDebug
-                  showDebugInfo={showDebugInfo}
-                  showUrlDebug={showUrlDebug}
-                  rawUrlProp={rawUrlProp}
-                  computedUrl={computedUrl}
-                  urlWarning={urlWarning}
-                  method={method}
-                />
-                <TriggerFunctionForm
-                  onSend={onSend}
-                  loading={loading}
-                  label={label}
-                  headersOpen={showDebugInfo ? true : headersOpenDefault}
-                  bodyOpen={showDebugInfo ? true : bodyOpenDefault}
-                />
-                {responseFacade && (
-                  <div id={`trigger-function-result-step-${step}`}>
-                    <TriggerFunctionResult
-                      response={responseFacade.getResponse()}
-                    />
-                  </div>
-                )}
-                {preRequestError && (
-                  <PreRequestError
-                    error={preRequestError}
-                    color={palette.errorText}
+                <div
+                  style={{
+                    border: `1px solid ${palette.border}`,
+                    borderRadius: 12,
+                    background: palette.inputBg,
+                    color: palette.inputText,
+                    margin: '0 auto',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <TriggerFunctionDebug
+                    showDebugInfo={showDebugInfo}
+                    showUrlDebug={showUrlDebug}
+                    rawUrlProp={rawUrlProp}
+                    computedUrl={computedUrl}
+                    urlWarning={urlWarning}
+                    method={method}
                   />
-                )}
-                {!!(sync?.history && sync.history.length) && (
-                  <TriggerFunctionHistory history={sync.history} />
-                )}
-              </div>
+                  <TriggerFunctionForm
+                    onSend={onSend}
+                    loading={loading}
+                    label={label}
+                    headersOpen={showDebugInfo ? true : headersOpenDefault}
+                    bodyOpen={showDebugInfo ? true : bodyOpenDefault}
+                  />
+                  {responseFacade && (
+                    <div id={`trigger-function-result-step-${step}`}>
+                      <TriggerFunctionResult
+                        response={responseFacade.getResponse()}
+                      />
+                    </div>
+                  )}
+                  {preRequestError && (
+                    <PreRequestError
+                      error={preRequestError}
+                      color={palette.errorText}
+                    />
+                  )}
+                  {!!(sync?.history && sync.history.length) && (
+                    <TriggerFunctionHistory history={sync.history} />
+                  )}
+                </div>
+              </ResponseContext.Provider>
             </TriggerFunctionContext.Provider>
           </HeadersContext.Provider>
         </BodyContext.Provider>
