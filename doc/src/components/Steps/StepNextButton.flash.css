@@ -1,0 +1,18 @@
+.step-next-flash {
+  animation: stepNextBorderFlash 2.2s linear infinite;
+}
+@keyframes stepNextBorderFlash {
+  0% {
+    border-color: #3b82f6;
+  }
+  50% {
+    border-color: #06b6d4;
+  }
+  100% {
+    border-color: #3b82f6;
+  }
+}
+.step-next-arrow {
+  display: inline-flex;
+  align-items: center;
+}

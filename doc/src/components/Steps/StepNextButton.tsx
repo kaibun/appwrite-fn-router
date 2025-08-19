@@ -1,5 +1,7 @@
 import { useStep } from './StepProvider';
 import { useUIContext } from '../../theme/UIContext';
+import './StepNextButton.flash.css';
+import './StepNextButton.arrow.css';
 
 interface StepNextButtonProps {
   onClick: () => void;
@@ -26,11 +28,12 @@ const StepNextButton: React.FC<StepNextButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       style={{
+        position: 'relative',
         background: 'linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%)',
         color: '#fff',
-        border: 'none',
+        border: '2px solid #3b82f6',
         borderRadius: 8,
-        padding: '10px 28px',
+        padding: '10px 16px',
         fontWeight: 700,
         fontSize: 16,
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -40,9 +43,66 @@ const StepNextButton: React.FC<StepNextButtonProps> = ({
         opacity: disabled ? 0.6 : 1,
         transition: 'background 0.2s, box-shadow 0.2s, opacity 0.2s',
         outline: 'none',
+        overflow: 'hidden',
       }}
+      className="step-next-shimmer step-next-flash"
     >
-      {children || t.stepByStepNext}
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+        {children || t.stepByStepNext}
+        <span
+          className="step-next-arrow-group"
+          aria-hidden="true"
+          style={{
+            position: 'relative',
+            display: 'inline-flex',
+            alignItems: 'center',
+          }}
+        >
+          <span
+            className="step-next-arrow-ghost"
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              width: 22,
+              height: 22,
+            }}
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 22 22"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M7 11h8m0 0l-3.5-3.5M15 11l-3.5 3.5"
+                stroke="#fff"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span className="step-next-arrow">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 22 22"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M7 11h8m0 0l-3.5-3.5M15 11l-3.5 3.5"
+                stroke="#fff"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </span>
+      </span>
     </button>
   );
 };

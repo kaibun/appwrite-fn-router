@@ -21,7 +21,7 @@ export default function EditableURL({
     <span
       style={{
         fontFamily: 'monospace',
-        fontSize: 16,
+        fontSize: 18,
         color: palette.textContrast,
       }}
     >
