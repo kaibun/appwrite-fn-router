@@ -42,6 +42,17 @@ router.post('/', async (req, res, _log, _error) => {
   try {
     const body = req.bodyJson;
     const id = String(Date.now());
+    // Example: check for $id conflict (409)
+    const existing = (
+      await databases.listDocuments(MOCK_DB_ID, MOCK_COLLECTION_ID)
+    ).documents.find((w: Widget) => w.$id === id);
+    if (existing) {
+      return respond({
+        code: 'CONFLICT',
+        message: `A widget with $id '${id}' already exists`,
+        status: 409,
+      });
+    }
     const widgetCandidate = {
       $id: id,
       $collectionId: MOCK_COLLECTION_ID,
