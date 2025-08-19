@@ -198,6 +198,11 @@ const config: Config = {
         },
       ],
     },
+    docs: {
+      sidebar: {
+        hideable: true,
+      },
+    },
   } satisfies Preset.ThemeConfig,
 
   markdown: {
