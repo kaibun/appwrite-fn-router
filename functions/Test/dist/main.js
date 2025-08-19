@@ -221,6 +221,18 @@ async function handleRequest(context, withRouter, options = {}) {
   }
 }
 
+// src/utils/apiResponse.ts
+function apiResponse(res, opts) {
+  const { code, message, data, errors, status } = opts;
+  const body = { code, message };
+  if (data !== void 0) body.data = data;
+  if (errors && errors.length) body.errors = errors;
+  return res.json(body, status ?? 200);
+}
+function createApiResponder(res) {
+  return (opts) => apiResponse(res, opts);
+}
+
 // src/mocks/appwriteMock.ts
 var widgets = {};
 var MockClient = class {
@@ -303,10 +315,16 @@ var databases = new appwriteMock_default.Databases(client);
 var MOCK_DB_ID = "mock-db";
 var MOCK_COLLECTION_ID = "mock-collection";
 router.get("/", async (_req, res) => {
+  const respond = createApiResponder(res);
   const result = await databases.listDocuments(MOCK_DB_ID, MOCK_COLLECTION_ID);
-  return res.json({ items: result.documents });
+  return respond({
+    code: "SUCCESS",
+    message: "Widgets fetched",
+    data: { items: result.documents }
+  });
 });
 router.post("/", async (req, res, _log, _error) => {
+  const respond = createApiResponder(res);
   try {
     const body = req.bodyJson;
     const id = String(Date.now());
@@ -323,16 +341,12 @@ router.post("/", async (req, res, _log, _error) => {
     };
     const parseResult = WidgetSchema.safeParse(widgetCandidate);
     if (!parseResult.success) {
-      return res.json(
-        {
-          code: "VALIDATION_ERROR",
-          message: "Invalid widget data",
-          errors: parseResult.error.issues.map(
-            (e) => e.message
-          )
-        },
-        400
-      );
+      return respond({
+        code: "VALIDATION_ERROR",
+        message: "Invalid widget data",
+        errors: parseResult.error.issues.map((e) => e.message),
+        status: 400
+      });
     }
     const newWidget = await databases.createDocument(
       MOCK_DB_ID,
@@ -340,26 +354,35 @@ router.post("/", async (req, res, _log, _error) => {
       id,
       body
     );
-    return res.json(newWidget, 201);
+    return respond({
+      code: "SUCCESS",
+      message: "Widget created",
+      data: newWidget,
+      status: 201
+    });
   } catch (e) {
     if (e instanceof SyntaxError) {
-      return res.json(
-        {
-          code: "BAD_REQUEST",
-          message: "Invalid JSON in request body"
-        },
-        400
-      );
+      return respond({
+        code: "BAD_REQUEST",
+        message: "Invalid JSON in request body",
+        status: 400
+      });
     }
     _error(String(e));
     throw e;
   }
 });
 router.delete("/", async (_req, res) => {
+  const respond = createApiResponder(res);
   await databases.deleteDocuments(MOCK_DB_ID, MOCK_COLLECTION_ID);
-  return res.json({ deleted: true });
+  return respond({
+    code: "SUCCESS",
+    message: "All widgets deleted",
+    data: { deleted: true }
+  });
 });
 router.post("/bulk", async (req, res, _log, _error) => {
+  const respond = createApiResponder(res);
   const body = req.bodyJson;
   try {
     if (!Array.isArray(body)) {
@@ -382,11 +405,7 @@ router.post("/bulk", async (req, res, _log, _error) => {
       };
       const parseResult = WidgetSchema.safeParse(widgetCandidate);
       if (!parseResult.success) {
-        errors.push(
-          ...parseResult.error.issues.map(
-            (e) => e.message
-          )
-        );
+        errors.push(...parseResult.error.issues.map((e) => e.message));
         continue;
       }
       const newWidget = await databases.createDocument(
@@ -398,38 +417,49 @@ router.post("/bulk", async (req, res, _log, _error) => {
       created.push(newWidget);
     }
     if (created.length === 0) {
-      return res.json(
-        {
-          code: "VALIDATION_ERROR",
-          message: "No valid widgets to create",
-          errors
-        },
-        400
-      );
+      return respond({
+        code: "VALIDATION_ERROR",
+        message: "No valid widgets to create",
+        errors,
+        status: 400
+      });
     }
-    return res.json({ items: created, errors }, 201);
+    return respond({
+      code: "SUCCESS",
+      message: "Bulk widgets created",
+      data: { items: created, errors },
+      status: 201
+    });
   } catch (e) {
     if (e instanceof SyntaxError) {
-      return res.json(
-        {
-          code: "BAD_REQUEST",
-          message: "Invalid JSON in request body"
-        },
-        400
-      );
+      return respond({
+        code: "BAD_REQUEST",
+        message: "Invalid JSON in request body",
+        status: 400
+      });
     }
     _error(String(e));
     throw e;
   }
 });
 router.get("/secret", (req, res, _log, _error) => {
+  const respond = createApiResponder(res);
   const authHeader = req.headers["Authorization"] || req.headers["authorization"];
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.json({ code: "UNAUTHORIZED", message: "Unauthorized" }, 401);
+    return respond({
+      code: "UNAUTHORIZED",
+      message: "Unauthorized",
+      status: 401
+    });
   }
-  return res.json({ id: "widget-secret", weight: 200, color: "gold" });
+  return respond({
+    code: "SUCCESS",
+    message: "Secret widget fetched",
+    data: { id: "widget-secret", weight: 200, color: "gold" }
+  });
 });
 router.get("/:id", async (req, res) => {
+  const respond = createApiResponder(res);
   const { id } = req.params;
   try {
     const widget = await databases.getDocument(
@@ -437,12 +467,21 @@ router.get("/:id", async (req, res) => {
       MOCK_COLLECTION_ID,
       id
     );
-    return res.json(widget);
+    return respond({
+      code: "SUCCESS",
+      message: "Widget fetched",
+      data: widget
+    });
   } catch (e) {
-    return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
+    return respond({
+      code: "NOT_FOUND",
+      message: "Widget not found",
+      status: 404
+    });
   }
 });
 router.patch("/:id", async (req, res, _log, _error) => {
+  const respond = createApiResponder(res);
   try {
     const { id } = req.params;
     const body = req.bodyJson;
@@ -459,16 +498,12 @@ router.patch("/:id", async (req, res, _log, _error) => {
     };
     const parseResult = WidgetSchema.safeParse(widgetCandidate);
     if (!parseResult.success) {
-      return res.json(
-        {
-          code: "VALIDATION_ERROR",
-          message: "Invalid widget data",
-          errors: parseResult.error.issues.map(
-            (e) => e.message
-          )
-        },
-        400
-      );
+      return respond({
+        code: "VALIDATION_ERROR",
+        message: "Invalid widget data",
+        errors: parseResult.error.issues.map((e) => e.message),
+        status: 400
+      });
     }
     const updatedWidget = await databases.updateDocument(
       MOCK_DB_ID,
@@ -476,39 +511,59 @@ router.patch("/:id", async (req, res, _log, _error) => {
       id,
       body
     );
-    return res.json(updatedWidget);
+    return respond({
+      code: "SUCCESS",
+      message: "Widget updated",
+      data: updatedWidget
+    });
   } catch (e) {
     if (e instanceof Error && e.message === "Document not found") {
-      return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
+      return respond({
+        code: "NOT_FOUND",
+        message: "Widget not found",
+        status: 404
+      });
     }
     if (e instanceof SyntaxError) {
-      return res.json(
-        {
-          code: "BAD_REQUEST",
-          message: "Invalid JSON in request body"
-        },
-        400
-      );
+      return respond({
+        code: "BAD_REQUEST",
+        message: "Invalid JSON in request body",
+        status: 400
+      });
     }
     _error(String(e));
     throw e;
   }
 });
 router.delete("/:id", async (req, res) => {
+  const respond = createApiResponder(res);
   const { id } = req.params;
   try {
     await databases.deleteDocument(MOCK_DB_ID, MOCK_COLLECTION_ID, id);
-    return res.send("", 204);
+    return respond({
+      code: "SUCCESS",
+      message: "Widget deleted",
+      data: { deleted: true },
+      status: 204
+    });
   } catch (e) {
-    return res.json({ code: "NOT_FOUND", message: "Widget not found" }, 404);
+    return respond({
+      code: "NOT_FOUND",
+      message: "Widget not found",
+      status: 404
+    });
   }
 });
 router.post("/:id", (req, res, _log, _error) => {
+  const respond = createApiResponder(res);
   const { id } = req.params;
-  return res.json({
-    statusCode: 200,
-    id,
-    analysis: "This widget is amazing!"
+  return respond({
+    code: "SUCCESS",
+    message: "Widget analyzed",
+    data: {
+      id,
+      analysis: "This widget is amazing!"
+    }
   });
 });
 var widgets_default = router;
