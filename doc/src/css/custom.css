@@ -28,7 +28,9 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
-.docusaurus-hidden { display: none !important; }
+.docusaurus-hidden {
+  display: none !important;
+}
 
 /*
  * Light & dark mode styles for diff blocks must be placed in this global CSS file.
@@ -39,19 +41,19 @@
  * target diff blocks in dark mode.
  */
 
- [class*='foldedBlock'] .prism-code {
+[class*='foldedBlock'] .prism-code {
   background: transparent !important;
 }
 
-[class*='foldedBlock'] .prism-code [class*="codeLineNumber"] {
+[class*='foldedBlock'] .prism-code [class*='codeLineNumber'] {
   background: #e0e6f0;
 }
 
-.prism-code .code-block-added-line [class*="codeLineNumber"] {
+.prism-code .code-block-added-line [class*='codeLineNumber'] {
   background: rgb(167, 243, 167);
 }
 
-.prism-code .code-block-removed-line [class*="codeLineNumber"] {
+.prism-code .code-block-removed-line [class*='codeLineNumber'] {
   background: #ffbdbd;
 }
 
@@ -59,23 +61,32 @@
   background: transparent !important;
 }
 
-[data-theme="dark"] [class*='foldedBlock'] .prism-code [class*="codeLineNumber"] {
+[data-theme='dark']
+  [class*='foldedBlock']
+  .prism-code
+  [class*='codeLineNumber'] {
   background: #313848;
 }
 
-[data-theme="dark"] .prism-code .code-block-added-line [class*="codeLineNumber"] {
+[data-theme='dark']
+  .prism-code
+  .code-block-added-line
+  [class*='codeLineNumber'] {
   background: rgb(22, 75, 22);
 }
 
-[data-theme="dark"] .prism-code .code-block-removed-line [class*="codeLineNumber"] {
+[data-theme='dark']
+  .prism-code
+  .code-block-removed-line
+  [class*='codeLineNumber'] {
   background: #763636;
 }
 
-.addedBlock .prism-code [class*="codeLineNumber"] {
+.addedBlock .prism-code [class*='codeLineNumber'] {
   background: #57d99c;
   /* background: #e6ffed; */
 }
-.removedBlock .prism-code [class*="codeLineNumber"] {
+.removedBlock .prism-code [class*='codeLineNumber'] {
   background: #ff7b7b;
 }
 
@@ -116,4 +127,12 @@
   text-decoration: line-through;
   text-decoration-color: lightslategrey;
   opacity: 0.7;
+}
+
+/*
+ * Hide the "Toggle Word Wrap" button in our custom FoldableCodeBlock areas,
+ * as it's not needed and can cause issues with our diff-like layout.
+ */
+[class*='codeBlockContent'] button[title*='Toggle word wrap'] {
+  display: none;
 }
