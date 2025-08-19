@@ -1,12 +1,11 @@
-import { handleRequest } from '@kaibun/appwrite-fn-router';
-
 const sdk = require('node-appwrite');
+const { handleRequest } = require('@kaibun/appwrite-fn-router');
 
 export default async function main(context) {
   const client = new sdk.Client()
-    .setEndpoint('https://<REGION>.cloud.appwrite.io/v1')
-    .setProject('<YOUR_PROJECT_ID>')
-    .setKey('<YOUR_API_KEY>');
+    .setEndpoint(process.env.APPWRITE_ENDPOINT)
+    .setProject(process.env.APPWRITE_PROJECT_ID)
+    .setKey(process.env.APPWRITE_API_KEY);
 
   const databases = new sdk.Databases(client);
 
@@ -14,8 +13,8 @@ export default async function main(context) {
     // GET /widgets
     router.get('/widgets', async (_req, res) => {
       const result = await databases.listDocuments(
-        '<DATABASE_ID>',
-        '<COLLECTION_ID>'
+        process.env.APPWRITE_DATABASE_ID,
+        process.env.APPWRITE_COLLECTION_ID
       );
       return res.json({ items: result.documents });
     });

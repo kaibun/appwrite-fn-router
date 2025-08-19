@@ -1,7 +1,10 @@
-import { handleRequest } from '@kaibun/appwrite-fn-router';
+const sdk = require('node-appwrite');
 
 export default async function main(context) {
-  return await handleRequest(context, (router) => {
-    // Here, you’ll define your routes
-  });
+  const client = new sdk.Client()
+    .setEndpoint(process.env.APPWRITE_ENDPOINT)
+    .setProject(process.env.APPWRITE_PROJECT_ID)
+    .setKey(process.env.APPWRITE_API_KEY);
+
+  const databases = new sdk.Databases(client);
 }

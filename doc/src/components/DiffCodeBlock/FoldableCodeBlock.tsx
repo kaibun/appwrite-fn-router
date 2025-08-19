@@ -1,20 +1,26 @@
 import { useState } from 'react';
-import CodeBlock from '@theme/CodeBlock';
+import type { Props as CodeBlockProps } from '@theme/CodeBlock';
 
 import { useUIContext } from '@src/theme/UIContext';
 import { DiffBlock, addMagicCommentsToDiff } from './diffFoldUtils';
+import DiffCodeBlock from './index';
 import styles from './FoldableCodeBlock.module.css';
 
-interface FoldableCodeBlockProps {
-  language?: string;
+export interface FoldableCodeBlockProps
+  extends Omit<CodeBlockProps, 'children'> {
+  children?: React.ReactNode;
+  isFirst?: boolean;
+  isLast?: boolean;
   block: DiffBlock;
 }
 
 export default function FoldableCodeBlock({
-  language = 'typescript',
+  title,
+  language,
   block,
   isFirst = false,
   isLast = false,
+  ...props
 }: FoldableCodeBlockProps & { isFirst?: boolean; isLast?: boolean }) {
   const { t } = useUIContext();
 
@@ -22,6 +28,7 @@ export default function FoldableCodeBlock({
   const [isFolded, setIsFolded] = useState(folded);
   const showFoldButton = type === 'unchanged' && folded;
   const codeWithMagic = addMagicCommentsToDiff(code);
+
   const generatedClass = [
     styles.block,
     isFirst ? styles.firstBlock : '',
@@ -33,6 +40,7 @@ export default function FoldableCodeBlock({
   ]
     .filter(Boolean)
     .join(' ');
+
   return (
     <>
       {showFoldButton && isFolded && (
@@ -54,10 +62,14 @@ export default function FoldableCodeBlock({
         </button>
       )}
       {!isFolded && (
-        <CodeBlock
+        <DiffCodeBlock
+          {...props}
+          title={isFirst ? title : undefined}
           language={language}
           showLineNumbers={startLine}
+          shrink={true}
           className={[
+            'FoldableCodeBlock',
             styles.block,
             isFirst ? styles.firstBlock : '',
             isLast ? styles.lastBlock : '',
@@ -70,7 +82,7 @@ export default function FoldableCodeBlock({
             .join(' ')}
         >
           {codeWithMagic}
-        </CodeBlock>
+        </DiffCodeBlock>
       )}
     </>
   );
