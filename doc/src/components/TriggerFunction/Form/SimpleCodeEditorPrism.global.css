@@ -1,0 +1,69 @@
+/* Prism styles scoped to .codeEditor only (no global leakage)
+   Inspired by Prism Default theme, all selectors prefixed with .codeEditor */
+
+.codeEditor {
+  background: var(--input-bg, #fff);
+  font-family: 'Fira Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 1em;
+  border-radius: 6px;
+  padding: 1em;
+  overflow-x: auto;
+}
+
+.codeEditor .token.comment,
+.codeEditor .token.prolog,
+.codeEditor .token.doctype,
+.codeEditor .token.cdata {
+  color: var(--prism-comment, #708090);
+}
+.codeEditor .token.punctuation {
+  color: var(--prism-punctuation, #999);
+}
+.codeEditor .token.property,
+.codeEditor .token.tag,
+.codeEditor .token.constant,
+.codeEditor .token.symbol,
+.codeEditor .token.deleted {
+  color: var(--prism-property, #905);
+}
+.codeEditor .token.boolean,
+.codeEditor .token.number {
+  color: var(--prism-boolean, #905);
+}
+.codeEditor .token.selector,
+.codeEditor .token.attr-name,
+.codeEditor .token.string,
+.codeEditor .token.char,
+.codeEditor .token.builtin,
+.codeEditor .token.inserted {
+  color: var(--prism-string, #690);
+}
+.codeEditor .token.operator,
+.codeEditor .token.entity,
+.codeEditor .token.url,
+.codeEditor .token.variable {
+  color: var(--prism-operator, #a67f59);
+}
+.codeEditor .token.atrule,
+.codeEditor .token.attr-value,
+.codeEditor .token.keyword {
+  color: var(--prism-keyword, #07a);
+}
+.codeEditor .token.function,
+.codeEditor .token.class-name {
+  color: var(--prism-function, #dd4a68);
+}
+.codeEditor .token.regex,
+.codeEditor .token.important {
+  color: var(--prism-regex, #e90);
+}
+.codeEditor .token.important,
+.codeEditor .token.bold {
+  font-weight: var(--prism-bold, bold);
+}
+.codeEditor .token.italic {
+  font-style: var(--prism-italic, italic);
+}
+.codeEditor .token.entity {
+  cursor: var(--prism-entity, help);
+}

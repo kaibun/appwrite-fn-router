@@ -1,4 +1,5 @@
 export type Palette = {
+  mode: 'light' | 'dark';
   accent: string;
   accent2: string;
   border: string;
@@ -17,7 +18,20 @@ export type Palette = {
   subtext: string;
   text: string;
   textContrast: string;
-  mode: 'light' | 'dark';
+  prism: {
+    comment: string;
+    punctuation: string;
+    property: string;
+    boolean: string;
+    string: string;
+    operator: string;
+    keyword: string;
+    function: string;
+    regex: string;
+    bold: string;
+    italic: string;
+    entity: string;
+  };
 };
 
 export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
@@ -43,6 +57,20 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
       text: '#ffffff',
       textContrast: '#000000',
       mode: 'dark',
+      prism: {
+        comment: '#6a9955',
+        punctuation: '#d4d4d4',
+        property: '#e06c75',
+        boolean: '#b5cea8',
+        string: '#ce9178',
+        operator: '#d4d4d4',
+        keyword: '#569cd6',
+        function: '#dcdcaa',
+        regex: '#d16969',
+        bold: 'bold',
+        italic: 'italic',
+        entity: 'help',
+      },
     };
   }
   return {
@@ -66,5 +94,19 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
     text: '#000000',
     textContrast: '#ffffff',
     mode: 'light',
+    prism: {
+      comment: '#708090',
+      punctuation: '#999999',
+      property: '#990055',
+      boolean: '#990055',
+      string: '#669900',
+      operator: '#a67f59',
+      keyword: '#0077aa',
+      function: '#dd4a68',
+      regex: '#ee9900',
+      bold: 'bold',
+      italic: 'italic',
+      entity: 'help',
+    },
   };
 }
