@@ -36,15 +36,25 @@ const TriggerFunctionResult: React.FC<TriggerFunctionResultProps> = ({
     };
   }, [response]);
 
+  // Détermine le gradient selon le code HTTP
+  const gradient =
+    response.status >= 400
+      ? 'linear-gradient(0deg, #ff7b7b 0%, #ff7b7b 20%, #181818 100%)'
+      : 'linear-gradient(0deg, #57d99c 0%, #57d99c 20%, #181818 100%)';
   return (
     <div
       style={{
         padding: '18px 24px',
-        background:
-          response.status >= 400 ? palette.resultErrorBg : palette.resultBg,
+        background: gradient,
       }}
     >
-      <div style={{ fontSize: 13, color: palette.text, marginBottom: 4 }}>
+      <div
+        style={{
+          fontSize: 13,
+          color: palette.light ? palette.textContrast : palette.text,
+          marginBottom: 4,
+        }}
+      >
         HTTP {response.status} {response.statusText}
       </div>
       <div style={{ marginBottom: 8 }}>

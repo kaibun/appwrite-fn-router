@@ -1,5 +1,7 @@
 export type Palette = {
   mode: 'light' | 'dark';
+  light: boolean;
+  dark: boolean;
   accent: string;
   accent2: string;
   border: string;
@@ -37,7 +39,9 @@ export type Palette = {
 export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
   if (mode === 'dark') {
     return {
-      // dark theme
+      mode: 'dark',
+      dark: true,
+      light: false,
       accent: '#BCD0F0FF',
       accent2: '#93C4CDFF',
       border: '#26324a',
@@ -56,7 +60,6 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
       subtext: '#b3bedc',
       text: '#ffffff',
       textContrast: '#000000',
-      mode: 'dark',
       prism: {
         comment: '#6a9955',
         punctuation: '#d4d4d4',
@@ -74,7 +77,9 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
     };
   }
   return {
-    // light theme
+    mode: 'light',
+    light: true,
+    dark: false,
     accent: '#3b82f6',
     accent2: '#6366f1',
     border: '#e5e7eb',
@@ -93,7 +98,6 @@ export function getPalette(mode: 'light' | 'dark' = 'light'): Palette {
     subtext: '#6b7280',
     text: '#000000',
     textContrast: '#ffffff',
-    mode: 'light',
     prism: {
       comment: '#708090',
       punctuation: '#999999',
