@@ -107,7 +107,7 @@ const Body: React.FC<BodyProps> = ({ bodyOpen }) => {
                   letterSpacing: 0.5,
                   zIndex: 3,
                 }}
-                title="Body synchronisé avec la dernière création"
+                title={t.bodySync}
               >
                 SYNC
               </span>
