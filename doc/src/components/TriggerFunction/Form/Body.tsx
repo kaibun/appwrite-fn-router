@@ -1,5 +1,17 @@
+import './SimpleCodeEditorPrism.global.css';
+// Patch: ensure Prism.languages.json is defined
+if (!Prism.languages.json && Prism.languages.javascript) {
+  Prism.languages.json = Prism.languages.javascript;
+}
 import { useUIContext } from '@src/theme/UIContext';
 import { useRequestContext } from '../contexts/RequestContext';
+import Editor from 'react-simple-code-editor';
+import Prism from 'prismjs';
+// @ts-ignore
+require('prismjs/components/prism-json');
+
+// Utility type: allows standard CSS properties and custom CSS variables (--*)
+type CSSWithVars = React.CSSProperties & { [key: `--${string}`]: string };
 
 export interface BodyProps {
   bodyOpen: boolean;
@@ -10,6 +22,31 @@ const Body: React.FC<BodyProps> = ({ bodyOpen }) => {
   const { method, body, setBody, bodyJsonError, readOnlyBody, isBodySynced } =
     useRequestContext();
   if (method === 'GET') return null;
+
+  // Editor style with CSS variables
+  const editorStyle: CSSWithVars = {
+    border: isBodySynced
+      ? '2px solid #00bcd4'
+      : `1.5px solid ${palette.inputBorder}`,
+    background: palette.inputBgEditable,
+    color: palette.inputText,
+    fontWeight: isBodySynced ? 600 : 400,
+    transition: 'background 0.2s, border 0.2s',
+    minHeight: 80,
+    maxHeight: 320,
+    overflow: 'auto',
+    position: 'relative',
+    zIndex: 2,
+    '--input-bg': palette.inputBgEditable,
+    '--input-text': palette.inputText,
+    // Inject all Prism colors from palette.prism
+    ...Object.fromEntries(
+      Object.entries(palette.prism).map(([key, value]) => [
+        `--prism-${key}`,
+        value,
+      ])
+    ),
+  };
 
   return (
     <>
@@ -31,25 +68,29 @@ const Body: React.FC<BodyProps> = ({ bodyOpen }) => {
           {t.body}
           {readOnlyBody ? '' : t.bodyEditable}
         </summary>
-        {readOnlyBody ? (
-          <pre
+        {/* Always show syntax highlighting, editable or not */}
+        <div style={{ position: 'relative' }}>
+          {!readOnlyBody && (
+            <Editor
+              value={body}
+              onValueChange={setBody}
+              highlight={(code) =>
+                Prism.highlight(code, Prism.languages.json, 'json')
+              }
+              padding={8}
+              className="codeEditor"
+              style={editorStyle}
+            />
+          )}
+          <div
             style={{
-              background: isBodySynced ? '#e0f7fa' : palette.inputBgEditable,
-              fontFamily: 'monospace',
-              fontSize: 14,
-              borderRadius: 6,
-              border: isBodySynced
-                ? '2px solid #00bcd4'
-                : `1.5px solid ${palette.inputBorder}`,
-              padding: 8,
               marginTop: 4,
-              color: palette.inputText,
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-all',
               position: 'relative',
+              zIndex: 1,
+              borderRadius: 6,
+              overflow: 'hidden',
             }}
           >
-            <code>{body}</code>
             {isBodySynced && (
               <span
                 style={{
@@ -64,49 +105,7 @@ const Body: React.FC<BodyProps> = ({ bodyOpen }) => {
                   fontWeight: 700,
                   boxShadow: '0 1px 4px #00bcd455',
                   letterSpacing: 0.5,
-                }}
-                title="Body synchronisé avec la dernière création"
-              >
-                SYNC
-              </span>
-            )}
-          </pre>
-        ) : (
-          <div style={{ position: 'relative' }}>
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={6}
-              style={{
-                width: '100%',
-                fontFamily: 'monospace',
-                fontSize: 14,
-                borderRadius: 6,
-                border: isBodySynced
-                  ? '2px solid #00bcd4'
-                  : `1.5px solid ${palette.inputBorder}`,
-                background: isBodySynced ? '#e0f7fa' : palette.inputBg,
-                padding: 8,
-                marginTop: 4,
-                color: palette.inputText,
-                fontWeight: isBodySynced ? 600 : 400,
-                transition: 'background 0.2s, border 0.2s',
-              }}
-            />
-            {isBodySynced && (
-              <span
-                style={{
-                  position: 'absolute',
-                  right: 12,
-                  top: 10,
-                  background: '#00bcd4',
-                  color: '#fff',
-                  borderRadius: 12,
-                  padding: '2px 10px',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  boxShadow: '0 1px 4px #00bcd455',
-                  letterSpacing: 0.5,
+                  zIndex: 3,
                 }}
                 title="Body synchronisé avec la dernière création"
               >
@@ -114,7 +113,7 @@ const Body: React.FC<BodyProps> = ({ bodyOpen }) => {
               </span>
             )}
           </div>
-        )}
+        </div>
       </details>
       {bodyJsonError && (
         <div
