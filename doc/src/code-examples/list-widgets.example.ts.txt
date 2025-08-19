@@ -3,7 +3,7 @@ import { handleRequest } from '@kaibun/appwrite-fn-router';
 export default async function main(context) {
   return await handleRequest(context, (router) => {
     router.get('/widgets', (req, res) => {
-      // Exemple de retour statique
+      // Just a static response for now
       return res.json([
         { id: '1', weight: 10, color: 'red' },
         { id: '2', weight: 20, color: 'blue' },

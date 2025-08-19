@@ -3,7 +3,7 @@ import { handleRequest } from '@kaibun/appwrite-fn-router';
 export default async function main(context) {
   return await handleRequest(context, (router) => {
     router.get('/widgets', (req, res) => {
-      // Exemple de retour statique
+      // Just a static response for now
       return res.json([
         { id: '1', weight: 10, color: 'red' },
         { id: '2', weight: 20, color: 'blue' },
@@ -11,7 +11,7 @@ export default async function main(context) {
     });
     router.post('/widgets', (req, res) => {
       const widget = req.body;
-      // Simule la création
+      // Let’s simulate the creation of a new widget
       return res.json({ ...widget, id: 'new-id' }, 201);
     });
     router.get('/widgets/:id', (req, res) => {
@@ -27,17 +27,17 @@ export default async function main(context) {
     router.patch('/widgets/:id', (req, res) => {
       const { id } = req.params;
       const updates = req.body;
-      // Simule la mise à jour
+      // Let’s simulate the update
       return res.json({ id, ...updates });
     });
     router.delete('/widgets/:id', (req, res) => {
       const { id } = req.params;
-      // Simule la suppression
+      // Let’s simulate the deletion
       return res.json({ id, deleted: true });
     });
     router.post('/widgets/bulk', (req, res) => {
       const widgets = req.body;
-      // Simule la création groupée
+      // Let’s simulate the bulk creation
       return res.json(
         widgets.map((w, i) => ({ ...w, id: String(i + 1) })),
         201
