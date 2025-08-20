@@ -1,10 +1,10 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
-import path from 'path';
 import type * as Preset from '@docusaurus/preset-classic';
 // import type { ScalarOptions } from '@scalar/docusaurus';
 // import ServeWithoutI18NContext from './plugins/serve-without-i18n';
 // import serveWithoutI18n from './plugins/serve-without-i18n';
+import magicComments from './plugins/magicComments';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -165,38 +165,7 @@ const config: Config = {
     prism: {
       theme: prismThemes.vsLight, // Thème clair moderne (ou essayez prismThemes.palenight, prismThemes.oneLight...)
       darkTheme: prismThemes.dracula, // Thème sombre populaire
-      magicComments: [
-        // Conserver le highlight classique
-        {
-          className: 'theme-code-block-highlighted-line',
-          line: 'highlight-next-line',
-          block: { start: 'highlight-start', end: 'highlight-end' },
-        },
-        // Ligne ajoutée (vert)
-        {
-          className: 'code-block-added-line',
-          line: 'added-next-line',
-          block: { start: 'added-start', end: 'added-end' },
-        },
-        // Ligne modifiée (bleu)
-        {
-          className: 'code-block-modified-line',
-          line: 'modified-next-line',
-          block: { start: 'modified-start', end: 'modified-end' },
-        },
-        // Ligne supprimée (rouge, style barré)
-        {
-          className: 'code-block-removed-line',
-          line: 'removed-next-line',
-          block: { start: 'removed-start', end: 'removed-end' },
-        },
-        // Ligne non modifiée
-        {
-          className: 'code-block-unchanged-line',
-          line: 'unchanged-next-line',
-          block: { start: 'unchanged-start', end: 'unchanged-end' },
-        },
-      ],
+      magicComments,
     },
     docs: {
       sidebar: {
