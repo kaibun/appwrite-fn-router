@@ -1,3 +1,29 @@
+/**
+ * @packageDocumentation
+ *
+ * Typical rendering chain:
+ *
+ * 1. A component eg. steps/ListWidgets/index.tsx calls `FoldableDiffCodeBlock`
+ *    with `before`/`after` props to generate a diff.
+ * 2. `FoldableDiffCodeBlock` uses `lcsDiff` to split the diff into pedagogical
+ *    blocks: unfolded start/end, visible diff blocks, folded unchanged zones,
+ *    etc.
+ * 3. Each block is rendered by `FoldableCodeBlock`, which manages its state
+ *    (folded/unfolded, type, etc.) and delegates its rendering to
+ *    `DiffCodeBlock`.
+ * 4. `DiffCodeBlock`:
+ *   - First, parses and removes zone magic comments (for anchoring and popup
+ *     logic).
+ *   - Then, adds Prism magic comments for diff syntax highlighting.
+ *   - Finally, renders the code in CodeBlock (Docusaurus), with anchor and
+ *     code comment’s popup management.
+ *
+ * This order guarantees:
+ * - Zone magic comments do not pollute Prism highlighting.
+ * - Anchors and popups are properly synchronized with the displayed code.
+ * - Pedagogical logic (diff, folding, explanations) is centralized and maintainable.
+ */
+
 import React from 'react';
 
 import type { DiffCodeBlockProps } from './index';

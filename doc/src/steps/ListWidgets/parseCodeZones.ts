@@ -10,16 +10,16 @@ export function parseCodeZones(code: string) {
   const prismMagicComments = magicComments || [];
   const magicCommentKeywords = [
     // Docusaurus’ native magic comments
-    'highlight-next-line',
-    'highlight-start',
-    'highlight-end',
+    // 'highlight-next-line',
+    // 'highlight-start',
+    // 'highlight-end',
     // Our custom "zones" magic comments
     'zone-start',
     'zone-end',
     // Our Prism-related magic comments
-    ...prismMagicComments
-      .flatMap((mc: any) => [mc.line, mc.block?.start, mc.block?.end])
-      .filter(Boolean),
+    // ...prismMagicComments
+    //   .flatMap((mc: any) => [mc.line, mc.block?.start, mc.block?.end])
+    //   .filter(Boolean),
   ];
   const magicCommentRegex = new RegExp(
     `^\\s*\\/\\/\\s*(${magicCommentKeywords.join('|')})(:|\\s|$)`
@@ -38,12 +38,15 @@ export function parseCodeZones(code: string) {
       if (end) {
         currentZone = null;
       }
+      console.log('Ignoring magic comment:', line);
       return;
     }
     // Only increment clean line index for non-magic lines
     if (currentZone) {
+      console.log('Adding clean line to zone:', currentZone);
       zones[currentZone].push(cleanLines.length + 1); // nth-child is 1-based
     }
+    console.log('Pushing clean line:', line);
     cleanLines.push(line);
   });
 

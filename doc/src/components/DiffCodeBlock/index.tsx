@@ -28,11 +28,41 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import { parseCodeZones } from '@src/steps/ListWidgets/parseCodeZones';
+// Magic zone parser (copié depuis parseCodeZones)
+// function parseCodeZones(code: string) {
+//   const lines = code.split('\n');
+//   const zones: Record<string, number[]> = {};
+//   let currentZone: string | null = null;
+//   const cleanLines: string[] = [];
+//   const magicCommentRegex =
+//     /\/\/ (highlight-next-line|highlight-start|highlight-end|zone-start:(\w+)|zone-end:(\w+))/;
+//   lines.forEach((line) => {
+//     if (magicCommentRegex.test(line)) {
+//       const start = line.match(/\/\/ zone-start:(\w+)/);
+//       const end = line.match(/\/\/ zone-end:(\w+)/);
+//       if (start) {
+//         currentZone = start[1];
+//         zones[currentZone] = [];
+//       }
+//       if (end) {
+//         currentZone = null;
+//       }
+//       return;
+//     }
+//     if (currentZone) {
+//       zones[currentZone].push(cleanLines.length + 1);
+//     }
+//     cleanLines.push(line);
+//   });
+//   return { code: cleanLines.join('\n'), zones };
+// }
 import type { Props as CodeBlockProps } from '@theme/CodeBlock';
 import CodeBlock from '@theme/CodeBlock';
 import { diffLines } from 'diff';
 
 import { addMagicCommentsToDiff } from './diffFoldUtils';
+import { CodeZone } from '@site/src/steps/ListWidgets/zones';
 
 export interface DiffCodeBlockProps extends Omit<CodeBlockProps, 'children'> {
   readonly children?: React.ReactNode;
@@ -42,6 +72,7 @@ export interface DiffCodeBlockProps extends Omit<CodeBlockProps, 'children'> {
   disableDiff?: boolean;
   defaultCollapsed?: boolean;
   shrink?: boolean;
+  codeZones?: CodeZone[];
 }
 
 /**
@@ -83,6 +114,7 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
   disableDiff = false,
   defaultCollapsed = false,
   shrink = false,
+  codeZones,
   ...props
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
@@ -124,10 +156,10 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
 
   let code = '';
   if (before !== undefined && after !== undefined) {
+    console.log('--- Computing diff from before & after');
     const diffResult = diffLines(before, after);
     for (const part of diffResult) {
       if (part.added) {
-        // Add lines with '+' prefix
         code += part.value
           .split('\n')
           .map((line: string, i: number, arr: string[]) =>
@@ -135,7 +167,6 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
           )
           .join('\n');
       } else if (part.removed) {
-        // Remove lines with '-' prefix
         code += part.value
           .split('\n')
           .map((line: string, i: number, arr: string[]) =>
@@ -143,25 +174,104 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
           )
           .join('\n');
       } else {
-        // Unchanged lines
         code += part.value;
       }
     }
   } else if (disableDiff) {
     if (children) {
+      console.log('--- Disabled diff w/ children');
       code = typeof children === 'string' ? children : '';
     } else {
+      console.log('--- Disabled diff w/o children, using after');
       code = after || '';
     }
   } else {
     if (children) {
+      console.log('--- Direct children');
       code = typeof children === 'string' ? children : '';
     } else {
+      console.log('--- Using diff');
       code = diff || '';
     }
   }
 
-  const codeWithMagic = disableDiff ? code : addMagicCommentsToDiff(code);
+  // Parse zones sur le code annoté
+  const { code: codeWithoutZones, zones } = parseCodeZones(code);
+
+  // Ajoute les magic comments pour Prism
+  const codeWithDiffMagicComments = disableDiff
+    ? code
+    : addMagicCommentsToDiff(codeWithoutZones);
+
+  // Attribue anchor-name dynamiquement sur la bonne ligne .token-line
+  useEffect(() => {
+    if (!zones || !Object.keys(zones).length) return;
+    if (!codeBlockRef.current) return;
+    const lines = codeBlockRef.current.querySelectorAll('.token-line');
+    Object.entries(zones).forEach(([zoneId, lineNumbers]) => {
+      lineNumbers.forEach((n) => {
+        const line = lines[n - 1];
+        if (line) {
+          line.setAttribute('anchor-name', `--zone-${zoneId}`);
+        }
+      });
+    });
+  }, [zones, codeBlockRef]);
+
+  /**
+   * This component displays a popup for a specific code zone, identified by
+   * magic comments in the code. It uses CSS Anchor Positioning, which allows
+   * the popup to be positioned relative to the code line (a polyfill may have
+   * been loaded by Docusaurus if need be).
+   *
+   * @param lineIndex The index of the line within the code block.
+   * @param content The content to display in the popup.
+   * @param forceVisible Whether to force the popup to be visible (for testing).
+   * @returns A React component that renders the popup when visible.
+   */
+  function CodeZonePopup({
+    lineIndex,
+    content,
+    forceVisible = false,
+  }: {
+    lineIndex: number;
+    content: React.ReactNode;
+    forceVisible?: boolean; // force visibility for testing and debugging
+  }) {
+    const [visible, setVisible] = useState(forceVisible || false);
+    const popupRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+      if (!codeBlockRef.current) return;
+      const lines = codeBlockRef.current.querySelectorAll('.token-line');
+      const line = lines[lineIndex];
+      if (!line) return;
+      const showPopup = () => setVisible(true);
+      const hidePopup = () => setVisible(false);
+      line.addEventListener('mouseenter', showPopup);
+      line.addEventListener('mouseleave', hidePopup);
+      return () => {
+        line.removeEventListener('mouseenter', showPopup);
+        line.removeEventListener('mouseleave', hidePopup);
+      };
+    }, [lineIndex]);
+    const anchorName = `--zone-${Object.keys(zones)[0]}`;
+    const style: React.CSSProperties = {
+      background: '#fff',
+      border: '1px solid #ccc',
+      padding: 8,
+      zIndex: 1000,
+      position: 'absolute',
+      // @ts-ignore
+      positionAnchor: anchorName,
+      insetBlockStart: 'anchor(bottom)',
+      insetInlineStart: 'anchor(left)',
+    };
+    return forceVisible || visible ? (
+      <div ref={popupRef} style={style}>
+        {content}
+      </div>
+    ) : null;
+  }
 
   return (
     <div
@@ -169,8 +279,19 @@ const DiffCodeBlock: React.FC<DiffCodeBlockProps> = ({
       ref={codeBlockRef}
     >
       <CodeBlock {...props} language={language}>
-        {codeWithMagic.trimEnd()}
+        {codeWithDiffMagicComments.trimEnd()}
       </CodeBlock>
+      {/* Popups pour chaque zone, avec contenu issu de codeZones */}
+      {Object.entries(zones).map(([zoneId, lineNumbers]) => {
+        const zoneObj = codeZones?.find((z) => z.id === zoneId);
+        return lineNumbers.map((n, i) => (
+          <CodeZonePopup
+            key={`${zoneId}-${n}`}
+            lineIndex={n - 1} // n est 1-based, NodeList est 0-based
+            content={zoneObj?.content || <span>Zone: {zoneId}</span>}
+          />
+        ));
+      })}
     </div>
   );
 };
