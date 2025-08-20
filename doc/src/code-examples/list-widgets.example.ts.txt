@@ -1,14 +1,23 @@
+// zone-start:client
 const sdk = require('node-appwrite');
+// zone-end:client
+// zone-start:router
 const { handleRequest } = require('@kaibun/appwrite-fn-router');
+// zone-end:router
 
 export default async function main(context) {
+  // zone-start:clientConfig
   const client = new sdk.Client()
     .setEndpoint(process.env.APPWRITE_ENDPOINT)
     .setProject(process.env.APPWRITE_PROJECT_ID)
     .setKey(process.env.APPWRITE_API_KEY);
+  // zone-end:clientConfig
 
+  // zone-start:databases
   const databases = new sdk.Databases(client);
+  // zone-end:databases
 
+  // zone-start:route
   return await handleRequest(context, (router) => {
     // GET /widgets
     router.get('/widgets', async (_req, res) => {
@@ -19,4 +28,5 @@ export default async function main(context) {
       return res.json({ items: result.documents });
     });
   });
+  // zone-end:route
 }
