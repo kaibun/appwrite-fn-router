@@ -16,6 +16,7 @@ export interface FoldableDiffCodeBlockProps
   contextStart?: number;
   contextEnd?: number;
   foldThreshold?: number;
+  blockId?: string;
 }
 
 /**
@@ -80,12 +81,13 @@ const FoldableDiffCodeBlock: React.FC<
   contextStart,
   contextEnd,
   foldThreshold,
+  blockId,
   disableDiff = false,
   ...props
 }) => {
   if (disableDiff) {
     return (
-      <div>
+      <div id={blockId}>
         {/* {title && <h4 style={{ marginBottom: 8 }}>{title}</h4>} */}
         {/* disableDiff is true, so eventually this will render raw (non-diff)
             code, which is what we want. */}
@@ -104,7 +106,7 @@ const FoldableDiffCodeBlock: React.FC<
     foldThreshold,
   });
   return (
-    <div>
+    <div id={blockId}>
       {/* {title && <h4 style={{ marginBottom: 8 }}>{title}</h4>} */}
       {blocks.map((block, idx) => (
         <FoldableCodeBlock
