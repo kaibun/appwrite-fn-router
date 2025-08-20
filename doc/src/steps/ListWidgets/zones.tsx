@@ -1,7 +1,12 @@
-// Zones d’explication pour l’étape 3 : GET /widgets
 import React from 'react';
 
-export const codeZones = [
+export type CodeZone = {
+  id: string;
+  title: string;
+  content: React.ReactNode;
+};
+
+export default [
   {
     id: 'client',
     title: 'Configuration du client Appwrite',
@@ -41,4 +46,4 @@ export const codeZones = [
       </>
     ),
   },
-];
+] satisfies CodeZone[];
