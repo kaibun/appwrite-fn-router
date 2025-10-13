@@ -1,7 +1,8 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-// import type { ScalarOptions } from '@scalar/docusaurus';
+import type { ScalarOptions } from '@scalar/docusaurus';
+// import ServeWithoutI18NContext from './plugins/serve-without-i18n';
 // import ServeWithoutI18NContext from './plugins/serve-without-i18n';
 // import serveWithoutI18n from './plugins/serve-without-i18n';
 import magicComments from './plugins/magicComments';
@@ -197,21 +198,21 @@ const config: Config = {
         },
       },
     ],
-    // [
-    //   '@scalar/docusaurus',
-    //   {
-    //     label: 'Live Tests',
-    //     route: '/scalar',
-    //     showNavLink: true, // optional, default is true
-    //     configuration: {
-    //       url:
-    //         process.env.NODE_ENV === 'production'
-    //           ? 'https://raw.githubusercontent.com/kaibun/appwrite-fn-router/refs/heads/docusaurus-scalar/openapi/tsp-output/schema/openapi.0.1.0.yaml'
-    //           : 'http://localhost:3001/static/openapi.yaml',
-    //       proxyUrl: 'https://proxy.scalar.com',
-    //     },
-    //   } as ScalarOptions,
-    // ],
+    [
+      '@scalar/docusaurus',
+      {
+        label: 'Live Tests',
+        route: '/scalar',
+        showNavLink: true, // optional, default is true
+        configuration: {
+          url:
+            process.env.NODE_ENV === 'production'
+              ? 'https://raw.githubusercontent.com/kaibun/appwrite-fn-router/refs/heads/docusaurus-scalar/openapi/tsp-output/schema/openapi.0.1.0.yaml'
+              : 'http://localhost:3001/openapi.yaml',
+          proxyUrl: 'https://proxy.scalar.com',
+        },
+      } as ScalarOptions,
+    ],
   ],
 };
 
