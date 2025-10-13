@@ -52,4 +52,19 @@ export default async (context: AppwriteContext) => {
 
 ## Local Development
 
-For instructions on how to set up a local development environment with hot-reloading, please see the [**Contributing Guide**](./doc/docs/contributing/index.md).
+> For instructions on how to set up a local development environment with hot-reloading, please see the [**Contributing Guide**](./doc/docs/contributing/index.md).
+
+### Overview
+
+Mono-repo (TypeScript/Node.js): The main project is an npm library that provides a router for Appwrite Functions, built as a wrapper around Itty Router.
+
+Organization: Multiple sub-projects, including core src code, documentation (Docusaurus), Appwrite test functions, OpenAPI schema, types, Cypress E2E tests, and more.
+
+### Folder Structure
+
+- src: Main source code (TypeScript, React components, utilities)
+- doc: Docusaurus documentation (custom theme, code examples, markdown docs)
+- functions: Appwrite test functions (npm workspace, TypeScript code)
+- openapi: OpenAPI schema and generation scripts
+- cypress: Cypress end-to-end tests
+- types: TypeScript type definitions
