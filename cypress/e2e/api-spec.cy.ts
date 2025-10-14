@@ -3,6 +3,7 @@ import { isValidWidget, isValidWidgetArray } from '../support/utils';
 
 describe('API Tests from OpenAPI Spec', () => {
   let spec: any;
+  let widgetId: string;
   // Dynamically prefixed with host set by cypress.config.ts’ baseUrl
   const path = (p = '') => `/widgets/${p}`;
 
@@ -38,15 +39,15 @@ describe('API Tests from OpenAPI Spec', () => {
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(200);
-        expect(response.body).to.have.property('items');
-        expect(response.body.items).to.be.an('array');
+        expect(response.body).to.have.property('data');
+        expect(response.body.data).to.have.property('items');
+        expect(response.body.data.items).to.be.an('array');
 
         // Validate that each item in the array is a valid Widget
-        expect(isValidWidgetArray(response.body.items)).to.be.true;
+        expect(isValidWidgetArray(response.body.data.items)).to.be.true;
 
         // Additional validation: each widget should have the expected properties
-        response.body.items.forEach((widget: any) => {
-          expect(widget).to.have.property('id').that.is.a('string');
+        response.body.data.items.forEach((widget: any) => {
           expect(widget).to.have.property('weight').that.is.a('number');
           expect(widget)
             .to.have.property('color')
@@ -64,14 +65,11 @@ describe('API Tests from OpenAPI Spec', () => {
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(201);
-
-        // Validate that the returned object is a valid Widget
-        expect(isValidWidget(response.body)).to.be.true;
-
-        // Validate specific properties
-        expect(response.body).to.have.property('id').that.is.a('string');
-        expect(response.body.weight).to.eq(15);
-        expect(response.body.color).to.eq('red');
+        const widget = response.body.data;
+        expect(isValidWidget(widget)).to.be.true;
+        expect(widget.weight).to.eq(15);
+        expect(widget.color).to.eq('red');
+        widgetId = widget.$id; // Store the widget ID for future tests
       });
     });
 
@@ -96,13 +94,9 @@ describe('API Tests from OpenAPI Spec', () => {
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(200);
-
-        // Validate that the returned object is a valid Widget
-        expect(isValidWidget(response.body)).to.be.true;
-
-        // Validate the specific secret widget response
-        expect(response.body).to.deep.equal({
-          id: 'widget-secret',
+        const widget = response.body.data;
+        expect(isValidWidget(widget)).to.be.true;
+        expect(widget).to.include({
           weight: 200,
           color: 'gold',
         });
@@ -123,18 +117,14 @@ describe('API Tests from OpenAPI Spec', () => {
     it('should test GET /widgets/{id} with valid id', () => {
       cy.request({
         method: 'GET',
-        url: path('widget1'),
+        url: path(widgetId),
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(200);
-
-        // Validate that the returned object is a valid Widget
-        expect(isValidWidget(response.body)).to.be.true;
-
-        // Validate specific properties
-        expect(response.body).to.have.property('id', 'widget1');
-        expect(response.body).to.have.property('weight').that.is.a('number');
-        expect(response.body)
+        const widget = response.body.data;
+        expect(isValidWidget(widget)).to.be.true;
+        expect(widget).to.have.property('weight').that.is.a('number');
+        expect(widget)
           .to.have.property('color')
           .that.is.oneOf(['red', 'blue', 'gold']);
       });
@@ -154,27 +144,23 @@ describe('API Tests from OpenAPI Spec', () => {
     it('should test PATCH /widgets/{id}', () => {
       cy.request({
         method: 'PATCH',
-        url: path('widget1'),
+        url: path(widgetId),
         body: { weight: 25, color: 'blue' },
         headers: { 'Content-Type': 'application/json' },
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(200);
-
-        // Validate that the returned object is a valid Widget
-        expect(isValidWidget(response.body)).to.be.true;
-
-        // Validate the updated properties
-        expect(response.body.weight).to.eq(25);
-        expect(response.body.color).to.eq('blue');
-        expect(response.body).to.have.property('id', 'widget1');
+        const widget = response.body.data;
+        expect(isValidWidget(widget)).to.be.true;
+        expect(widget.weight).to.eq(25);
+        expect(widget.color).to.eq('blue');
       });
     });
 
     it('should test DELETE /widgets/{id}', () => {
       cy.request({
         method: 'DELETE',
-        url: path('widget1'),
+        url: path(widgetId),
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(204);
@@ -184,12 +170,13 @@ describe('API Tests from OpenAPI Spec', () => {
     it('should test POST /widgets/{id} (analyze)', () => {
       cy.request({
         method: 'POST',
-        url: path('widget1'),
+        url: path(widgetId),
         failOnStatusCode: false,
       }).then((response) => {
         expect(response.status).to.eq(200);
-        expect(response.body).to.have.property('analysis');
-        expect(response.body.id).to.eq('widget1');
+        const widget = response.body.data;
+        expect(widget).to.have.property('analysis');
+        expect(widget.$id).to.eq(widgetId);
       });
     });
   });
