@@ -2,6 +2,8 @@
   "name": "@kaibun/appwrite-fn-router",
   "version": "0.2.0",
   "description": "A router for Appwrite Functions",
+  "repository": "github:kaibun/appwrite-fn-router",
+  "homepage": "https://appwrite-fn-router.kaibun.net",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
   "type": "module",
