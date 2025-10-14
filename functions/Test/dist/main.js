@@ -463,7 +463,7 @@ router.get("/secret", (req, res, _log, _error) => {
   return respond({
     code: "SUCCESS",
     message: "Secret widget fetched",
-    data: { id: "widget-secret", weight: 200, color: "gold" }
+    data: { $id: "widget-secret", weight: 200, color: "gold" }
   });
 });
 router.get("/:id", async (req, res) => {
@@ -569,7 +569,7 @@ router.post("/:id", (req, res, _log, _error) => {
     code: "SUCCESS",
     message: "Widget analyzed",
     data: {
-      id,
+      $id: id,
       analysis: "This widget is amazing!"
     }
   });

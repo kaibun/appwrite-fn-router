@@ -4,7 +4,7 @@ export function isValidWidget(body: unknown): body is Widget {
   const widget = body as Widget;
   return (
     widget &&
-    typeof widget.id === 'string' &&
+    typeof widget.$id === 'string' &&
     typeof widget.color === 'string' &&
     typeof widget.weight === 'number'
   );
