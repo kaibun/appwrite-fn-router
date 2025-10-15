@@ -92,7 +92,7 @@ type AppwriteContext = {
  * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers. Also, it allows the end-user to inject her own properties. Basically, it’s AppwriteRequest on steroids and fit for itty-router consumption.
  * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
  */
-type AFRRequest = IRequest & AppwriteRequest;
+type AFRRequest = AppwriteRequest & IRequest; // & { [key: string]: any };
 
 type logEnableFn = (mode: 'log' | 'errorLog') => boolean;
 
