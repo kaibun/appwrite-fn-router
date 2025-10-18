@@ -1,10 +1,10 @@
 // Shared Widget types and validation functions
 
 // Type Widget is now inferred from Zod schema for consistency
-export { Widget } from '../../functions/Test/src/validation/widgetSchema';
+export { WidgetInput } from '../functions/Test/src/validation/widgetSchema.ts';
 
 // Type guards for validation
-export const isValidWidget = (obj: any): obj is Widget => {
+export const isValidWidget = (obj: any): obj is WidgetInput => {
   return (
     typeof obj === 'object' &&
     obj !== null &&
@@ -20,6 +20,6 @@ export const isValidWidget = (obj: any): obj is Widget => {
   );
 };
 
-export const isValidWidgetArray = (obj: any): obj is Widget[] => {
+export const isValidWidgetArray = (obj: any): obj is WidgetInput[] => {
   return Array.isArray(obj) && obj.every(isValidWidget);
 };

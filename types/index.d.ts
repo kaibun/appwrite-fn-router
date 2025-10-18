@@ -1,6 +1,6 @@
 // Core types from the library
-export * from './core';
+export * from './core.d.ts';
 // Widget-specific types
-export * from './widget';
+export * from './widget.d.ts';
 // Global declarations
-import './global';
+import './global.d.ts';

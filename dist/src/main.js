@@ -1,3 +1,5 @@
+import "../chunk-PZ5AY32C.js";
+
 // src/main.ts
 import { inspect } from "util";
 import { cors, Router } from "itty-router";

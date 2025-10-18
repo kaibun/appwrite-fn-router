@@ -1,119 +1,7 @@
 import * as itty_router from 'itty-router';
-import { IRequest, RouterOptions as RouterOptions$1 } from 'itty-router';
-import { Request as Request$1 } from 'undici';
-
-// Core types for Appwrite Functions and itty-router integration
-
-
-
-type DefaultLogger = (message: string) => void;
-type ErrorLogger = (message: string) => void;
-
-type InternalObjects = {
-  request: Request$1;
-  [key: any]: unknown; // Allows for additional properties to be added dynamically
-};
-
-type Headers = Record<string, string>;
-type JSONObject = Record<string, unknown>;
-
-type Options = {
-  globals?: boolean;
-  env?: boolean;
-  logs?: logEnableFn | boolean;
-  cors?: {
-    allowedOrigins?: (string | RegExp)[];
-    allowMethods?: string[];
-    allowHeaders?: string[];
-  };
-  ittyOptions?: RouterOptions<
-    AFRRequest,
-    [AppwriteResponse, DefaultLogger, ErrorLogger, InternalObjects] & any[]
-  >;
-};
-
-type FinalOptions = Options & { log: boolean; errorLog: boolean };
-
-type AppwriteRequest = {
-  get body(): JSONObject | string;
-  get bodyRaw(): string;
-  get bodyText(): string;
-  get bodyJson(): JSONObject;
-  get bodyBinary(): Buffer;
-  headers: Headers;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS';
-  host: string;
-  scheme: 'http' | 'https';
-  query: JSONObject;
-  queryString: string;
-  port: string;
-  url: string;
-  path: string;
-};
-
-type BufferFromArgTypes = Parameters<typeof Buffer.from>[0];
-type AppwriteResponse = {
-  send: (
-    body: string,
-    statusCode?: number,
-    headers?: Headers
-  ) => ResponseObject<string>;
-  text: (
-    body: string,
-    statusCode?: number,
-    headers?: Headers
-  ) => ResponseObject<string>;
-  binary: (
-    data: BufferFromArgTypes,
-    statusCode?: number,
-    headers?: Headers
-  ) => ResponseObject<string>;
-  json<DataType = JSONObject>(
-    data: DataType,
-    statusCode?: number,
-    headers?: Headers
-  ): ResponseObject<DataType>;
-  empty: () => ResponseObject;
-  redirect: (
-    url: string,
-    statusCode?: number,
-    headers?: Headers
-  ) => ResponseObject<string>;
-};
-
-type AppwriteContext = {
-  req: AppwriteRequest;
-  res: AppwriteResponse;
-  log: DefaultLogger;
-  error: ErrorLogger;
-};
-
-/**
- * itty-router injects properties at runtime, such as params, query and route. TypeScript has to know about that to avoid type errors in route handlers. Also, it allows the end-user to inject her own properties. Basically, it’s AppwriteRequest on steroids and fit for itty-router consumption.
- * @see https://github.com/kwhitley/itty-router/blob/v5.x/src/Router.ts
- */
-type AFRRequest = AppwriteRequest & IRequest; // & { [key: string]: any };
-
-type logEnableFn = (mode: 'log' | 'errorLog') => boolean;
-
-// Global type declarations for the library
-
-
-
-declare global {
-  var log: DefaultLogger;
-  var error: ErrorLogger;
-
-  namespace NodeJS {
-    interface ProcessEnv {
-      APPWRITE_FUNCTION_API_ENDPOINT: string;
-      APPWRITE_FUNCTION_PROJECT_ID: string;
-      APPWRITE_FUNCTION_API_KEY: string;
-      //   APPWRITE_DATABASE_ID: string;
-      //   APPWRITE_COLLECTION_ID: string;
-    }
-  }
-}
+import { RouterOptions } from 'itty-router';
+import { l as logEnableFn, A as AppwriteRequest, a as AppwriteResponse, D as DefaultLogger, E as ErrorLogger, I as InternalObjects, b as AFRRequest, O as Options, F as FinalOptions, c as AppwriteContext } from '../global.d-DlsSg7Fk.js';
+import 'undici';
 
 /**
  * Default log activation callback: logs are enabled only in development.
@@ -143,7 +31,7 @@ declare function corsFinallyMiddleware(responseFromRoute: any, request: Appwrite
  * native Request object (Fetch API) via a fifth argument corresponding to
  * `InternalObjects`.
  */
-declare function createRouter({ ...args }?: RouterOptions$1<AFRRequest, [
+declare function createRouter({ ...args }?: RouterOptions<AFRRequest, [
     AppwriteResponse,
     DefaultLogger,
     ErrorLogger,

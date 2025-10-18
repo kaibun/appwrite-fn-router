@@ -5,18 +5,8 @@
   "repository": "github:kaibun/appwrite-fn-router",
   "homepage": "https://appwrite-fn-router.kaibun.net",
   "main": "dist/main.js",
-  "types": "dist/main.d.ts",
+  "types": "dist/index.d.ts",
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/main.js",
-      "types": "./dist/main.d.ts"
-    },
-    "./types": {
-      "import": "./types/index.js",
-      "types": "./types/index.d.ts"
-    }
-  },
   "workspaces": [
     "functions/*"
   ],
@@ -61,7 +51,8 @@
   },
   "tsup": {
     "entry": [
-      "src/main.ts"
+      "src/main.ts",
+      "types/index.d.ts"
     ],
     "format": [
       "esm"
