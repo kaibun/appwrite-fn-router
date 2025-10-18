@@ -1,5 +1,6 @@
 import { IRequest } from 'itty-router';
 import { Request } from 'undici';
+import { z } from 'zod';
 
 // Core types for Appwrite Functions and itty-router integration
 
@@ -138,6 +139,39 @@ type AFRRequest = AppwriteRequest & IRequest; // & { [key: string]: any };
 
 type logEnableFn = (mode: 'log' | 'errorLog') => boolean;
 
+// Zod schema for Widget (extends AppwriteDocument)
+declare const WidgetSchema = AppwriteDocumentSchema.extend({
+  weight: z.number(),
+  color: z.enum(['red', 'blue', 'gold']),
+});
+
+type WidgetInput = z.infer<typeof WidgetSchema>;
+
+// Shared Widget types and validation functions
+
+
+
+// Type guards for validation
+declare const isValidWidget = (obj: any): obj is WidgetInput => {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    typeof obj.$id === 'string' &&
+    typeof obj.$collectionId === 'string' &&
+    typeof obj.$databaseId === 'string' &&
+    typeof obj.$createdAt === 'string' &&
+    typeof obj.$updatedAt === 'string' &&
+    Array.isArray(obj.$permissions) &&
+    typeof obj.$sequence === 'number' &&
+    typeof obj.weight === 'number' &&
+    ['red', 'blue', 'gold'].includes(obj.color)
+  );
+};
+
+declare const isValidWidgetArray = (obj: any): obj is WidgetInput[] => {
+  return Array.isArray(obj) && obj.every(isValidWidget);
+};
+
 // Global type declarations for the library
 
 
@@ -157,4 +191,4 @@ declare global {
   }
 }
 
-export type { AppwriteRequest as A, BufferFromArgTypes as B, CatchHandler as C, DefaultLogger as D, ErrorLogger as E, FinalOptions as F, Headers as H, InternalObjects as I, JSONObject as J, Options as O, RouterJSONResponse as R, AppwriteResponse as a, AFRRequest as b, AppwriteContext as c, AFRContext as d, AFRContextArgs as e, AppwriteResponseObject as f, logEnableFn as l };
+export { type AFRContext, type AFRContextArgs, type AFRRequest, type AppwriteContext, type AppwriteRequest, type AppwriteResponse, type AppwriteResponseObject, type BufferFromArgTypes, type CatchHandler, type DefaultLogger, type ErrorLogger, type FinalOptions, type Headers, type InternalObjects, type JSONObject, type Options, type RouterJSONResponse, type WidgetInput, isValidWidget, isValidWidgetArray, type logEnableFn };
